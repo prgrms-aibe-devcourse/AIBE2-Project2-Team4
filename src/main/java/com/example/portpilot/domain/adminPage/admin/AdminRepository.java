@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.admin;
+package com.example.portpilot.domain.adminPage.admin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
