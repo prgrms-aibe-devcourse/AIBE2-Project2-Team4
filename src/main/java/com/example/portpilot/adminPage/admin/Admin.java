@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.adminPage.admin;
+package com.example.portpilot.adminPage.admin;
 
 import com.example.portpilot.global.common.BaseEntity;
 import lombok.Getter;
