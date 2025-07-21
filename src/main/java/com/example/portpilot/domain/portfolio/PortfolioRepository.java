@@ -2,6 +2,7 @@
 package com.example.portpilot.domain.portfolio;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.example.portpilot.domain.user.User;
 
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
     // 작업물 도착 건수

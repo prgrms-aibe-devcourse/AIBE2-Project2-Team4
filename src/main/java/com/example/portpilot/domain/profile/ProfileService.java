@@ -1,5 +1,6 @@
 package com.example.portpilot.domain.profile;
 
+import com.example.portpilot.domain.project.ProjectStatus;
 import com.example.portpilot.domain.project.ProjectRepository;
 import com.example.portpilot.domain.portfolio.PortfolioRepository;
 import com.example.portpilot.domain.user.User;
