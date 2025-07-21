@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.adminPage.admin;
+package com.example.portpilot.domain.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
