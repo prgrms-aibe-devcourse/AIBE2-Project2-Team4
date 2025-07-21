@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.admin;
+package com.example.portpilot.domain.adminPage.admin;
 
 import lombok.Getter;
 import lombok.Setter;
