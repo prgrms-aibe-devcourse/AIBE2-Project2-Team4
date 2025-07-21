@@ -2,7 +2,6 @@ package com.example.portpilot.global.config;
 
 import com.example.portpilot.domain.user.UserService;
 import com.example.portpilot.adminPage.admin.AdminService;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
