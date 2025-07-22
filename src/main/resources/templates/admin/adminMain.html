@@ -3,45 +3,45 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layouts/layout}">
 
-<!-- 사용자 CSS 추가 -->
-<th:block layout:fragment="css">
-    <style>
-        .carousel-inner > .item {
-            height: 500px;
-        }
-        .margin{
-            margin-bottom:20px;
-        }
-        .banner{
-            height: 500px;
-        }
-        .card-text{
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        a:hover{
-            text-decoration:none;
-        }
-        .center{
-            text-align:center;
-        }
-        .banner{
-            position: absolute; top:0; left: 0;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
-</th:block>
 
 <div layout:fragment="content">
-
-    <div id="carouselControls" class="carousel slide margin" data-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active item">
-
+    <div class="main">
+        <div class="dashboard-header">대시보드</div>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">👥 신규 회원 수</div>
+                    <div class="card-content">
+                        <canvas id="newUserChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">👥 탈퇴 회원 수</div>
+                    <div class="card-content">
+                        <canvas id="leftUserChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:2rem;">
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">📍 미처리 신고 수</div>
+                    <div class="card-content">100건</div>
+                    <a href="#" class="card-small-link">처리하러 가기 ▶</a>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">🤝 매칭 현황</div>
+                    <div class="card-content">
+                        <canvas id="matchingChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
+</html>
