@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public abstract class BaseTimeEntity {
     @CreatedDate // 엔티티가 생성되어 저장될 때 시간을 자동으로 저장
     @Column(updatable = false) //수정 시 이 컬럼은 변경되지 않도록 설정
-    private LocalDateTime regTime;
+    private LocalDateTime createdAt;
     @LastModifiedDate // 엔티티 값 변경할 때 시간을 자동으로 저장
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
 }

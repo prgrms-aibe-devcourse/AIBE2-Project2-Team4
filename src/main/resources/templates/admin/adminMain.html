@@ -3,10 +3,17 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layouts/layout}">
 
+<!-- 올바른 HTML 구조로 작성 -->
 
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
 <div layout:fragment="content">
     <div class="main">
         <div class="dashboard-header">대시보드</div>
+
         <div class="row">
             <div class="col">
                 <div class="card">
@@ -25,6 +32,7 @@
                 </div>
             </div>
         </div>
+
         <div class="row" style="margin-top:2rem;">
             <div class="col">
                 <div class="card">
@@ -43,5 +51,58 @@
             </div>
         </div>
     </div>
+
+    <!-- JS 코드 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('newUserChart').getContext('2d');
+
+            const today = new Date();
+            const start = new Date();
+            start.setDate(today.getDate() - 6);
+
+            const formatDate = (d) => d.toISOString().split('T')[0];
+
+            fetch(`/admin/api/dashboard/signup-stats?start=${formatDate(start)}&end=${formatDate(today)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const labels = data.map(item => item.date);
+                    const counts = data.map(item => item.count);
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '일별 신규 가입자 수',
+                                data: counts,
+                                borderColor: '#4e73df',
+                                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: true },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                                x: { title: { display: true, text: '날짜' }},
+                                y: { beginAtZero: true,
+                                    title: { display: true, text: '가입자 수' },
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
 </div>
+</body>
+
 </html>
