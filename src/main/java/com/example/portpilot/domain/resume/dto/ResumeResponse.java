@@ -16,8 +16,8 @@ public class ResumeResponse {
     private final String targetCompany;
     private final String highlights;
     private final ResumeStatus status;
-    private final LocalDateTime regTime;
-    private final LocalDateTime updateTime;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     private final List<ResumeSection> sections;
     private final List<Education> educations;
@@ -32,8 +32,8 @@ public class ResumeResponse {
         this.targetCompany = resume.getTargetCompany();
         this.highlights = resume.getHighlights();
         this.status = resume.getStatus();
-        this.regTime = resume.getRegTime();
-        this.updateTime = resume.getUpdateTime();
+        this.createdAt = resume.getCreatedAt();
+        this.updatedAt = resume.getUpdatedAt();
 
         this.sections = resume.getSections();
         this.educations = resume.getEducations();
