@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${jobPosition.title} + ' - PortPilot'">채용공고 상세 - PortPilot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .job-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .job-info-card {
+            border-left: 4px solid #007bff;
+        }
+        .status-badge {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- 헤더 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/jobs">
+            <i class="fas fa-anchor me-2"></i>PortPilot
+        </a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="/jobs">
+                <i class="fas fa-list me-1"></i>목록으로
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- 채용공고 헤더 -->
+<section class="job-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="company-logo" th:text="${jobPosition.company?.name?.substring(0,1) ?: 'C'}">
+                    C
+                </div>
+            </div>
+            <div class="col">
+                <h1 class="mb-2" th:text="${jobPosition.title}">백엔드 개발자</h1>
+                <h5 class="mb-3 opacity-75" th:text="${jobPosition.company?.name}">회사명</h5>
+                <div class="d-flex flex-wrap gap-2">
+                        <span class="badge status-badge"
+                              th:classappend="${jobPosition.status == '모집중'} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${jobPosition.status}">모집중</span>
+                    <span class="badge bg-light text-dark status-badge"
+                          th:text="${jobPosition.experienceLevel}">신입</span>
+                    <span class="badge bg-light text-dark status-badge">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            <span th:text="${jobPosition.location}">서울</span>
+                        </span>
+                </div>
+            </div>
+            <div class="col-auto">
+                <!-- 관리 버튼들 (기업용) -->
+                <div class="btn-group-vertical gap-2">
+                    <a th:href="@{/jobs/{id}/edit(id=${jobPosition.id})}"
+                       class="btn btn-light">
+                        <i class="fas fa-edit me-1"></i>수정
+                    </a>
+                    <form th:action="@{/jobs/{id}/delete(id=${jobPosition.id})}"
+                          method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-outline-light"
+                                onclick="return confirm('정말 삭제하시겠습니까?')">
+                            <i class="fas fa-trash me-1"></i>삭제
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 메인 컨텐츠 -->
+<div class="container my-5">
+    <div class="row">
+        <!-- 채용공고 내용 -->
+        <div class="col-lg-8">
+            <!-- 직무 설명 -->
+            <div class="card job-info-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="fas fa-briefcase text-primary me-2"></i>직무 설명
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text" th:text="${jobPosition.description}" style="white-space: pre-line;">
+                        채용공고 상세 설명이 들어갑니다...
+                    </p>
+                </div>
+            </div>
+
+            <!-- 지원 자격 -->
+            <div class="card job-info-card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>지원 자격
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text" th:text="${jobPosition.requirements}" style="white-space: pre-line;">
+                        지원 자격 요건이 들어갑니다...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 사이드바 -->
+        <div class="col-lg-4">
+            <!-- 지원하기 카드 -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h6 class="card-title">이 포지션에 관심이 있으신가요?</h6>
+                    <button class="btn btn-primary btn-lg w-100 mb-2">
+                        <i class="fas fa-paper-plane me-1"></i>지원하기
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 bookmark-btn"
+                            th:id="'bookmark-btn-' + ${jobPosition.id}"
+                            th:onclick="'toggleBookmark(\'JOB_POSITION\', ' + ${jobPosition.id} + ', this)'">
+                        <i class="far fa-bookmark me-1" id="bookmark-icon"></i>북마크
+                    </button>
+                </div>
+            </div>
+
+            <!-- 채용 정보 -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>채용 정보
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4"><strong>연봉</strong></div>
+                        <div class="col-8" th:text="${jobPosition.salary ?: '협의'}">협의</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4"><strong>경력</strong></div>
+                        <div class="col-8" th:text="${jobPosition.experienceLevel}">신입</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4"><strong>근무지</strong></div>
+                        <div class="col-8" th:text="${jobPosition.location}">서울</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4"><strong>마감일</strong></div>
+                        <div class="col-8">
+                                <span th:if="${jobPosition.deadline}"
+                                      th:text="${#temporals.format(jobPosition.deadline, 'yyyy-MM-dd')}">2024-12-31</span>
+                            <span th:unless="${jobPosition.deadline}" class="text-muted">상시채용</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4"><strong>등록일</strong></div>
+                        <div class="col-8" th:text="${#temporals.format(jobPosition.regTime, 'yyyy-MM-dd')}">2024-07-22</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 북마크 관련 JavaScript -->
+<script>
+    // 페이지 로드시 북마크 상태 확인
+    document.addEventListener('DOMContentLoaded', function() {
+        checkBookmarkStatus([[${jobPosition.id}]]);
+    });
+
+    // 북마크 상태 확인
+    function checkBookmarkStatus(jobPositionId) {
+        fetch(`/bookmarks/check?targetType=JOB_POSITION&targetId=${jobPositionId}`)
+            .then(response => response.json())
+            .then(data => {
+                const button = document.getElementById(`bookmark-btn-${jobPositionId}`);
+                const icon = button.querySelector('i');
+
+                if (data.bookmarked) {
+                    icon.className = 'fas fa-bookmark me-1';
+                    button.classList.add('btn-danger');
+                    button.classList.remove('btn-outline-secondary');
+                } else {
+                    icon.className = 'far fa-bookmark me-1';
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-outline-secondary');
+                }
+            })
+            .catch(error => console.error('북마크 상태 확인 실패:', error));
+    }
+
+    // 북마크 토글 함수
+    function toggleBookmark(targetType, targetId, buttonElement) {
+        fetch('/bookmarks/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `targetType=${targetType}&targetId=${targetId}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const icon = buttonElement.querySelector('i');
+
+                    if (data.bookmarked) {
+                        // 북마크 추가됨
+                        icon.className = 'fas fa-bookmark me-1';
+                        buttonElement.classList.add('btn-danger');
+                        buttonElement.classList.remove('btn-outline-secondary');
+                        showNotification('북마크에 추가되었습니다!', 'success');
+                    } else {
+                        // 북마크 제거됨
+                        icon.className = 'far fa-bookmark me-1';
+                        buttonElement.classList.remove('btn-danger');
+                        buttonElement.classList.add('btn-outline-secondary');
+                        showNotification('북마크에서 제거되었습니다.', 'info');
+                    }
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('북마크 토글 실패:', error);
+                showNotification('북마크 처리에 실패했습니다.', 'error');
+            });
+    }
+
+    // 알림 표시 함수
+    function showNotification(message, type) {
+        // 간단한 토스트 알림
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 250px;';
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+        `;
+
+        document.body.appendChild(toast);
+
+        // 3초 후 자동 제거
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

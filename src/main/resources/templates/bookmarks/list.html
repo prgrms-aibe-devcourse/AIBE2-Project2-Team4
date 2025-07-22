@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${pageTitle + ' - PortPilot'}">북마크 목록 - PortPilot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .bookmark-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem 0;
+    }
+    .bookmark-card {
+      transition: transform 0.2s ease-in-out;
+      border-left: 4px solid #dc3545;
+    }
+    .bookmark-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .bookmark-card.job-type {
+      border-left-color: #007bff;
+    }
+    .bookmark-card.user-type {
+      border-left-color: #28a745;
+    }
+    .company-logo, .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .company-logo {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    .user-avatar {
+      background: linear-gradient(45deg, #28a745, #1e7e34);
+    }
+    .filter-tabs {
+      background: white;
+      margin-top: -1rem;
+      position: relative;
+      z-index: 10;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    }
+    .bookmark-stats {
+      background: rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .empty-bookmarks {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6c757d;
+    }
+    .bookmark-date {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+<!-- 헤더 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/jobs">
+      <i class="fas fa-anchor me-2"></i>PortPilot
+    </a>
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link" href="/jobs">
+        <i class="fas fa-briefcase me-1"></i>채용공고
+      </a>
+      <a class="nav-link active" href="/bookmarks">
+        <i class="fas fa-bookmark me-1"></i>북마크
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- 북마크 헤더 -->
+<section class="bookmark-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="mb-3">
+          <i class="fas fa-bookmark me-2"></i>
+          <span th:text="${pageTitle}">북마크 목록</span>
+        </h2>
+        <p class="mb-0 opacity-75">관심 있는 채용공고와 구직자를 한 곳에서 관리하세요</p>
+      </div>
+      <div class="col-md-4">
+        <!-- 북마크 통계 -->
+        <div class="bookmark-stats">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="fw-bold fs-4" th:text="${stats.total}">0</div>
+              <small>전체</small>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold fs-4" th:text="${stats.jobs}">0</div>
+              <small>채용공고</small>
+            </div>
+            <div class="col-4">
+              <div class="fw-bold fs-4" th:text="${stats.users}">0</div>
+              <small>구직자</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 메인 컨텐츠 -->
+<div class="container">
+  <!-- 필터 탭 -->
+  <div class="filter-tabs p-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <ul class="nav nav-pills">
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${currentType == 'all'} ? 'active' : ''" href="/bookmarks">
+            <i class="fas fa-list me-1"></i>전체
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${currentType == 'jobs'} ? 'active' : ''" href="/bookmarks?type=jobs">
+            <i class="fas fa-briefcase me-1"></i>채용공고
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${currentType == 'users'} ? 'active' : ''" href="/bookmarks?type=users">
+            <i class="fas fa-user me-1"></i>구직자
+          </a>
+        </li>
+      </ul>
+
+      <!-- 정렬 옵션 -->
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="fas fa-sort me-1"></i>정렬
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" onclick="sortBookmarks('date')">최신순</a></li>
+          <li><a class="dropdown-item" href="#" onclick="sortBookmarks('name')">이름순</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메시지 표시 -->
+  <div th:if="${param.message}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${param.message[0]}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${param.error[0]}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- 북마크 목록 -->
+  <div class="row mt-3" th:if="${bookmarkData != null and !bookmarkData.empty}">
+    <div class="col-lg-6 mb-3" th:each="item : ${bookmarkData}">
+      <div class="card bookmark-card h-100"
+           th:classappend="${item.bookmark.targetType.name() == 'JOB_POSITION'} ? 'job-type' : 'user-type'">
+        <div class="card-body">
+          <!-- 채용공고 북마크 -->
+          <div th:if="${item.bookmark.targetType.name() == 'JOB_POSITION' && item.jobPosition != null}">
+            <div class="d-flex align-items-start mb-3">
+              <div class="company-logo me-3" th:text="${item.jobPosition.company?.name?.substring(0,1) ?: 'C'}">
+                C
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-title mb-1" th:text="${item.jobPosition.title}">채용공고 제목</h6>
+                <p class="text-muted mb-2 small" th:text="${item.jobPosition.company?.name}">회사명</p>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                  <span class="badge bg-primary">채용공고</span>
+                  <span class="badge bg-success" th:text="${item.jobPosition.status}">모집중</span>
+                  <span class="badge bg-secondary" th:text="${item.jobPosition.experienceLevel}">신입</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end">
+              <div>
+                <small class="text-muted">
+                  <i class="fas fa-map-marker-alt me-1"></i>
+                  <span th:text="${item.jobPosition.location}">서울</span>
+                </small>
+                <div class="bookmark-date" th:text="'북마크: ' + ${#temporals.format(item.bookmark.regTime, 'MM-dd HH:mm')}">
+                  북마크: 07-22 14:30
+                </div>
+              </div>
+              <div class="btn-group">
+                <a th:href="@{/jobs/{id}(id=${item.jobPosition.id})}"
+                   class="btn btn-outline-primary btn-sm">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <form th:action="@{/bookmarks/{id}/delete(id=${item.bookmark.id})}"
+                      method="post"
+                      style="display: inline;"
+                      onsubmit="return confirm('북마크에서 제거하시겠습니까?')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- 구직자 북마크 (미구현) -->
+          <div th:if="${item.bookmark.targetType.name() == 'USER'}">
+            <div class="d-flex align-items-start mb-3">
+              <div class="user-avatar me-3">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-title mb-1">구직자 이름</h6>
+                <p class="text-muted mb-2 small">직무 · 경력</p>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                  <span class="badge bg-success">구직자</span>
+                  <span class="badge bg-info">Java</span>
+                  <span class="badge bg-info">Spring</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-end">
+              <div>
+                <small class="text-muted">
+                  <i class="fas fa-briefcase me-1"></i>백엔드 개발자
+                </small>
+                <div class="bookmark-date" th:text="'북마크: ' + ${#temporals.format(item.bookmark.regTime, 'MM-dd HH:mm')}">
+                  북마크: 07-22 14:30
+                </div>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-primary btn-sm">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <form th:action="@{/bookmarks/{id}/delete(id=${item.bookmark.id})}"
+                      method="post"
+                      style="display: inline;"
+                      onsubmit="return confirm('북마크에서 제거하시겠습니까?')">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 북마크 없음 -->
+  <div class="empty-bookmarks" th:if="${bookmarkData == null or bookmarkData.empty}">
+    <i class="fas fa-bookmark fa-4x mb-3"></i>
+    <h5>아직 북마크한 항목이 없습니다</h5>
+    <p>관심 있는 채용공고나 구직자를 북마크해보세요!</p>
+    <div class="mt-4">
+      <a href="/jobs" class="btn btn-primary me-2">
+        <i class="fas fa-briefcase me-1"></i>채용공고 보러가기
+      </a>
+      <a href="/users" class="btn btn-success">
+        <i class="fas fa-users me-1"></i>구직자 보러가기
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // 북마크 정렬 함수
+  function sortBookmarks(type) {
+    // TODO: 정렬 기능 구현
+    console.log('정렬:', type);
+  }
+
+  // 북마크 토글 함수 (다른 페이지에서 사용할 수 있도록)
+  function toggleBookmark(targetType, targetId, buttonElement) {
+    fetch('/bookmarks/toggle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `targetType=${targetType}&targetId=${targetId}`
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // 버튼 상태 업데이트
+                if (data.bookmarked) {
+                  buttonElement.innerHTML = '<i class="fas fa-bookmark"></i>';
+                  buttonElement.classList.add('text-danger');
+                } else {
+                  buttonElement.innerHTML = '<i class="far fa-bookmark"></i>';
+                  buttonElement.classList.remove('text-danger');
+                }
+
+                // 알림 표시
+                showNotification(data.message, 'success');
+              } else {
+                showNotification(data.message, 'error');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              showNotification('북마크 처리에 실패했습니다.', 'error');
+            });
+  }
+
+  // 알림 표시 함수
+  function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+    const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show mt-3" role="alert">
+                    <i class="fas ${iconClass} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+    // 기존 알림 제거
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+
+    // 새 알림 추가
+    const container = document.querySelector('.container');
+    const filterTabs = document.querySelector('.filter-tabs');
+    filterTabs.insertAdjacentHTML('afterend', alertHtml);
+  }
+</script>
+</body>
+</html>
