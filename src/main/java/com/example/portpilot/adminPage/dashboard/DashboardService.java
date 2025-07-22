@@ -19,4 +19,9 @@ public class DashboardService {
     public List<SignupStatDto> getSignupStats(LocalDate start, LocalDate end) {
         return userRepository.countNewUsersByDate(start.atStartOfDay(), end.plusDays(1).atStartOfDay());
     }
+
+    public List<WithdrawStatDto> getWithdrawStats(LocalDate start, LocalDate end) {
+        return userRepository.countWithdrawnUsersByDate(start.atStartOfDay(), end.plusDays(1).atStartOfDay());
+    }
+
 }

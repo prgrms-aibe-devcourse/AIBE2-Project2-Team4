@@ -1,6 +1,7 @@
 package com.example.portpilot.domain.user;
 
 import com.example.portpilot.adminPage.dashboard.SignupStatDto;
+import com.example.portpilot.adminPage.dashboard.WithdrawStatDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +18,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<SignupStatDto> countNewUsersByDate(@Param("start") LocalDateTime start,
                                             @Param("end") LocalDateTime end);
 
+
+    @Query("SELECT new com.example.portpilot.adminPage.dashboard.WithdrawStatDto(FUNCTION('DATE', u.deletedAt), COUNT(u)) " +
+            "FROM User u WHERE u.isDeleted = true AND u.deletedAt BETWEEN :start AND :end " +
+            "GROUP BY FUNCTION('DATE', u.deletedAt) ORDER BY FUNCTION('DATE', u.deletedAt)")
+    List<WithdrawStatDto> countWithdrawnUsersByDate(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
 
 }

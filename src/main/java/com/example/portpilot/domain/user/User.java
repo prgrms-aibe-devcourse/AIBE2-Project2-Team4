@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name="t_user")
@@ -28,6 +29,18 @@ public class User extends BaseEntity {
 
     private Role role;
 
+    @Column(nullable = false)
+    private boolean isDeleted = false;
+
+    private LocalDateTime deletedAt;
+
+    @Column(nullable = false)
+    private boolean isBlocked = false;
+
+    private LocalDateTime blockedAt;
+
+    private LocalDateTime blockedUntil;
+
     // User 엔터티 생성 메소드.
     public static User createUser(UserFormDto userFormDto, PasswordEncoder passwordEncoder){
         User user = new User();
@@ -39,4 +52,25 @@ public class User extends BaseEntity {
         user.setRole(Role.USER);
         return user;
     }
+
+    // 탈퇴 처리
+    public void withdraw() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    // 차단 처리
+    public void blockUntil(LocalDateTime until) {
+        this.isBlocked = true;
+        this.blockedAt = LocalDateTime.now();
+        this.blockedUntil = until;
+    }
+
+    // 차단 해제
+    public void unblock() {
+        this.isBlocked = false;
+        this.blockedAt = null;
+        this.blockedUntil = null;
+    }
+
 }
