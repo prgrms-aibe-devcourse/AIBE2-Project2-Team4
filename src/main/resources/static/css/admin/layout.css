@@ -1,0 +1,35 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #183a8c;
+}
+
+.content-area {
+    flex: 1;
+    padding: 30px;
+    background-color: #f8f9fc;
+}
+
+.footer {
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 14px;
+    border-top: 1px solid #ddd;
+}
