@@ -1,4 +1,3 @@
-// src/main/java/com/example/portpilot/domain/project/Project.java
 package com.example.portpilot.domain.project;
 
 import com.example.portpilot.domain.user.User;

@@ -1,4 +1,3 @@
-// src/main/java/com/example/portpilot/domain/profile/ProfileController.java
 package com.example.portpilot.domain.profile;
 
 import lombok.RequiredArgsConstructor;
@@ -26,5 +25,6 @@ public class ProfileController {
             @RequestParam(defaultValue = "5") int size) {
         return ResponseEntity.ok(service.getRecentActivity(size));
     }
+
 }
 

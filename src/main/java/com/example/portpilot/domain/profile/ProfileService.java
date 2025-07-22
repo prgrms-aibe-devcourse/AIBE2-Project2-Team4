@@ -52,9 +52,18 @@ public class ProfileService {
         return new ProfileStatsDto(ongoing, delivered, issues, p);
     }
 
+    private final ActivityLogRepository activityRepo;
+
     public List<ActivityDto> getRecentActivity(int size) {
-        // TODO: ActivityLogRepository
-        return Collections.emptyList();
+        User user = currentUser();
+        return activityRepo.findByUserIdOrderByDateDesc(user.getId()).stream()
+                .limit(size)
+                .map(log -> new ActivityDto(
+                        log.getDate(),
+                        log.getProjectName(),
+                        log.getRole(),
+                        log.getStatus()))
+                .collect(Collectors.toList());
     }
 }
 

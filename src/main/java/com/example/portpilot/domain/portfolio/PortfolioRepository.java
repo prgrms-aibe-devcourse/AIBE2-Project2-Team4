@@ -1,4 +1,3 @@
-// src/main/java/com/example/portpilot/domain/portfolio/PortfolioRepository.java
 package com.example.portpilot.domain.portfolio;
 
 import org.springframework.data.jpa.repository.JpaRepository;
