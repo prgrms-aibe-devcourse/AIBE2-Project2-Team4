@@ -24,7 +24,7 @@ public class ResumeService {
     private final ExperienceRepository experienceRepository;
     private final UserRepository userRepository;
 
-    // 목록 조회 (간단 버전)
+    // 목록 조회
     public List<ResumeResponse> getResumeList(Long userId) {
         List<Resume> resumes = resumeRepository.findByUserIdOrderByUpdateTimeDesc(userId);
         return resumes.stream()
@@ -32,7 +32,7 @@ public class ResumeService {
                 .collect(Collectors.toList());
     }
 
-    // 상세 조회 (전체 정보 포함)
+    // 상세 조회
     public ResumeResponse getResume(Long resumeId, Long userId) {
         Resume resume = resumeRepository.findByIdAndUserId(resumeId, userId)
                 .orElseThrow(() -> new RuntimeException("이력서를 찾을 수 없습니다."));

@@ -3,10 +3,12 @@ package com.example.portpilot.domain.resume.dto;
 import com.example.portpilot.domain.resume.entity.ResumeStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.Size;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ResumeRequest {
 
