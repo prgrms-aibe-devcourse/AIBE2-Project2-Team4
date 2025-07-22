@@ -1,7 +1,21 @@
 package com.example.portpilot.domain.user;
 
+import com.example.portpilot.adminPage.dashboard.SignupStatDto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public interface UserRepository extends JpaRepository<User,Long> {
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
+
+    @Query("SELECT new com.example.portpilot.adminPage.dashboard.SignupStatDto(FUNCTION('DATE', u.createdAt), COUNT(u)) " +
+            "FROM User u WHERE u.createdAt BETWEEN :start AND :end " +
+            "GROUP BY FUNCTION('DATE', u.createdAt) ORDER BY FUNCTION('DATE', u.createdAt)")
+    List<SignupStatDto> countNewUsersByDate(@Param("start") LocalDateTime start,
+                                            @Param("end") LocalDateTime end);
+
+
 }
