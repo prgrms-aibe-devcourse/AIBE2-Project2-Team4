@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>내 프로필</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+        }
+        h1, h2 {
+            color: #333;
+            margin-top: 1.5rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+        }
+        .skill {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            margin: 4px;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        .stat-box {
+            display: inline-block;
+            width: 150px;
+            margin: 10px 20px 10px 0;
+            padding: 10px;
+            background-color: #e9f5ff;
+            border-left: 5px solid #007acc;
+        }
+    </style>
+</head>
+<body>
+
+<h1>내 프로필</h1>
+
+<div class="section">
+    <p><strong>이름:</strong> <span th:text="${profile.name}">홍길동</span></p>
+    <p><strong>포지션:</strong> <span th:text="${profile.position}">백엔드</span></p>
+    <p><strong>소개:</strong> <span th:text="${profile.bio}">한 줄 소개입니다</span></p>
+    <p><strong>기술 스택:</strong>
+        <span th:each="skill : ${profile.skills}" class="skill" th:text="${skill}">Java</span>
+    </p>
+
+    <p>
+        <a href="/profile/profileedit" style="display: inline-block; margin-top: 10px; padding: 8px 12px; background-color: #007acc; color: white; text-decoration: none; border-radius: 4px;">
+            ✏️ 프로필 수정
+        </a>
+    </p>
+
+</div>
+
+<h2>📊 통계 정보</h2>
+<div class="section">
+    <div class="stat-box">
+        진행 중 프로젝트<br>
+        <strong th:text="${stats.ongoingCount}">0</strong>
+    </div>
+    <div class="stat-box">
+        완료된 프로젝트<br>
+        <strong th:text="${stats.deliveredCount}">0</strong>
+    </div>
+    <div class="stat-box">
+        이슈 수<br>
+        <strong th:text="${stats.issuesCount}">0</strong>
+    </div>
+    <div class="stat-box">
+        구매 완료<br>
+        <strong th:text="${stats.purchases.confirmed}">0</strong>
+    </div>
+    <div class="stat-box">
+        리뷰 대기<br>
+        <strong th:text="${stats.purchases.pendingReviews}">0</strong>
+    </div>
+    <div class="stat-box">
+        취소됨<br>
+        <strong th:text="${stats.purchases.cancelled}">0</strong>
+    </div>
+</div>
+
+<h2>📝 최근 활동</h2>
+<div class="section">
+    <table>
+        <thead>
+        <tr>
+            <th>날짜</th>
+            <th>프로젝트</th>
+            <th>역할</th>
+            <th>상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${activityList}">
+            <td th:text="${a.date}">2025-07-22</td>
+            <td th:text="${a.project}">프로젝트명</td>
+            <td th:text="${a.role}">역할</td>
+            <td th:text="${a.status}">상태</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

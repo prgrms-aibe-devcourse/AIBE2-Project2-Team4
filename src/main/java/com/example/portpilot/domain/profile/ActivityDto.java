@@ -1,4 +1,3 @@
-// src/main/java/com/example/portpilot/domain/profile/ActivityDto.java
 package com.example.portpilot.domain.profile;
 
 import lombok.AllArgsConstructor;
