@@ -100,6 +100,29 @@ public class ProfileService {
         profileRepo.save(profile);
     }
 
+    public void addSkill(String skillName) {
+        if (skillName == null || skillName.isBlank()) return;
+
+        User user = currentUser();
+        UserSkill skill = new UserSkill();
+        skill.setUser(user);
+        skill.setSkillName(skillName.trim());
+        skillRepo.save(skill);
+    }
+
+    public void deleteSkill(String skillName) {
+        User user = currentUser();
+        List<UserSkill> skills = skillRepo.findAllByUserId(user.getId());
+
+        for (UserSkill skill : skills) {
+            if (skill.getSkillName().equalsIgnoreCase(skillName)) {
+                skillRepo.delete(skill);
+                break;
+            }
+        }
+    }
+
+
 }
 
 
