@@ -12,16 +12,24 @@
 <body>
 <div class="sidebar">
   <div class="menu">
-    <a href="#" class="active">자유게시판</a>
-    <a href="#">멘토링 신청</a>
-    <a href="#">멘토링 후기</a>
+    <a href="/mentoring">멘토링 신청</a>
+    <a href="/mentoringReview">멘토링 후기</a>
+    <a href="/study">스터디 만들기</a>
+    <a href="/board" class="active">자유게시판</a>
   </div>
 </div>
 
 <div class="content">
-  <h4 class="mb-4">자유게시판</h4>
+  <!-- 제목임 -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="m-0">
+      <a href="/board" style="text-decoration:none; color: inherit; cursor:pointer;">
+        자유게시판
+      </a>
+    </h4>
+  </div>
 
-  <!-- 필터 -->
+  <!-- 드롭다운 / 필터링 -->
   <div class="d-flex mb-3 gap-2 align-items-center justify-content-between">
     <div class="d-flex gap-2">
       <select class="form-select w-auto" id="jobTypeFilter">
@@ -31,45 +39,34 @@
         <option value="디자이너">디자이너</option>
         <option value="기획자">기획자</option>
       </select>
-
       <select class="form-select w-auto" id="techStackFilter">
         <option value="" disabled selected>기술스택</option>
       </select>
     </div>
+    <!-- 글쓰기 버튼 -->
     <button class="btn btn-outline-dark" onclick="openWriteForm()">글쓰기</button>
   </div>
 
-  <!-- 검색 창 및 내 글 보기 -->
+  <!-- 검색창 / 내 글 보기-->
   <div class="d-flex mb-3 gap-2 align-items-center">
     <input type="text" id="keywordInput" class="form-control" placeholder="검색어를 입력하세요" style="max-width: 300px;">
-    <button class="btn btn-dark" onclick="loadBoards()">검색</button>
-    <button class="btn btn-outline-primary" onclick="loadMyBoards()">내 글 보기</button>
+    <button class="btn btn-dark" onclick="loadBoards(0)">검색</button>
+    <button class="btn btn-outline-primary" id="myBoardsBtn">내 글 보기</button>
   </div>
 
-
-  <!-- 게시글 리스트 -->
+  <!-- 글목록 -->
   <table class="table table-bordered text-center">
     <thead>
     <tr>
-      <th style="width:5%">번호</th>
-      <th style="width:10%">글쓴이</th>
-      <th>제목</th>
-      <th style="width:10%">직종</th>
-      <th style="width:12%">기술</th>
-      <th style="width:7%">조회수</th>
-      <th style="width:15%">작성일</th>
+      <th>번호</th><th>글쓴이</th><th>제목</th><th>직종</th><th>기술</th><th>조회수</th><th>작성일</th>
     </tr>
     </thead>
-    <tbody id="boardTableBody">
-    <!-- Ajax로 채워짐 -->
-    </tbody>
+    <tbody id="boardTableBody"></tbody>
   </table>
-
-  <!-- 페이징 -->
   <div id="pagination" class="d-flex justify-content-center mt-4"></div>
 </div>
 
-<!-- 글쓰기 모달 -->
+<!-- 글 작성 폼 열기 -->
 <div class="overlay" id="overlay" style="display:none;"></div>
 <div class="form-popup" id="writeForm" style="display:none; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); max-width:600px; margin:auto;">
   <h5 class="mb-3">게시글 작성</h5>
@@ -106,182 +103,199 @@
 </div>
 
 <script>
+  // 직종별 기술스택 목록 (글쓰기 & 필터용)
   const techOptions = {
-    "백엔드": ["Java", "Spring", "Spring Boot", "Node.js", "Express", "Python", "Django", "MySQL", "MongoDB"],
-    "프론트엔드": ["HTML", "CSS", "JavaScript", "React", "Vue", "TypeScript", "Next.js"],
-    "디자이너": ["Figma", "Photoshop", "Illustrator", "Sketch", "Adobe XD"],
-    "기획자": ["Notion", "Jira", "Confluence", "Trello", "Excel"]
+    "백엔드": ["Java", "Spring", "MySQL", "Spring Boot", "Node.js", "Express", "MongoDB", "JPA", "Redis", "Kafka"],
+    "프론트엔드": ["HTML", "CSS", "JavaScript", "React", "Vue", "Next.js", "TypeScript", "Tailwind"],
+    "디자이너": ["Figma", "Adobe XD", "Photoshop", "Illustrator"],
+    "기획자": ["Notion", "Jira", "Confluence", "Google Docs"]
   };
 
+  // 직종 선택 시 기술스택 드롭다운 동기화
   function updateTechStack(jobSelectId, techSelectId) {
     const job = document.getElementById(jobSelectId).value;
     const techSelect = document.getElementById(techSelectId);
-    techSelect.innerHTML = '<option value="" disabled selected>기술스택</option>';
-    if (techOptions[job]) {
-      techOptions[job].forEach(stack => {
-        const opt = document.createElement('option');
-        opt.value = stack;
-        opt.textContent = stack;
-        techSelect.appendChild(opt);
-      });
-    }
+    techSelect.innerHTML = '<option value="" selected disabled>기술스택</option>';
+    (techOptions[job] || []).forEach(stack => {
+      const opt = document.createElement('option');
+      opt.value = stack;
+      opt.textContent = stack;
+      techSelect.appendChild(opt);
+    });
   }
 
-  $(document).ready(function () {
-    //csrf 토큰 처리
-    const token = $("meta[name='_csrf']").attr("content");
-    const header = $("meta[name='_csrf_header']").attr("content");
+  // URL 쿼리 파라미터 가져오기
+  function getQueryParam(name) {
+    return new URLSearchParams(window.location.search).get(name);
+  }
 
-    $(document).ajaxSend(function (e, xhr, options) {
-      xhr.setRequestHeader(header, token);
+  // URL 쿼리 파라미터 설정
+  function setQueryParams(params) {
+    const url = new URL(window.location.href);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v) url.searchParams.set(k, v);
+      else url.searchParams.delete(k);
     });
+    history.pushState({}, '', url);
+  }
 
-    loadBoards();
-
-    $('#jobTypeFilter').on('change', function () {
-      updateTechStack('jobTypeFilter', 'techStackFilter');
-      loadBoards();
-    });
-
-    $('#techStackFilter').on('change', function(){
-      if ($(this).val()) {
-        loadBoards();
-      }
-    });
-
-    $('#jobTypeForm').on('change', function () {
-      updateTechStack('jobTypeForm', 'techStackForm');
-    });
-  });
-
+  // 게시글 목록 로드 (Ajax)
   function loadBoards(page = 0) {
     const jobType = $('#jobTypeFilter').val();
     const techStack = $('#techStackFilter').val();
     const keyword = $('#keywordInput').val();
+    setQueryParams({ page, jobType, techStack, keyword });
 
-    $.ajax({
-      url: '/api/board',
-      type: 'GET',
-      data: {
-        page: page,
-        size: 10,
-        jobType: jobType,
-        techStack: techStack,
-        keyword: keyword
-      },
-      success: function (res) {
-        renderBoardList(res);
-        renderPagination(res);
-      },
-      error: function () {
-        alert('게시글을 불러오지 못했습니다.');
-      }
-    });
+    $.get('/api/board', { page, size: 10, jobType, techStack, keyword })
+            .done(res => {
+              renderBoardList(res);
+              renderPagination(res);
+            })
+            .fail(() => alert('게시글 로딩 실패'));
   }
 
-  //내 게시글 로드
+  // 내 글 보기 목록 로드 (Ajax)
   function loadMyBoards(page = 0) {
-    $.ajax({
-      url: '/api/board/my',
-      type: 'GET',
-      data: {
-        page: page,
-        size: 10
-      },
-      success: function (res) {
-        renderBoardList(res);
-        renderPagination(res, loadMyBoards); // 주의: 페이징 시에도 유지되도록
-      },
-      error: function () {
-        alert('내 글을 불러오는 데 실패했습니다.');
-      }
-    });
+    $.get('/api/board/my', { page, size: 10 })
+            .done(res => {
+              renderBoardList(res);
+              renderPagination(res);
+            })
+            .fail(() => alert('내 글 목록 로딩 실패'));
   }
 
-
-
+  // 게시글 목록 렌더링
   function renderBoardList(res) {
-    const tbody = $('#boardTableBody');
-    tbody.empty();
-
+    const tbody = $('#boardTableBody').empty();
     if (res.content.length === 0) {
-      tbody.append('<tr><td colspan="7" class="text-muted">등록된 게시글이 없습니다.</td></tr>');
-      return;
+      return tbody.append('<tr><td colspan="7">게시글 없음</td></tr>');
     }
-
-    res.content.forEach((board, idx) => {
-      const number = res.totalElements - (res.number * res.size) - idx;
-      const row = `<tr data-id="${board.id}" style="cursor:pointer">
-        <td>${board.id}</td>
-        <td>${board.userName}</td>
-        <td>${board.title}</td>
-        <td>${board.jobType ?? '-'}</td>
-        <td>${board.techStack ?? '-'}</td>
-        <td>${board.viewCount}</td>
-        <td>${board.createdAt.replace('T', ' ').substring(0, 16)}</td>
-      </tr>`;
+    res.content.forEach(b => {
+      const created = b.createdAt.replace('T', ' ').substring(0, 16);
+      const row = `
+        <tr data-id="${b.id}">
+          <td>${b.id}</td>
+          <td>${b.userName}</td>
+          <td>${b.title}</td>
+          <td>${b.jobType ?? '-'}</td>
+          <td>${b.techStack ?? '-'}</td>
+          <td>${b.viewCount}</td>
+          <td>${created}</td>
+        </tr>
+      `;
       tbody.append(row);
     });
 
+    // 게시글 클릭 시 상세 페이지 이동
     $('tr[data-id]').click(function () {
       const id = $(this).data('id');
       location.href = `/board/${id}`;
     });
   }
 
+  // 페이지네이션 렌더링
   function renderPagination(res) {
-    const container = $('#pagination');
-    container.empty();
-
+    const container = $('#pagination').empty();
     if (res.totalPages <= 1) return;
 
-    const prevDisabled = res.first ? 'disabled' : '';
-    const nextDisabled = res.last ? 'disabled' : '';
-
-    container.append(`<button class="btn btn-sm mx-1 ${prevDisabled ? 'btn-secondary disabled' : 'btn-outline-secondary'}" ${prevDisabled ? 'disabled' : ''} onclick="loadBoards(${res.number - 1})">&laquo;</button>`);
-
-    for (let i = 0; i < res.totalPages; i++) {
-      const active = res.number === i ? 'btn-primary' : 'btn-outline-primary';
-      container.append(`<button class="btn btn-sm mx-1 ${active}" onclick="loadBoards(${i})">${i + 1}</button>`);
-    }
-
-    container.append(`<button class="btn btn-sm mx-1 ${nextDisabled ? 'btn-secondary disabled' : 'btn-outline-secondary'}" ${nextDisabled ? 'disabled' : ''} onclick="loadBoards(${res.number + 1})">&raquo;</button>`);
-  }
-
-  function openWriteForm() {
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('writeForm').style.display = 'block';
-  }
-
-  function closeWriteForm() {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('writeForm').style.display = 'none';
-  }
-
-  <!-- 글 등록 POST-->
-  $(document).on('submit', '#createForm', function (e) {
-    e.preventDefault();
-
-    const formData = {
-      title: this.title.value,
-      content: this.content.value,
-      jobType: this.jobType.value,
-      techStack: this.techStack.value
+    const appendBtn = (n, label, isActive, isDisabled) => {
+      const activeClass = isActive ? 'btn-primary' : 'btn-outline-primary';
+      const disabledAttr = isDisabled ? 'disabled' : '';
+      container.append(`
+        <button class="btn btn-sm mx-1 ${activeClass}" ${disabledAttr} onclick="loadBoards(${n})">${label}</button>
+      `);
     };
 
-    $.ajax({
-      url: '/api/board',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(formData),
-      success: function () {
-        alert('게시글이 등록되었습니다.');
-        closeWriteForm();
-        loadBoards(); // 새로고침 없이 목록 갱신
-      },
-      error: function () {
-        alert('게시글 등록 실패');
-      }
+    appendBtn(res.number - 1, '«', false, res.first);
+    for (let i = 0; i < res.totalPages; i++) {
+      appendBtn(i, i + 1, res.number === i, false);
+    }
+    appendBtn(res.number + 1, '»', false, res.last);
+  }
+
+  // 글쓰기 폼 열기
+  function openWriteForm() {
+    $('#overlay').show();
+    $('#writeForm').show();
+  }
+
+  // 글쓰기 폼 닫기
+  function closeWriteForm() {
+    $('#overlay').hide();
+    $('#writeForm').hide();
+  }
+
+  // 초기 실행 및 이벤트 바인딩
+  $(function () {
+    // CSRF 토큰 설정
+    const token = $("meta[name='_csrf']").attr("content");
+    const header = $("meta[name='_csrf_header']").attr("content");
+    $(document).ajaxSend(function (e, xhr, options) {
+      xhr.setRequestHeader(header, token);
+    });
+
+    // URL 파라미터 기반 필터 초기값 반영
+    const jobType = getQueryParam("jobType");
+    const techStack = getQueryParam("techStack");
+    const keyword = getQueryParam("keyword");
+    const page = Number(getQueryParam("page") || 0);
+
+    if (jobType) $('#jobTypeFilter').val(jobType);
+    if (techStack) {
+      updateTechStack('jobTypeFilter', 'techStackFilter');
+      $('#techStackFilter').val(techStack);
+    }
+    if (keyword) $('#keywordInput').val(keyword);
+
+    loadBoards(page);
+
+    // 필터 변경 시 목록 갱신
+    $('#jobTypeFilter').on('change', function () {
+      updateTechStack('jobTypeFilter', 'techStackFilter');
+      loadBoards(0);
+    });
+    $('#techStackFilter').on('change', () => loadBoards(0));
+    $('#searchButton').on('click', () => loadBoards(0));
+
+    // 글쓰기 폼 직종 변경 시 기술스택 드롭다운 변경
+    $('#jobTypeForm').on('change', function () {
+      updateTechStack('jobTypeForm', 'techStackForm');
+    });
+
+    // 글 등록 처리 Ajax
+    $(document).on('submit', '#createForm', function (e) {
+      e.preventDefault();
+      const formData = {
+        title: this.title.value,
+        content: this.content.value,
+        jobType: this.jobType.value,
+        techStack: this.techStack.value
+      };
+      $.ajax({
+        url: '/api/board',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function () {
+          alert('게시글이 등록되었습니다.');
+          closeWriteForm();
+
+          // 필터 초기화 후 목록 새로고침
+          $('#jobTypeFilter').val('');
+          $('#techStackFilter').empty().append('<option value="" selected disabled>기술스택</option>');
+          $('#keywordInput').val('');
+
+          loadBoards(0);
+        },
+        error: function () {
+          alert('게시글 등록 실패');
+        }
+      });
+    });
+
+    // 내 글 보기 버튼 이벤트 바인딩
+    $('#myBoardsBtn').on('click', function () {
+      loadMyBoards(0);
     });
   });
 </script>

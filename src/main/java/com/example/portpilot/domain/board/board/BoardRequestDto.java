@@ -10,7 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardRequestDto {
-    //게시판 생성 폼
     private String title;
     private String content;
     private String jobType;

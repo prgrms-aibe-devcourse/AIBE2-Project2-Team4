@@ -3,53 +3,43 @@ package com.example.portpilot.domain.board.comment;
 import com.example.portpilot.domain.board.board.Board;
 import com.example.portpilot.domain.user.User;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comment")
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // 게시글
+    // 댓글 작성자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // 대상 게시글
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
     private Board board;
 
-    // 작성자
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    // 부모 댓글 ID (대댓글 지원)
+    @Column(nullable = true)
+    private Long parentId;
 
-    // 댓글 내용
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // 부모 댓글 (대댓글용)
-    private Long parentId;
+    @Column(nullable = false)
+    private boolean isBlocked;
 
-    private Boolean isBlocked;
-
+    @CreationTimestamp
     private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

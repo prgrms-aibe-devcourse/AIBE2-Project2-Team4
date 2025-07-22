@@ -1,24 +1,22 @@
 package com.example.portpilot.domain.board.board;
 
-import com.example.portpilot.domain.user.User;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("SELECT b FROM Board b " +
-            "WHERE (:jobType IS NULL OR b.jobType = :jobType) " +
-            "AND (:techStack IS NULL OR b.techStack = :techStack) " +
-            "AND (:keyword IS NULL OR " +
-            "LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(b.content) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(b.user.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "WHERE (:jobType IS NULL OR TRIM(b.jobType) = :jobType) " +
+            "AND (:techStack IS NULL OR TRIM(b.techStack) = :techStack) " +
+            "AND (:keyword IS NULL OR b.title LIKE CONCAT('%', :keyword, '%') OR b.content LIKE CONCAT('%', :keyword, '%'))")
     Page<Board> findByFilter(@Param("jobType") String jobType,
                              @Param("techStack") String techStack,
                              @Param("keyword") String keyword,
                              Pageable pageable);
 
-    Page<Board> findByUser(User user, Pageable pageable);
 
+    Page<Board> findByUserId(Long userId, Pageable pageable);
 }

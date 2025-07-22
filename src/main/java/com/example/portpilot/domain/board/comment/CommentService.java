@@ -21,9 +21,9 @@ public class CommentService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void createComment(CommentRequestDto dto, String userEmail) {
+    public void createComment(Long boardId, CommentRequestDto dto, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
-        Board board = boardRepository.findById(dto.getBoardId())
+        Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다."));
 
         Comment comment = Comment.builder()
@@ -50,7 +50,6 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글이 존재하지 않습니다."));
 
-        // 본인만 수정 가능
         if (!comment.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("댓글 수정 권한이 없습니다.");
         }

@@ -29,6 +29,35 @@ body {
     background-color: white;
     color: #29459A;
 }
+/* 표 본문 최소 높이 확보 (10줄 기준, 50px × 10) */
+#boardTableBody {
+    display: table-row-group;
+    min-height: 500px;
+}
+
+/* 각 행 높이 고정 */
+#boardTableBody tr {
+    height: 50px;
+}
+
+/* 셀 내용 중앙 정렬 */
+#boardTableBody td {
+    vertical-align: middle;
+}
+
+/* 전체 테이블 폭 고정 */
+table.table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* 셀 내 텍스트 넘침 방지 */
+table.table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 
 .content {
     margin-left: 220px;

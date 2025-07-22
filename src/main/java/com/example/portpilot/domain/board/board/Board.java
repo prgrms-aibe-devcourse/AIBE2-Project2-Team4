@@ -32,7 +32,10 @@ public class Board extends BaseEntity {
     @Column(nullable = false)
     private int viewCount =0;
 
+    @Column(name = "job_type")
     private String jobType;
+
+    @Column(name = "tech_stack")
     private String techStack;
 
     private String image_url;
