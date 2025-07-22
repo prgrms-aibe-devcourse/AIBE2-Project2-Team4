@@ -1,11 +1,25 @@
+// src/main/java/com/example/portpilot/domain/project/Project.java
 package com.example.portpilot.domain.project;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import com.example.portpilot.domain.user.User;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.persistence.*;
 
 @Entity
+@Table(name = "projects")
+@Getter @Setter
 public class Project {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // 나중에 필드·메서드 추가
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProjectStatus status;
 }
