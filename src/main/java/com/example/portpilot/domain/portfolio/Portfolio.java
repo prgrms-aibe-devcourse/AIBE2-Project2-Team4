@@ -1,11 +1,27 @@
 package com.example.portpilot.domain.portfolio;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import com.example.portpilot.domain.user.User;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.*;
 
 @Entity
+@Table(name = "portfolio")
+@Getter @Setter @NoArgsConstructor
 public class Portfolio {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // 나중에 필드·메서드 추가
+
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    private PortfolioStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }
