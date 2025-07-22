@@ -49,3 +49,42 @@
     margin-left: 240px;
     padding: 2rem;
 }
+
+
+/* 날짜 선택 영역 */
+.date-filter {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.date-filter label {
+    font-weight: bold;
+    color: #444;
+}
+
+.date-filter input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #333;
+}
+
+.date-filter button {
+    padding: 6px 14px;
+    font-size: 14px;
+    background-color: #4e73df;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.date-filter button:hover {
+    background-color: #375ac2;
+}

@@ -26,4 +26,14 @@ public class DashboardController {
     ) {
         return dashboardService.getSignupStats(start, end);
     }
+
+
+    @GetMapping("/withdraw-stats")
+    public List<WithdrawStatDto> getWithdrawStats(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+    ) {
+        return dashboardService.getWithdrawStats(start, end);
+    }
+
 }
