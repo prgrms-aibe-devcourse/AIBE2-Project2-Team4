@@ -26,16 +26,23 @@ public class ResumeService {
 
     // 목록 조회
     public List<ResumeResponse> getResumeList(Long userId) {
-        List<Resume> resumes = resumeRepository.findByUserIdOrderByUpdateTimeDesc(userId);
+        List<Resume> resumes = resumeRepository.findByUserIdOrderByUpdatedAtDesc(userId);
         return resumes.stream()
                 .map(ResumeResponse::new)
                 .collect(Collectors.toList());
     }
 
     // 상세 조회
+    @Transactional(readOnly = true)
     public ResumeResponse getResume(Long resumeId, Long userId) {
         Resume resume = resumeRepository.findByIdAndUserId(resumeId, userId)
                 .orElseThrow(() -> new RuntimeException("이력서를 찾을 수 없습니다."));
+
+        resume.getSections().size();
+        resume.getEducations().size();
+        resume.getCareers().size();
+        resume.getExperiences().size();
+
         return new ResumeResponse(resume);
     }
 
