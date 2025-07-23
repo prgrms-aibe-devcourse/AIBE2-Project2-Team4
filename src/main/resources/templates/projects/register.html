@@ -34,16 +34,105 @@
             <form th:action="@{/projects/register}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
+                <!-- 제목 -->
                 <div class="mb-3">
                     <label for="title" class="form-label">제목</label>
                     <input type="text" id="title" name="title" class="form-control" required>
                 </div>
 
+                <!-- 설명 -->
                 <div class="mb-3">
                     <label for="description" class="form-label">설명</label>
                     <textarea id="description" name="description" class="form-control" rows="4"></textarea>
                 </div>
 
+                <!-- 모집 마감일 -->
+                <div class="mb-3">
+                    <label for="deadline" class="form-label">모집 마감일</label>
+                    <input type="datetime-local"
+                           id="deadline"
+                           name="deadline"
+                           class="form-control"
+                           required/>
+                    <div class="form-text">마감일까지 남은 기간을 자동 계산합니다.</div>
+                </div>
+
+                <!-- 예상 시작일 -->
+                <div class="mb-3">
+                    <label for="startOption" class="form-label">예상 시작일</label>
+                    <select id="startOption"
+                            name="startOption"
+                            class="form-select"
+                            required>
+                        <option value="" disabled selected>선택하세요</option>
+                        <option th:each="opt : ${T(com.example.portpilot.domain.project.entity.enums.StartOption).values()}"
+                                th:value="${opt}"
+                                th:text="${opt.label}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 진행 분류 -->
+                <div class="mb-3">
+                    <label for="projectType" class="form-label">진행 분류</label>
+                    <select id="projectType"
+                            name="projectType"
+                            class="form-select"
+                            required>
+                        <option value="" disabled selected>선택하세요</option>
+                        <option th:each="pt : ${T(com.example.portpilot.domain.project.entity.enums.ProjectType).values()}"
+                                th:value="${pt}"
+                                th:text="${pt.label}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 기획 상태 -->
+                <div class="mb-3">
+                    <label for="planningState" class="form-label">기획 상태</label>
+                    <select id="planningState"
+                            name="planningState"
+                            class="form-select"
+                            required>
+                        <option value="" disabled selected>선택하세요</option>
+                        <option th:each="ps : ${T(com.example.portpilot.domain.project.entity.enums.PlanningState).values()}"
+                                th:value="${ps}"
+                                th:text="${ps.label}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 프로젝트 경험 -->
+                <div class="mb-3">
+                    <label for="experience" class="form-label">프로젝트 경험</label>
+                    <select id="experience"
+                            name="experience"
+                            class="form-select"
+                            required>
+                        <option value="" disabled selected>선택하세요</option>
+                        <option th:each="exp : ${T(com.example.portpilot.domain.project.entity.enums.Experience).values()}"
+                                th:value="${exp}"
+                                th:text="${exp.label}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 협업 예정 인력 -->
+                <div class="mb-3">
+                    <label for="collaborationOption" class="form-label">협업 예정 인력</label>
+                    <select id="collaborationOption"
+                            name="collaborationOption"
+                            class="form-select"
+                            required>
+                        <option value="" disabled selected>선택하세요</option>
+                        <option th:each="co : ${T(com.example.portpilot.domain.project.entity.enums.CollaborationOption).values()}"
+                                th:value="${co}"
+                                th:text="${co.label}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 버튼 -->
                 <div class="d-flex justify-content-between">
                     <a href="/projects" class="btn btn-outline-secondary">취소</a>
                     <button type="submit" class="btn btn-primary">등록</button>
