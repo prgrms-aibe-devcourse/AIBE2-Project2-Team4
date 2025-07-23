@@ -46,7 +46,6 @@
             min-height: 100vh;
         }
 
-
         .card {
             padding: 25px;
             background-color: white;
@@ -65,13 +64,16 @@
         .btn-group {
             margin-top: 30px;
         }
+
+        #schedule-section {
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
-<!--사이드바-->
 <div class="sidebar">
     <div class="menu">
-        <a href="/mentoring"  class="active">멘토링 신청</a>
+        <a href="/mentoring" class="active">멘토링 신청</a>
         <a href="/mentoringReview">멘토링 후기</a>
         <a href="/study">스터디 만들기</a>
         <a href="/board">자유게시판</a>
@@ -88,32 +90,46 @@
         <div class="detail-row"><strong>신청일:</strong> <span id="createdAt"></span></div>
         <div class="detail-row"><strong>상태:</strong> <span id="status"></span></div>
 
-        <div class="btn-group" id="actionButtons">
+        <div class="btn-group" id="actionButtons" style="display: none;">
             <button class="btn btn-success w-50 me-2" onclick="accept()">수락</button>
             <button class="btn btn-danger w-50" onclick="reject()">거절</button>
+        </div>
+
+        <!-- 일정 지정 -->
+        <div id="schedule-section" style="margin-top: 20px; display: none;">
+            <label for="scheduleDate">멘토링 날짜 지정:</label>
+            <input type="datetime-local" id="scheduleDate" min="">
+            <button id="confirmScheduleBtn" class="btn btn-primary btn-sm">일정 확정</button>
+        </div>
+
+        <!-- 확정된 일정 표시 -->
+        <div id="confirmed-schedule" style="margin-top: 20px; display: none;">
+            <p><strong>확정된 일정:</strong> <span id="scheduleDisplay"></span></p>
+            <p><strong>세션 링크:</strong> <a id="sessionLink" href="#" target="_blank"></a></p>
+            <button class="btn btn-outline-primary" id="goToRoomBtn">멘토링 방 이동</button>
         </div>
     </div>
 </div>
 
 <script>
-    // CSRF 토큰 가져오기
     const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
     const params = new URLSearchParams(window.location.search);
     const requestId = params.get('id');
 
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById("scheduleDate").min = now.toISOString().slice(0,16);
+
+    let status, sessionUrl, scheduledAt;
+
     if (!requestId) {
         alert("잘못된 접근입니다.");
-        window.location.href = "/mentoring";
+        location.href = "/mentoring";
     }
 
-    // 상세 데이터 불러오기
     fetch(`/api/mentoring/requests/${requestId}`)
-        .then(res => {
-            if (!res.ok) throw new Error("상세 정보를 불러올 수 없습니다.");
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             document.getElementById('mentorName').textContent = data.mentorName;
             document.getElementById('userName').textContent = data.userName;
@@ -122,73 +138,92 @@
             document.getElementById('createdAt').textContent = data.createdAt;
             document.getElementById('status').textContent = data.status;
 
-            // 상태가 PENDING이 아니면 버튼 숨기기
-            if (data.status !== 'PENDING') {
-                disableButtons();
+            status = data.status;
+            sessionUrl = data.sessionUrl;
+            scheduledAt = data.scheduledAt;
+
+            if (status === 'PENDING') {
+                document.getElementById('actionButtons').style.display = 'flex';
             }
-        })
-        .catch(err => {
-            alert(err.message);
-            location.href = "/mentoring";
+
+            if (status === 'ACCEPTED' && !scheduledAt) {
+                document.getElementById('schedule-section').style.display = 'block';
+            }
+
+            if (scheduledAt && sessionUrl) {
+                document.getElementById('confirmed-schedule').style.display = 'block';
+                document.getElementById('scheduleDisplay').textContent = scheduledAt;
+                document.getElementById('sessionLink').href = sessionUrl;
+                document.getElementById('sessionLink').textContent = sessionUrl;
+            }
         });
 
-    // 수락 버튼
     function accept() {
-        fetch(`/api/mentoring/requests/${requestId}/accept`, {
+        fetch(`/api/mentoring/${requestId}/accept`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 [csrfHeader]: csrfToken
-            },
-            body: JSON.stringify({})
+            }
         })
             .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        throw new Error(text || "멘토링 수락에 실패했습니다.");
-                    });
-                }
+                if (!res.ok) throw new Error("수락 실패");
                 document.getElementById('status').textContent = 'ACCEPTED';
-                disableButtons();
-                alert('멘토링 요청을 수락했습니다.');
+                document.getElementById('actionButtons').style.display = 'none';
+                document.getElementById('schedule-section').style.display = 'block';
             })
-            .catch(err => {
-                console.error('Accept error:', err);
-                alert(err.message);
-            });
+            .catch(err => alert(err.message));
     }
 
-    // 거절 버튼
     function reject() {
         fetch(`/api/mentoring/requests/${requestId}/reject`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 [csrfHeader]: csrfToken
-            },
-            body: JSON.stringify({})
+            }
         })
             .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        throw new Error(text || "멘토링 거절에 실패했습니다.");
-                    });
-                }
+                if (!res.ok) throw new Error("거절 실패");
                 document.getElementById('status').textContent = 'REJECTED';
-                disableButtons();
-                alert('멘토링 요청을 거절했습니다.');
+                document.getElementById('actionButtons').style.display = 'none';
             })
-            .catch(err => {
-                console.error('Reject error:', err);
-                alert(err.message);
-            });
+            .catch(err => alert(err.message));
     }
 
-    // 버튼 비활성화 또는 숨김
-    function disableButtons() {
-        document.getElementById('actionButtons').style.display = 'none';
-    }
+    document.getElementById('confirmScheduleBtn').addEventListener('click', () => {
+        const selected = document.getElementById('scheduleDate').value;
+        if (!selected) return alert("날짜를 선택하세요.");
+
+        fetch(`/api/mentoring/${requestId}/schedule`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ scheduledAt: selected })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert("일정이 확정되었습니다.");
+
+                // 세션 링크 아래에 바로 표시
+                document.getElementById('confirmed-schedule').style.display = 'block';
+                document.getElementById('scheduleDisplay').textContent = data.scheduledAt;
+                document.getElementById('sessionLink').href = data.sessionUrl;
+                document.getElementById('sessionLink').textContent = data.sessionUrl;
+
+                // 전역변수도 갱신
+                sessionUrl = data.sessionUrl;
+            })
+            .catch(err => alert(err.message));
+    });
+
+    document.getElementById('goToRoomBtn')?.addEventListener('click', () => {
+        if (sessionUrl) {
+            window.open(sessionUrl, '_blank');
+        }
+    });
 </script>
-
 </body>
 </html>

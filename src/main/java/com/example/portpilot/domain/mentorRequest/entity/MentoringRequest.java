@@ -5,6 +5,7 @@ import com.example.portpilot.global.common.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "mentoring_request")
@@ -49,6 +50,11 @@ public class MentoringRequest extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private MentoringStatus status;
+
+    // 멘토링 날
+    private LocalDateTime scheduledAt;
+
+    private String SessionUrl;
 
     @PrePersist
     public void init() {
