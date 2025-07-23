@@ -53,13 +53,14 @@
     <p><strong>기술 스택:</strong>
         <span th:each="skill : ${profile.skills}" class="skill" th:text="${skill}">Java</span>
     </p>
-
     <p>
-        <a href="/profile/profileedit" style="display: inline-block; margin-top: 10px; padding: 8px 12px; background-color: #007acc; color: white; text-decoration: none; border-radius: 4px;">
+        <a href="/profile/profileedit"
+           style="display: inline-block; margin-top: 10px; padding: 8px 12px;
+                  background-color: #007acc; color: white; text-decoration: none;
+                  border-radius: 4px;">
             ✏️ 프로필 수정
         </a>
     </p>
-
 </div>
 
 <h2>📊 통계 정보</h2>
@@ -110,6 +111,17 @@
         </tr>
         </tbody>
     </table>
+</div>
+
+<h2>🚀 참여 중인 프로젝트</h2>
+<div class="section">
+    <ul>
+        <li th:each="proj : ${myProjects}">
+            <strong th:text="${proj.title}">프로젝트 제목</strong><br/>
+            <span th:text="${proj.description}">설명</span>
+        </li>
+        <li th:if="${#lists.isEmpty(myProjects)}">참여 중인 프로젝트가 없습니다.</li>
+    </ul>
 </div>
 
 </body>

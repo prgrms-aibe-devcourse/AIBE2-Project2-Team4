@@ -1,10 +1,17 @@
-// src/main/java/com/example/portpilot/domain/profile/ProfileService.java
-package com.example.portpilot.domain.profile;
+package com.example.portpilot.domain.profile.service;
 
 import com.example.portpilot.domain.portfolio.PortfolioRepository;
 import com.example.portpilot.domain.portfolio.PortfolioStatus;
-import com.example.portpilot.domain.project.ProjectRepository;
-import com.example.portpilot.domain.project.ProjectStatus;
+import com.example.portpilot.domain.profile.entity.UserProfile;
+import com.example.portpilot.domain.profile.entity.UserSkill;
+import com.example.portpilot.domain.profile.dto.ActivityDto;
+import com.example.portpilot.domain.profile.dto.ProfileDto;
+import com.example.portpilot.domain.profile.dto.ProfileStatsDto;
+import com.example.portpilot.domain.profile.repository.ActivityLogRepository;
+import com.example.portpilot.domain.profile.repository.UserProfileRepository;
+import com.example.portpilot.domain.profile.repository.UserSkillRepository;
+import com.example.portpilot.domain.project.repository.ProjectRepository;
+import com.example.portpilot.domain.project.entity.ProjectStatus;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
