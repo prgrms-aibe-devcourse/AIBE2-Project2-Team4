@@ -1,77 +1,101 @@
 package com.example.portpilot.global.config;
 
-import com.example.portpilot.domain.user.UserService;
 import com.example.portpilot.adminPage.admin.AdminService;
+import com.example.portpilot.domain.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@RequiredArgsConstructor
+public class SecurityConfig {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserService userService;
     private final AdminService adminService;
 
-    public SecurityConfig(UserService userService, AdminService adminService) {
-        this.userService = userService;
-        this.adminService = adminService;
+    @Bean
+    public AuthenticationManager userAuthManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        // 사용자 로그인 설정
-        http.formLogin()
-                .loginPage("/users/login")
-                .defaultSuccessUrl("/", true)
-                .usernameParameter("email")
-                .failureUrl("/users/login/error")
-                .and()
-                .logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/users/logout"))
-                .logoutSuccessUrl("/");
+    @Bean
+    public AuthenticationManager adminAuthManager() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(adminService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
+    }
 
-        // 어드민 로그인 설정
-        http.formLogin()
-                .loginPage("/admin/login")
-                .defaultSuccessUrl("/admin", true)
-                .usernameParameter("email")
-                .failureUrl("/admin/login/error")
-                .loginProcessingUrl("/admin/login")
+    @Bean
+    @Primary
+    public AuthenticationManager defaultAuthManager() {
+        return userAuthManager();
+    }
+
+    @Bean
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+        CustomAuthenticationFilter customFilter =
+                new CustomAuthenticationFilter(userAuthManager(), adminAuthManager());
+        customFilter.setFilterProcessesUrl("/admin/login");
+        customFilter.setUsernameParameter("email");
+        customFilter.setPasswordParameter("password");
+        customFilter.setAuthenticationFailureHandler((request, response, exception) -> {
+            response.sendRedirect("/admin/login/error");
+        });
+        customFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
+            response.sendRedirect("/admin");
+        });
+
+        http
+                .antMatcher("/admin/**")
+                .authorizeRequests()
+                .antMatchers("/admin/login", "/admin/login/error").permitAll()
+                .anyRequest().hasRole("ADMIN")
                 .and()
+                .addFilterAt(customFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin().disable()
                 .logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/admin/logout"))
                 .logoutSuccessUrl("/admin/login");
 
-        // 접근 권한 설정 (순서 중요!)
-        http.authorizeRequests()
-                .mvcMatchers("/", "/users/**", "/item/**", "/images/**").permitAll()
-                .mvcMatchers("/admin/login", "/admin/login/error").permitAll()
-                .mvcMatchers("/admin/new").hasRole("ADMIN")
-                .mvcMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated();
-    }
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
-        auth.userDetailsService(adminService).passwordEncoder(passwordEncoder());
+        return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .antMatcher("/**")
+                .authorizeRequests()
+                .antMatchers("/", "/users/login", "/users/login/error", "/item/**", "/images/**", "/users/new").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .formLogin()
+                .loginPage("/users/login")
+                .loginProcessingUrl("/users/login")
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/users", true)
+                .failureUrl("/users/login/error")
+                .and()
+                .logout()
+                .logoutUrl("/users/logout")
+                .logoutSuccessUrl("/users/login");
 
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/css/**", "/static/js/**", "/img/**");
+        return http.build();
     }
 }
