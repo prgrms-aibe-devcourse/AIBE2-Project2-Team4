@@ -1,9 +1,34 @@
 <div th:fragment="sidebar" class="sidebar">
   <ul class="sidebar-menu">
-    <li><a href="#" class="active">대시보드</a></li>
-    <li><a href="#">신고 관리</a></li>
-    <li><a href="#">회원 관리</a></li>
-    <li><a href="#">콘텐츠 관리</a></li>
-    <li><a href="#">매칭 관리</a></li>
+    <li>
+      <a href="/admin"
+         th:classappend="${#httpServletRequest.requestURI == '/admin'} ? 'active'">
+        대시보드
+      </a>
+    </li>
+    <li>
+      <a href="#"
+         th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/report')} ? 'active'">
+        신고 관리
+      </a>
+    </li>
+    <li>
+      <a href="/admin/user-management"
+         th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/user-management')} ? 'active'">
+        회원 관리
+      </a>
+    </li>
+    <li>
+      <a href="#"
+         th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/content')} ? 'active'">
+        콘텐츠 관리
+      </a>
+    </li>
+    <li>
+      <a href="#"
+         th:classappend="${#httpServletRequest.requestURI.startsWith('/admin/match')} ? 'active'">
+        매칭 관리
+      </a>
+    </li>
   </ul>
 </div>

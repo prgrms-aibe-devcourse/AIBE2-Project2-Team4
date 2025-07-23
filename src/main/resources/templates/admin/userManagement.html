@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}">
+
+<head>
+  <title>회원 관리</title>
+  <link rel="stylesheet" th:href="@{/css/admin/user-management.css}">
+  <script th:src="@{/js/admin/user-management.js}" defer></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+  <h2 class="user-management-header">회원 관리</h2>
+
+  <div class="search-bar">
+    <input type="text" id="searchKeyword" placeholder="이름, 이메일로 검색">
+    <button id="searchBtn">검색</button>
+  </div>
+
+  <table class="user-table">
+    <thead>
+    <tr>
+      <th>번호</th>
+      <th>이름</th>
+      <th>이메일</th>
+      <th>가입일</th>
+      <th>상태</th>
+    </tr>
+    </thead>
+    <tbody id="userTableBody">
+    <!-- JavaScript로 채워짐 -->
+    </tbody>
+  </table>
+
+  <div id="pagination" class="pagination">
+    <!-- JavaScript로 채워짐 -->
+  </div>
+</div>
+</body>
+</html>

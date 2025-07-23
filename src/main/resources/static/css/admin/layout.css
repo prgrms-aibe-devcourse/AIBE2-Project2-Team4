@@ -22,7 +22,9 @@ html, body {
 
 .content-area {
     flex: 1;
-    padding: 30px;
+    margin-left: 220px;
+    margin-top: 50px;
+    padding: 2rem;
     background-color: #f8f9fc;
 }
 
