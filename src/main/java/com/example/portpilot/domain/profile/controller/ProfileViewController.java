@@ -30,15 +30,18 @@ public class ProfileViewController {
             @AuthenticationPrincipal UserPrincipal principal,
             Model model
     ) {
-        // 테스트 환경: 인증 검증 생략
-        // 기존 프로필 데이터
-        model.addAttribute("profile", profileService.getProfile());
+        // 프로필 정보가 없으면 편집 페이지로 이동
+        try {
+            model.addAttribute("profile", profileService.getProfile());
+        } catch (IllegalStateException e) {
+            return "redirect:/profile/profileedit";
+        }
+
         model.addAttribute("activityList", profileService.getRecentActivity(5));
         model.addAttribute("stats", profileService.getStats());
 
         // 내가 참여한 프로젝트 데이터
-        // 테스트 환경: principal이 null일 수 있으므로 기본 userId 사용
-        Long userId = principal != null ? principal.getId() : 1L;
+        Long userId = principal != null ? principal.getId() : 1L;  // 테스트 환경용 기본 ID
         List<Project> myProjects = projectService.getProjectsForUser(userId);
         model.addAttribute("myProjects", myProjects);
 

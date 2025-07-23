@@ -37,7 +37,9 @@ public class ProjectService {
 
     /** 프로젝트 생성 */
     public Project createProject(Long ownerId, String title, String description) {
-        User owner = userService.findById(ownerId);
+        User owner = userService.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
+
         Project p = new Project();
         p.setOwner(owner);
         p.setStatus(ProjectStatus.OPEN);
@@ -48,7 +50,9 @@ public class ProjectService {
 
     /** 프로젝트 참여 */
     public void joinProject(Long projectId, Long userId) {
-        User user = userService.findById(userId);
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + userId));
+
         Project project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로젝트입니다. id=" + projectId));
 
@@ -73,7 +77,9 @@ public class ProjectService {
     /** 주어진 소유자·상태의 프로젝트 개수 */
     @Transactional(readOnly = true)
     public long countByOwnerAndStatus(Long ownerId, ProjectStatus status) {
-        User owner = userService.findById(ownerId);
+        User owner = userService.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
+
         return projectRepo.countByOwnerAndStatus(owner, status);
     }
 }
