@@ -2,6 +2,8 @@ package com.example.portpilot.domain.user;
 
 import com.example.portpilot.adminPage.dashboard.SignupStatDto;
 import com.example.portpilot.adminPage.dashboard.WithdrawStatDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +13,9 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
+
+    Page<User> findByNameContainingOrEmailContaining(String name, String email, Pageable pageable);
+
 
     @Query("SELECT new com.example.portpilot.adminPage.dashboard.SignupStatDto(FUNCTION('DATE', u.createdAt), COUNT(u)) " +
             "FROM User u WHERE u.createdAt BETWEEN :start AND :end " +

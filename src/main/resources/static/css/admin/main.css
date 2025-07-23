@@ -45,11 +45,6 @@
     flex: 1;
 }
 
-.main {
-    margin-left: 240px;
-    padding: 2rem;
-}
-
 
 /* 날짜 선택 영역 */
 .date-filter {
