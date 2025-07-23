@@ -1,12 +1,16 @@
 package com.example.portpilot.domain.user;
 
+import com.example.portpilot.adminPage.userManagement.UserSimpleDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 @Transactional   // 로직 중 예외 발생 시 롤백
@@ -20,11 +24,33 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    @Transactional
+    public void updateUser(User form) {
+        User user = userRepository.findById(form.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원"));
+        user.setName(form.getName());
+        user.setAddress(form.getAddress());
+        user.setDeleted(form.isDeleted());
+    }
+
+
+
     private void validateDuplicateUser(User user) {
         User findUser = userRepository.findByEmail(user.getEmail());
         if (findUser != null) {
             throw new IllegalStateException("이미 가입된 회원입니다.");
         }
+    }
+
+
+    public Page<UserSimpleDto> searchUsers(String keyword, Pageable pageable) {
+        return userRepository.findByNameContainingOrEmailContaining(keyword, keyword, pageable)
+                .map(UserSimpleDto::new);
     }
 
 
@@ -42,4 +68,5 @@ public class UserService implements UserDetailsService {
                 .roles(user.getRole().toString())    // ROLE_ 접두어는 자동 부여
                 .build();
     }
+
 }

@@ -2,16 +2,16 @@ package com.example.portpilot.domain.profile.service;
 
 import com.example.portpilot.domain.portfolio.PortfolioRepository;
 import com.example.portpilot.domain.portfolio.PortfolioStatus;
-import com.example.portpilot.domain.profile.entity.UserProfile;
-import com.example.portpilot.domain.profile.entity.UserSkill;
 import com.example.portpilot.domain.profile.dto.ActivityDto;
 import com.example.portpilot.domain.profile.dto.ProfileDto;
 import com.example.portpilot.domain.profile.dto.ProfileStatsDto;
+import com.example.portpilot.domain.profile.entity.UserProfile;
+import com.example.portpilot.domain.profile.entity.UserSkill;
 import com.example.portpilot.domain.profile.repository.ActivityLogRepository;
 import com.example.portpilot.domain.profile.repository.UserProfileRepository;
 import com.example.portpilot.domain.profile.repository.UserSkillRepository;
-import com.example.portpilot.domain.project.repository.ProjectRepository;
 import com.example.portpilot.domain.project.entity.ProjectStatus;
+import com.example.portpilot.domain.project.repository.ProjectRepository;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,16 +42,22 @@ public class ProfileService {
 
     /**
      * 사용자 프로필 정보 조회
+     * – 데이터가 없으면 빈 프로필을 생성해서 저장 후 반환
      */
+    @Transactional
     public ProfileDto getProfile() {
         User u = currentUser();
-        UserProfile up = profileRepo.findByUserId(u.getId());
-        if (up == null) {
-            throw new IllegalStateException("프로필 정보가 없습니다.");
-        }
 
-        List<String> skills = skillRepo.findAllByUserId(u.getId())
-                .stream()
+        UserProfile up = profileRepo.findByUserId(u.getId())
+                .orElseGet(() -> {
+                    UserProfile p = new UserProfile();
+                    p.setUser(u);
+                    p.setPosition("");
+                    p.setBio("");
+                    return profileRepo.save(p);
+                });
+
+        List<String> skills = skillRepo.findAllByUserId(u.getId()).stream()
                 .map(UserSkill::getSkillName)
                 .collect(Collectors.toList());
 
@@ -64,7 +70,7 @@ public class ProfileService {
     }
 
     /**
-     * 사용자 통계 정보 조회
+     * 통계 정보 조회
      */
     public ProfileStatsDto getStats() {
         User user = currentUser();
@@ -86,8 +92,7 @@ public class ProfileService {
      */
     public List<ActivityDto> getRecentActivity(int size) {
         User user = currentUser();
-        return activityRepo.findByUserIdOrderByDateDesc(user.getId())
-                .stream()
+        return activityRepo.findByUserIdOrderByDateDesc(user.getId()).stream()
                 .limit(size)
                 .map(log -> new ActivityDto(
                         log.getDate(),
@@ -102,36 +107,41 @@ public class ProfileService {
      * 현재 사용자 스킬 목록 조회
      */
     public List<String> getSkills() {
-        return skillRepo.findAllByUserId(currentUser().getId())
-                .stream()
+        User user = currentUser();
+        return skillRepo.findAllByUserId(user.getId()).stream()
                 .map(UserSkill::getSkillName)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 프로필 수정 (포지션·소개·스킬)
+     */
     @Transactional
     public void updateProfile(String position, String bio, List<String> newSkills) {
         User user = currentUser();
 
-        // 1) 프로필 저장
-        UserProfile profile = profileRepo.findByUserId(user.getId());
-        if (profile == null) {
-            profile = new UserProfile();
-            profile.setUser(user);
-        }
+        // 프로필 저장(생성 혹은 업데이트)
+        UserProfile profile = profileRepo.findByUserId(user.getId())
+                .orElseGet(() -> {
+                    UserProfile p = new UserProfile();
+                    p.setUser(user);
+                    return p;
+                });
         profile.setPosition(position);
         profile.setBio(bio);
         profileRepo.save(profile);
 
-        // 2) 기존 스킬 일괄 삭제 (트랜잭션 내에서 실행)
+        // 스킬 리프레시
         skillRepo.deleteAllByUserId(user.getId());
 
-        // 3) 새 스킬들 저장
-        for (String skillName : newSkills) {
-            if (skillName != null && !skillName.isBlank()) {
-                UserSkill skill = new UserSkill();
-                skill.setUser(user);
-                skill.setSkillName(skillName.trim());
-                skillRepo.save(skill);
+        if (newSkills != null) {
+            for (String skillName : newSkills) {
+                if (!skillName.isBlank()) {
+                    UserSkill skill = new UserSkill();
+                    skill.setUser(user);
+                    skill.setSkillName(skillName.trim());
+                    skillRepo.save(skill);
+                }
             }
         }
     }
