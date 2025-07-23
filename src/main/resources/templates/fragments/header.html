@@ -16,9 +16,11 @@
                 <li class="nav-item" sec:authorize="isAnonymous()">
                     <a class="nav-link" href="/users/login">로그인</a>
                 </li>
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" href="/users/logout">로그아웃</a>
-                </li>
+                <form th:action="@{/users/logout}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-link nav-link" style="padding: 0;">로그아웃</button>
+                </form>
+
             </ul>
             <form class="form-inline my-2 my-lg-0" th:action="@{/}" method="get">
                 <input name="searchQuery" class="form-control mr-sm-2 bg-dark text-white border-light" type="search" placeholder="Search" aria-label="Search">
