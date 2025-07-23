@@ -1,10 +1,10 @@
-package com.example.portpilot.domain.mentorRequest;
+package com.example.portpilot.domain.mentorRequest.entity;
 
 import com.example.portpilot.domain.user.User;
+import com.example.portpilot.global.common.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "mentoring_request")
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MentoringRequest {
+public class MentoringRequest extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,10 +24,22 @@ public class MentoringRequest {
     @JoinColumn(name = "user_id")
     private User user;
 
+    //멘티 이름
+    @Column(name = "user_name")
+    private String userName;
+
     // 멘토
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id")
     private User mentor;
+
+    //멘토 이름
+    @Column(name = "mentor_name")
+    private String mentorName;
+
+    //멘토링이 끝났는지
+    @Column(name = "is_completed", nullable = false)
+    private boolean isCompleted = false;
 
     @Column(nullable = false)
     private String topic;
@@ -36,17 +48,12 @@ public class MentoringRequest {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    private RequestStatus status;
-
-    private LocalDateTime createdAt;
+    private MentoringStatus status;
 
     @PrePersist
     public void init() {
-        this.createdAt = LocalDateTime.now();
-        this.status = RequestStatus.PENDING;
-    }
-
-    public enum RequestStatus {
-        PENDING, ACCEPTED, DECLINED
+        if (status == null) {
+            status = MentoringStatus.PENDING;
+        }
     }
 }

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>멘토링 상세보기</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background-color: #f7faff;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background-color: #29459A;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background-color: white;
+            color: #29459A;
+        }
+
+        .content {
+            margin-left: 220px;
+            padding: 40px 20px;
+            background-color: #f7faff;
+            min-height: 100vh;
+        }
+
+
+        .card {
+            padding: 25px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 25px;
+        }
+
+        .detail-row {
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<!--사이드바-->
+<div class="sidebar">
+    <div class="menu">
+        <a href="/mentoring"  class="active">멘토링 신청</a>
+        <a href="/mentoringReview">멘토링 후기</a>
+        <a href="/study">스터디 만들기</a>
+        <a href="/board">자유게시판</a>
+    </div>
+</div>
+
+<div class="content">
+    <div class="card">
+        <h2>멘토링 신청 상세</h2>
+        <div class="detail-row"><strong>멘토:</strong> <span id="mentorName"></span></div>
+        <div class="detail-row"><strong>멘티:</strong> <span id="userName"></span></div>
+        <div class="detail-row"><strong>주제:</strong> <span id="topic"></span></div>
+        <div class="detail-row"><strong>메시지:</strong> <span id="message"></span></div>
+        <div class="detail-row"><strong>신청일:</strong> <span id="createdAt"></span></div>
+        <div class="detail-row"><strong>상태:</strong> <span id="status"></span></div>
+
+        <div class="btn-group" id="actionButtons">
+            <button class="btn btn-success w-50 me-2" onclick="accept()">수락</button>
+            <button class="btn btn-danger w-50" onclick="reject()">거절</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // CSRF 토큰 가져오기
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get('id');
+
+    if (!requestId) {
+        alert("잘못된 접근입니다.");
+        window.location.href = "/mentoring";
+    }
+
+    // 상세 데이터 불러오기
+    fetch(`/api/mentoring/requests/${requestId}`)
+        .then(res => {
+            if (!res.ok) throw new Error("상세 정보를 불러올 수 없습니다.");
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('mentorName').textContent = data.mentorName;
+            document.getElementById('userName').textContent = data.userName;
+            document.getElementById('topic').textContent = data.topic;
+            document.getElementById('message').textContent = data.message;
+            document.getElementById('createdAt').textContent = data.createdAt;
+            document.getElementById('status').textContent = data.status;
+
+            // 상태가 PENDING이 아니면 버튼 숨기기
+            if (data.status !== 'PENDING') {
+                disableButtons();
+            }
+        })
+        .catch(err => {
+            alert(err.message);
+            location.href = "/mentoring";
+        });
+
+    // 수락 버튼
+    function accept() {
+        fetch(`/api/mentoring/requests/${requestId}/accept`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({})
+        })
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(text => {
+                        throw new Error(text || "멘토링 수락에 실패했습니다.");
+                    });
+                }
+                document.getElementById('status').textContent = 'ACCEPTED';
+                disableButtons();
+                alert('멘토링 요청을 수락했습니다.');
+            })
+            .catch(err => {
+                console.error('Accept error:', err);
+                alert(err.message);
+            });
+    }
+
+    // 거절 버튼
+    function reject() {
+        fetch(`/api/mentoring/requests/${requestId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({})
+        })
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(text => {
+                        throw new Error(text || "멘토링 거절에 실패했습니다.");
+                    });
+                }
+                document.getElementById('status').textContent = 'REJECTED';
+                disableButtons();
+                alert('멘토링 요청을 거절했습니다.');
+            })
+            .catch(err => {
+                console.error('Reject error:', err);
+                alert(err.message);
+            });
+    }
+
+    // 버튼 비활성화 또는 숨김
+    function disableButtons() {
+        document.getElementById('actionButtons').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

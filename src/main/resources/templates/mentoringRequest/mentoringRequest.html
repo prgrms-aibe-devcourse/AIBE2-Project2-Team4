@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>멘토링 신청</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <style>
+        body {
+            background-color: #f7faff;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background-color: #29459A;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background-color: white;
+            color: #29459A;
+        }
+
+        .content {
+            margin-left: 220px;
+            padding: 40px 20px;
+            background-color: #f7faff;
+            min-height: 100vh;
+        }
+
+    </style>
+
+</head>
+<body>
+<!--사이드바-->
+<div class="sidebar">
+    <div class="menu">
+        <a href="/mentoring"  class="active">멘토링 신청</a>
+        <a href="/mentoringReview">멘토링 후기</a>
+        <a href="/study">스터디 만들기</a>
+        <a href="/board">자유게시판</a>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <h3>멘토링 신청하기</h3>
+    <form id="mentoring-request-form">
+        <div class="mb-3">
+            <label for="mentorSelect" class="form-label">멘토 선택</label>
+            <select id="mentorSelect" class="form-select" required>
+                <option value="">멘토를 선택하세요</option>
+                <!-- JS로 옵션 동적 생성 -->
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="topic" class="form-label">신청 주제</label>
+            <input type="text" class="form-control" id="topic" placeholder="주제를 입력하세요" required />
+        </div>
+        <div class="mb-3">
+            <label for="message" class="form-label">내용</label>
+            <textarea class="form-control" id="message" rows="4" placeholder="신청 내용을 입력하세요" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">신청하기</button>
+    </form>
+    <div id="resultMessage" class="mt-3"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMentors();
+    });
+
+    function loadMentors() {
+        fetch('/api/mentoring/mentors')
+            .then(res => res.json())
+            .then(mentors => {
+                const select = document.getElementById('mentorSelect');
+                mentors.forEach(mentor => {
+                    const option = document.createElement('option');
+                    option.value = mentor.email;
+                    option.textContent = `${mentor.userName} (${mentor.email})`;
+                    select.appendChild(option);
+                });
+            })
+            .catch(() => {
+                alert('멘토 목록을 불러오는 데 실패했습니다.');
+            });
+    }
+
+    document.getElementById('mentoring-request-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+
+        const mentorEmail = document.getElementById('mentorSelect').value;
+        const topic = document.getElementById('topic').value;
+        const message = document.getElementById('message').value;
+
+        if (!mentorEmail) {
+            alert('멘토를 선택해주세요');
+            return;
+        }
+
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (header && token) {
+            headers[header] = token;
+        }
+
+        fetch('/api/mentoring', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                mentorEmail: mentorEmail,
+                topic: topic,
+                message: message
+            })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('신청 실패');
+                return res.text();
+            })
+            .then(() => {
+                alert('멘토링 신청이 완료되었습니다!');
+                window.location.href = '/mentoring';
+            })
+            .catch(err => {
+                document.getElementById('resultMessage').textContent = '신청 중 오류가 발생했습니다.';
+                console.error(err);
+            });
+    });
+</script>
+</body>
+</html>
