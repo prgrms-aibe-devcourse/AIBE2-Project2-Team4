@@ -1,5 +1,9 @@
-package com.example.portpilot.domain.profile;
+package com.example.portpilot.domain.profile.controller;
 
+import com.example.portpilot.domain.profile.dto.ActivityDto;
+import com.example.portpilot.domain.profile.dto.ProfileDto;
+import com.example.portpilot.domain.profile.service.ProfileService;
+import com.example.portpilot.domain.profile.dto.ProfileStatsDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

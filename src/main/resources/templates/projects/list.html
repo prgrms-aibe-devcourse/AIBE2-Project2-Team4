@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>프로젝트 찾기 - PortPilot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card-hover { transition: transform .2s; }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">PortPilot</a>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link active" href="/projects">프로젝트 찾기</a></li>
+            <li class="nav-item"><a class="nav-link" href="/profile">내 프로필</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>프로젝트 찾기</h2>
+        <a href="/projects/register" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>새 프로젝트 등록
+        </a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(projects)}" class="alert alert-info">
+        참여 가능한 프로젝트가 없습니다.
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6" th:each="proj : ${projects}">
+            <div class="card card-hover h-100">
+                <!-- 본문만 상세 링크 -->
+                <a th:href="@{/projects/{id}(id=${proj.id})}"
+                   class="text-decoration-none text-dark d-block">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${proj.title}">프로젝트 제목</h5>
+                        <p class="text-muted small mb-2">
+                            등록일: <span th:text="${#temporals.format(proj.createdAt,'yyyy.MM.dd')}">2025.07.23</span>
+                        </p>
+                        <p class="card-text" th:text="${proj.description}">설명</p>
+                    </div>
+                </a>
+                <!-- 푸터: 참여/삭제 -->
+                <div class="card-footer bg-white text-end">
+                    <form th:action="@{/projects/join/{id}(id=${proj.id})}" method="post" class="d-inline" th:if="${openCount > 0}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-sm btn-outline-success">참여하기</button>
+                    </form>
+                    <form th:action="@{/projects/delete/{id}(id=${proj.id})}" method="post" class="d-inline ms-2"
+                          th:if="${principal != null and principal.id == proj.owner.id}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('정말 이 프로젝트를 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.profile;
+package com.example.portpilot.domain.profile.entity;
 
 import com.example.portpilot.domain.user.User;
 import lombok.Getter;

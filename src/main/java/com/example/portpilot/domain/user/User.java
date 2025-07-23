@@ -5,7 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.portpilot.domain.project.entity.Participation;
 
+import java.util.Set;
+import java.util.HashSet;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -71,6 +74,19 @@ public class User extends BaseEntity {
         this.isBlocked = false;
         this.blockedAt = null;
         this.blockedUntil = null;
+    }
+    //참여 매핑 필드 선언
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Participation> participations = new HashSet<>();
+
+    //편의 메서드 (양방향 연관관계 동기화)
+    public void addParticipation(Participation p) {
+        this.participations.add(p);
+        p.setUser(this);
+    }
+    public void removeParticipation(Participation p) {
+        this.participations.remove(p);
+        p.setUser(null);
     }
 
 }
