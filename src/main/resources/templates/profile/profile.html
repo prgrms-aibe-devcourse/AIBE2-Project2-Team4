@@ -1,128 +1,154 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>내 프로필</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle + ' - PortPilot'}">내 프로필 - PortPilot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 2rem;
+        .profile-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #6610f2 100%);
+            color: white;
+            padding: 2rem 0;
         }
-        h1, h2 {
-            color: #333;
-            margin-top: 1.5rem;
+        .stat-card {
+            border-left: 4px solid #0d6efd;
+            background: #f8f9fa;
+            transition: transform .2s;
         }
-        .section {
-            margin-bottom: 2rem;
-        }
-        .skill {
+        .stat-card:hover { transform: translateY(-2px); }
+        .skill-badge {
+            background: #e9ecef;
+            margin: .2rem;
+            padding: .4rem .8rem;
+            border-radius: .25rem;
             display: inline-block;
-            background-color: #f0f0f0;
-            padding: 5px 10px;
-            margin: 4px;
-            border-radius: 4px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-        .stat-box {
-            display: inline-block;
-            width: 150px;
-            margin: 10px 20px 10px 0;
-            padding: 10px;
-            background-color: #e9f5ff;
-            border-left: 5px solid #007acc;
+        .activity-table th {
+            background: #f1f3f5;
         }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-<h1>내 프로필</h1>
+<!-- 헤더 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/">PortPilot</a>
+        <div class="collapse navbar-collapse justify-content-end">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/projects">프로젝트</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/profile">내 프로필</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-<div class="section">
-    <p><strong>이름:</strong> <span th:text="${profile.name}">홍길동</span></p>
-    <p><strong>포지션:</strong> <span th:text="${profile.position}">백엔드</span></p>
-    <p><strong>소개:</strong> <span th:text="${profile.bio}">한 줄 소개입니다</span></p>
-    <p><strong>기술 스택:</strong>
-        <span th:each="skill : ${profile.skills}" class="skill" th:text="${skill}">Java</span>
-    </p>
-    <p>
-        <a href="/profile/profileedit"
-           style="display: inline-block; margin-top: 10px; padding: 8px 12px;
-                  background-color: #007acc; color: white; text-decoration: none;
-                  border-radius: 4px;">
-            ✏️ 프로필 수정
+<!-- 프로필 헤더 -->
+<section class="profile-header text-center mb-5">
+    <div class="container">
+        <h1 th:text="${profile.name}">홍길동</h1>
+        <p class="lead" th:text="${profile.position}">백엔드 엔지니어</p>
+        <a href="/profile/profileedit" class="btn btn-light">
+            <i class="fas fa-edit me-1"></i>프로필 수정
         </a>
-    </p>
+    </div>
+</section>
+
+<div class="container">
+
+    <!-- 소개글 & 기술 스택 -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h5>소개</h5>
+            <p th:text="${profile.bio}">한 줄 소개글이 여기에 표시됩니다.</p>
+        </div>
+        <div class="col-md-4">
+            <h5>기술 스택</h5>
+            <div>
+          <span th:each="skill : ${profile.skills}"
+                class="skill-badge"
+                th:text="${skill}">Java</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 통계 정보 -->
+    <div class="row gy-3 mb-5">
+        <div class="col-md-3">
+            <div class="card stat-card p-3">
+                <h6>진행 중</h6>
+                <h3 th:text="${stats.ongoingCount}">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3">
+                <h6>완료된</h6>
+                <h3 th:text="${stats.deliveredCount}">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3">
+                <h6>이슈 수</h6>
+                <h3 th:text="${stats.issuesCount}">0</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3">
+                <h6>구매 완료</h6>
+                <h3 th:text="${stats.purchases.confirmed}">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- 최근 활동 테이블 -->
+    <div class="mb-5">
+        <h5>최근 활동</h5>
+        <table class="table table-striped activity-table">
+            <thead>
+            <tr>
+                <th>날짜</th>
+                <th>프로젝트</th>
+                <th>역할</th>
+                <th>상태</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${activityList}">
+                <td th:text="${#temporals.format(a.date, 'yyyy-MM-dd')}">2025-07-22</td>
+                <td th:text="${a.project}">프로젝트명</td>
+                <td th:text="${a.role}">역할</td>
+                <td th:text="${a.status}">상태</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 참여 중인 프로젝트 -->
+    <div class="mb-5">
+        <h5>참여 중인 프로젝트</h5>
+        <div th:if="${#lists.isEmpty(myProjects)}" class="text-center text-muted py-4">
+            참여 중인 프로젝트가 없습니다.
+        </div>
+        <div class="row g-3" th:if="${!#lists.isEmpty(myProjects)}">
+            <div class="col-md-6" th:each="proj : ${myProjects}">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title" th:text="${proj.title}">프로젝트 제목</h6>
+                        <p class="card-text" th:text="${proj.description}">설명</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<h2>📊 통계 정보</h2>
-<div class="section">
-    <div class="stat-box">
-        진행 중 프로젝트<br>
-        <strong th:text="${stats.ongoingCount}">0</strong>
-    </div>
-    <div class="stat-box">
-        완료된 프로젝트<br>
-        <strong th:text="${stats.deliveredCount}">0</strong>
-    </div>
-    <div class="stat-box">
-        이슈 수<br>
-        <strong th:text="${stats.issuesCount}">0</strong>
-    </div>
-    <div class="stat-box">
-        구매 완료<br>
-        <strong th:text="${stats.purchases.confirmed}">0</strong>
-    </div>
-    <div class="stat-box">
-        리뷰 대기<br>
-        <strong th:text="${stats.purchases.pendingReviews}">0</strong>
-    </div>
-    <div class="stat-box">
-        취소됨<br>
-        <strong th:text="${stats.purchases.cancelled}">0</strong>
-    </div>
-</div>
-
-<h2>📝 최근 활동</h2>
-<div class="section">
-    <table>
-        <thead>
-        <tr>
-            <th>날짜</th>
-            <th>프로젝트</th>
-            <th>역할</th>
-            <th>상태</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="a : ${activityList}">
-            <td th:text="${a.date}">2025-07-22</td>
-            <td th:text="${a.project}">프로젝트명</td>
-            <td th:text="${a.role}">역할</td>
-            <td th:text="${a.status}">상태</td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-<h2>🚀 참여 중인 프로젝트</h2>
-<div class="section">
-    <ul>
-        <li th:each="proj : ${myProjects}">
-            <strong th:text="${proj.title}">프로젝트 제목</strong><br/>
-            <span th:text="${proj.description}">설명</span>
-        </li>
-        <li th:if="${#lists.isEmpty(myProjects)}">참여 중인 프로젝트가 없습니다.</li>
-    </ul>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
 </body>
 </html>
