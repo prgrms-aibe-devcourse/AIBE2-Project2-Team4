@@ -3,7 +3,9 @@ package com.example.portpilot.domain.project.entity;
 import com.example.portpilot.domain.user.User;
 import lombok.Getter;
 import lombok.Setter;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,7 +22,7 @@ public class Project {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    // 상태 (예: OPEN, IN_PROGRESS, COMPLETED 등)
+    // 상태 (예: OPEN, CLOSED 등)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectStatus status;
@@ -31,6 +33,10 @@ public class Project {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    // 생성 일시
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     // 참여자 목록
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -45,5 +51,10 @@ public class Project {
     public void removeParticipant(Participation participation) {
         participants.remove(participation);
         participation.setProject(null);
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
     }
 }

@@ -7,6 +7,9 @@
 <body>
 <h1>프로젝트 등록</h1>
 <form th:action="@{/projects/register}" method="post">
+    <!-- CSRF 토큰 추가 -->
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
     <div>
         <label for="title">제목</label>
         <input type="text" id="title" name="title" required />
