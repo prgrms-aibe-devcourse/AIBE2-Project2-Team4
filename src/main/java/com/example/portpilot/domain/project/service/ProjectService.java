@@ -1,3 +1,4 @@
+// src/main/java/com/example/portpilot/domain/project/service/ProjectService.java
 package com.example.portpilot.domain.project.service;
 
 import com.example.portpilot.domain.project.entity.Participation;
@@ -81,5 +82,11 @@ public class ProjectService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
 
         return projectRepo.countByOwnerAndStatus(owner, status);
+    }
+
+    /** 전체 프로젝트 개수 조회 (테스트용) */
+    @Transactional(readOnly = true)
+    public long countTotalProjects() {
+        return projectRepo.count();
     }
 }

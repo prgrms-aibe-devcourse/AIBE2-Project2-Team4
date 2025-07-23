@@ -34,14 +34,14 @@ public class ProjectController {
         return "projects/register";
     }
 
-    /** 프로젝트 등록 처리 */
+    /** 프로젝트 등록 처리 (테스트용: principal 무시, userId=1L) */
     @PostMapping("/register")
     public String registerProject(@RequestParam String title,
                                   @RequestParam String description,
                                   @AuthenticationPrincipal UserPrincipal principal) {
-        if (principal != null) {
-            projectService.createProject(principal.getId(), title, description);
-        }
+        System.out.println(">>> bypass principal, 저장 테스트");
+        // 테스트용 하드코딩
+        projectService.createProject(1L, title, description);
         return "redirect:/projects";
     }
 
@@ -66,4 +66,24 @@ public class ProjectController {
                 ProjectStatus.OPEN
         );
     }
+
+    /** 테스트용: 전체 프로젝트 개수 확인 */
+    @GetMapping("/count")
+    @ResponseBody
+    public String projectCount() {
+        long cnt = projectService.countTotalProjects();
+        return "총 프로젝트 수: " + cnt;
+    }
 }
+
+
+///** 프로젝트 등록 처리 */
+//@PostMapping("/register")
+//public String registerProject(@RequestParam String title,
+//                              @RequestParam String description,
+//                              @AuthenticationPrincipal UserPrincipal principal) {
+//    if (principal != null) {
+//        projectService.createProject(principal.getId(), title, description);
+//    }
+//    return "redirect:/projects";
+//}
