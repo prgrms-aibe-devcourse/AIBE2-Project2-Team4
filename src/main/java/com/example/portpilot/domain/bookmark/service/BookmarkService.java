@@ -82,7 +82,7 @@ public class BookmarkService {
      */
     public List<Bookmark> getUserBookmarks(User user) {
         log.info("사용자 북마크 전체 조회 - 사용자: {}", user.getId());
-        return bookmarkRepository.findByUserOrderByRegTimeDesc(user);
+        return bookmarkRepository.findByUserOrderBycreatedAtDesc(user);
     }
 
     /**
@@ -90,7 +90,7 @@ public class BookmarkService {
      */
     public List<Bookmark> getUserBookmarks(Long userId) {
         log.info("사용자 북마크 전체 조회 - 사용자ID: {}", userId);
-        return bookmarkRepository.findByUserIdOrderByRegTimeDesc(userId);
+        return bookmarkRepository.findByUserIdOrderBycreatedAtDesc(userId);
     }
 
     /**
@@ -98,7 +98,7 @@ public class BookmarkService {
      */
     public List<Bookmark> getUserBookmarksByType(User user, BookmarkType targetType) {
         log.info("사용자 북마크 타입별 조회 - 사용자: {}, 타입: {}", user.getId(), targetType);
-        return bookmarkRepository.findByUserAndTargetTypeOrderByRegTimeDesc(user, targetType);
+        return bookmarkRepository.findByUserAndTargetTypeOrderBycreatedAtDesc(user, targetType);
     }
 
     /**
@@ -106,7 +106,7 @@ public class BookmarkService {
      */
     public List<Bookmark> getUserBookmarksByType(Long userId, BookmarkType targetType) {
         log.info("사용자 북마크 타입별 조회 - 사용자ID: {}, 타입: {}", userId, targetType);
-        return bookmarkRepository.findByUserIdAndTargetTypeOrderByRegTimeDesc(userId, targetType);
+        return bookmarkRepository.findByUserIdAndTargetTypeOrderBycreatedAtDesc(userId, targetType);
     }
 
     /**

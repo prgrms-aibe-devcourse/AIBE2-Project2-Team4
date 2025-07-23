@@ -1,0 +1,19 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>KakaoPay Redirect</title>
+    <script type="text/javascript">
+        window.onload = function() {
+            var redirectUrl = /*[[${redirectUrl}]]*/ '';
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+        };
+    </script>
+</head>
+<body>
+<p>Redirecting to KakaoPay...</p>
+</body>
+</html>

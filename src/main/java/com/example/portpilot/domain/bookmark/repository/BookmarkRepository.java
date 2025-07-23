@@ -15,16 +15,16 @@ import java.util.Optional;
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     // 특정 사용자의 모든 북마크 조회 (최신순)
-    List<Bookmark> findByUserOrderByRegTimeDesc(User user);
+    List<Bookmark> findByUserOrderBycreatedAtDesc(User user);
 
     // 사용자 ID로 북마크 조회
-    List<Bookmark> findByUserIdOrderByRegTimeDesc(Long userId);
+    List<Bookmark> findByUserIdOrderBycreatedAtDesc(Long userId);
 
     // 특정 타입의 북마크만 조회
-    List<Bookmark> findByUserAndTargetTypeOrderByRegTimeDesc(User user, BookmarkType targetType);
+    List<Bookmark> findByUserAndTargetTypeOrderBycreatedAtDesc(User user, BookmarkType targetType);
 
     // 사용자 ID와 타입으로 북마크 조회
-    List<Bookmark> findByUserIdAndTargetTypeOrderByRegTimeDesc(Long userId, BookmarkType targetType);
+    List<Bookmark> findByUserIdAndTargetTypeOrderBycreatedAtDesc(Long userId, BookmarkType targetType);
 
     // 특정 대상이 북마크되어 있는지 확인
     Optional<Bookmark> findByUserAndTargetTypeAndTargetId(User user, BookmarkType targetType, Long targetId);

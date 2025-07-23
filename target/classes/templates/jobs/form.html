@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${jobPosition.id != null ? '채용공고 수정' : '채용공고 등록'} + ' - PortPilot'">채용공고 등록 - PortPilot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .form-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem 0;
+    }
+    .form-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-top: -2rem;
+      position: relative;
+      z-index: 10;
+    }
+    .required {
+      color: #dc3545;
+    }
+    .char-counter {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+<!-- 헤더 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/jobs">
+      <i class="fas fa-anchor me-2"></i>PortPilot
+    </a>
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link" href="/jobs">
+        <i class="fas fa-list me-1"></i>목록으로
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- 폼 헤더 -->
+<section class="form-header">
+  <div class="container text-center">
+    <h2>
+      <i class="fas fa-plus-circle me-2" th:if="${jobPosition.id == null}"></i>
+      <i class="fas fa-edit me-2" th:if="${jobPosition.id != null}"></i>
+      <span th:text="${jobPosition.id != null ? '채용공고 수정' : '채용공고 등록'}">채용공고 등록</span>
+    </h2>
+    <p class="mb-0 opacity-75">우수한 인재를 찾기 위한 채용공고를 작성해주세요</p>
+  </div>
+</section>
+
+<!-- 메인 폼 -->
+<div class="container pb-5">
+  <div class="form-container p-4">
+    <!-- 메시지 표시 -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      <span th:text="${message}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      <span th:text="${error}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- 폼 -->
+    <form th:action="${jobPosition.id != null ? '/jobs/' + jobPosition.id : '/jobs'}"
+          th:object="${jobPosition}"
+          method="post"
+          novalidate>
+
+      <div class="row">
+        <!-- 기본 정보 -->
+        <div class="col-lg-8">
+          <h5 class="mb-3">
+            <i class="fas fa-info-circle text-primary me-2"></i>기본 정보
+          </h5>
+
+          <!-- 채용공고 제목 -->
+          <div class="mb-3">
+            <label for="title" class="form-label">
+              채용공고 제목 <span class="required">*</span>
+            </label>
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="title"
+                   th:field="*{title}"
+                   placeholder="예: 백엔드 개발자 (Spring Boot)"
+                   maxlength="100"
+                   required>
+            <div class="char-counter text-end mt-1">
+              <span id="titleCount">0</span>/100
+            </div>
+          </div>
+
+          <!-- 직무 설명 -->
+          <div class="mb-3">
+            <label for="description" class="form-label">
+              직무 설명 <span class="required">*</span>
+            </label>
+            <textarea class="form-control"
+                      id="description"
+                      th:field="*{description}"
+                      rows="6"
+                      placeholder="담당하실 업무와 역할에 대해 상세히 설명해주세요"
+                      maxlength="2000"
+                      required></textarea>
+            <div class="char-counter text-end mt-1">
+              <span id="descCount">0</span>/2000
+            </div>
+          </div>
+
+          <!-- 지원 자격 -->
+          <div class="mb-3">
+            <label for="requirements" class="form-label">
+              지원 자격 <span class="required">*</span>
+            </label>
+            <textarea class="form-control"
+                      id="requirements"
+                      th:field="*{requirements}"
+                      rows="4"
+                      placeholder="필수 자격요건과 우대사항을 작성해주세요"
+                      maxlength="1000"
+                      required></textarea>
+            <div class="char-counter text-end mt-1">
+              <span id="reqCount">0</span>/1000
+            </div>
+          </div>
+        </div>
+
+        <!-- 상세 조건 -->
+        <div class="col-lg-4">
+          <h5 class="mb-3">
+            <i class="fas fa-cog text-primary me-2"></i>상세 조건
+          </h5>
+
+          <!-- 근무지 -->
+          <div class="mb-3">
+            <label for="location" class="form-label">
+              근무지 <span class="required">*</span>
+            </label>
+            <input type="text"
+                   class="form-control"
+                   id="location"
+                   th:field="*{location}"
+                   placeholder="예: 서울 강남구"
+                   required>
+          </div>
+
+          <!-- 연봉 -->
+          <div class="mb-3">
+            <label for="salary" class="form-label">연봉</label>
+            <input type="text"
+                   class="form-control"
+                   id="salary"
+                   th:field="*{salary}"
+                   placeholder="예: 3000~5000만원 또는 협의">
+          </div>
+
+          <!-- 경력 수준 -->
+          <div class="mb-3">
+            <label for="experienceLevel" class="form-label">
+              경력 수준 <span class="required">*</span>
+            </label>
+            <select class="form-select"
+                    id="experienceLevel"
+                    th:field="*{experienceLevel}"
+                    required>
+              <option value="">선택해주세요</option>
+              <option value="신입">신입 (0년)</option>
+              <option value="1~3년">1~3년</option>
+              <option value="3~5년">3~5년</option>
+              <option value="5~10년">5~10년</option>
+              <option value="10년 이상">10년 이상</option>
+              <option value="무관">무관</option>
+            </select>
+          </div>
+
+          <!-- 마감일 -->
+          <div class="mb-3">
+            <label for="deadline" class="form-label">지원 마감일</label>
+            <input type="datetime-local"
+                   class="form-control"
+                   id="deadline"
+                   th:field="*{deadline}">
+            <div class="form-text">비워두면 상시채용으로 등록됩니다</div>
+          </div>
+
+          <!-- 상태 -->
+          <div class="mb-3">
+            <label for="status" class="form-label">
+              모집 상태 <span class="required">*</span>
+            </label>
+            <select class="form-select"
+                    id="status"
+                    th:field="*{status}"
+                    required>
+              <option value="모집중">모집중</option>
+              <option value="마감">마감</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 버튼 그룹 -->
+      <hr class="my-4">
+      <div class="d-flex justify-content-between">
+        <a href="/jobs" class="btn btn-outline-secondary btn-lg">
+          <i class="fas fa-arrow-left me-1"></i>취소
+        </a>
+        <div>
+          <button type="button" class="btn btn-outline-primary btn-lg me-2" id="previewBtn">
+            <i class="fas fa-eye me-1"></i>미리보기
+          </button>
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save me-1"></i>
+            <span th:text="${jobPosition.id != null ? '수정 완료' : '등록하기'}">등록하기</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // 글자 수 카운터
+  function updateCharCount(inputId, countId, maxLength) {
+    const input = document.getElementById(inputId);
+    const counter = document.getElementById(countId);
+
+    function updateCount() {
+      const length = input.value.length;
+      counter.textContent = length;
+
+      if (length > maxLength * 0.9) {
+        counter.style.color = '#dc3545';
+      } else if (length > maxLength * 0.7) {
+        counter.style.color = '#ffc107';
+      } else {
+        counter.style.color = '#6c757d';
+      }
+    }
+
+    input.addEventListener('input', updateCount);
+    updateCount(); // 초기 로딩 시 실행
+  }
+
+  // 페이지 로드 시 카운터 초기화
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCharCount('title', 'titleCount', 100);
+    updateCharCount('description', 'descCount', 2000);
+    updateCharCount('requirements', 'reqCount', 1000);
+  });
+
+  // 폼 유효성 검사
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = ['title', 'description', 'requirements', 'location', 'experienceLevel', 'status'];
+    let isValid = true;
+
+    requiredFields.forEach(fieldId => {
+      const field = document.getElementById(fieldId);
+      if (!field.value.trim()) {
+        field.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        field.classList.remove('is-invalid');
+      }
+    });
+
+    if (!isValid) {
+      e.preventDefault();
+      alert('필수 항목을 모두 입력해주세요.');
+    }
+  });
+</script>
+</body>
+</html>
