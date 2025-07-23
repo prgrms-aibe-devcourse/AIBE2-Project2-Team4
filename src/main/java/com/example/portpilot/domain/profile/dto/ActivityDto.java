@@ -1,4 +1,4 @@
-package com.example.portpilot.domain.profile;
+package com.example.portpilot.domain.profile.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

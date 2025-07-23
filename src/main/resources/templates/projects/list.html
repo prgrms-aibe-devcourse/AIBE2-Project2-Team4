@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 찾기</title>
+    <style>
+        .card { border: 1px solid #ddd; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+        .card-header { font-weight: bold; margin-bottom: .5rem; }
+        .card-meta { color: #666; font-size: .9rem; margin-bottom: .5rem; }
+        .card-footer { text-align: right; font-size: .9rem; color: #999; }
+    </style>
+</head>
+<body>
+<h1>프로젝트 찾기</h1>
+<div th:if="${#lists.isEmpty(projects)}">
+    참여 가능한 프로젝트가 없습니다.
+</div>
+<div th:each="proj : ${projects}" class="card">
+    <div class="card-header" th:text="${proj.title}">프로젝트 제목</div>
+    <div class="card-meta">
+        등록일: <span th:text="${#temporals.format(proj.createdAt, 'yyyy.MM.dd')}">2025.07.23</span>
+        &nbsp;|&nbsp;
+        상태: <span th:text="${proj.status}">OPEN</span>
+    </div>
+    <div class="card-body" th:text="${proj.description}">프로젝트 설명이 여기에...</div>
+    <div class="card-footer">
+        <a th:href="@{/projects/join/{id}(id=${proj.id})}" th:if="${openCount > 0}">
+            참여하기
+        </a>
+    </div>
+</div>
+</body>
+</html>
