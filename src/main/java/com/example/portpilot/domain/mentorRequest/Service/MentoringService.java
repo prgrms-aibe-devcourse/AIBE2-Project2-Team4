@@ -121,28 +121,44 @@ public class MentoringService {
     // 일정 제안
     public void proposeSchedule(Long requestId, LocalDateTime proposedAt, User currentUser) {
         MentoringRequest request = findById(requestId);
-        if (!request.getUser().equals(currentUser) && !request.getMentor().equals(currentUser)) {
+
+        Long currentUserId = currentUser.getId();
+        Long menteeId = request.getUser().getId();
+        Long mentorId = request.getMentor() != null ? request.getMentor().getId() : null;
+
+        if (!currentUserId.equals(menteeId) && (mentorId == null || !currentUserId.equals(mentorId))) {
             throw new AccessDeniedException("권한 없음");
         }
+
         request.setProposedAt(proposedAt);
         request.setScheduleConfirmed(false);
+        request.setProposedById(currentUserId);
         mentoringRequestRepository.save(request);
     }
 
     // 일정 확정
     public void confirmSchedule(Long requestId, User currentUser) {
         MentoringRequest request = findById(requestId);
-        if (!request.getUser().equals(currentUser) && !request.getMentor().equals(currentUser)) {
-            throw new AccessDeniedException("권한 없음");
+
+        Long currentUserId = currentUser.getId();
+        Long proposedById = request.getProposedById();
+
+        // 제안자는 수락 불가
+        if (proposedById != null && currentUserId.equals(proposedById)) {
+            throw new AccessDeniedException("자신이 제안한 일정은 수락할 수 없습니다.");
         }
+
         if (request.getProposedAt() == null) {
             throw new IllegalStateException("제안된 일정 없음");
         }
+
         request.setScheduledAt(request.getProposedAt());
         request.setScheduleConfirmed(true);
+
         if (request.getSessionUrl() == null) {
             request.setSessionUrl(generateSessionLink(request));
         }
+
         mentoringRequestRepository.save(request);
     }
 

@@ -56,6 +56,9 @@ public class MentoringRequest extends BaseEntity {
     @Column(name = "proposed_at")
     private LocalDateTime proposedAt;
 
+    @Column(name = "proposed_by_id")
+    private Long proposedById;
+
     // 일정 확정 여부
     @Column(name = "schedule_confirmed")
     private Boolean scheduleConfirmed;
@@ -64,6 +67,9 @@ public class MentoringRequest extends BaseEntity {
     private LocalDateTime scheduledAt;
 
     private String sessionUrl;
+
+    @Column(name = "is_blocked", nullable = false)
+    private boolean isBlocked = false;
 
     @PrePersist
     public void init() {

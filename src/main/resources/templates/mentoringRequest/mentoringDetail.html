@@ -116,6 +116,7 @@
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
         let sessionUrl = "", scheduledAt = "", proposedAt = "";
+        let currentUserId = null, proposedById = null;
 
         fetch(`/api/mentoring/requests/${requestId}`)
             .then(res => res.json())
@@ -130,6 +131,8 @@
                 sessionUrl = data.sessionUrl;
                 scheduledAt = data.scheduledAt;
                 proposedAt = data.proposedAt;
+                currentUserId = data.currentUserId;
+                proposedById = data.proposedById;
 
                 if (data.status === 'PENDING') {
                     document.getElementById('actionButtons').style.display = 'flex';
@@ -138,7 +141,9 @@
                 if (data.status === 'ACCEPTED') {
                     if (!scheduledAt) {
                         document.getElementById('schedule-section').style.display = 'block';
-                        if (proposedAt) {
+
+                        // 제안자는 수락 버튼 비활성화
+                        if (proposedAt && currentUserId !== proposedById) {
                             document.getElementById('confirmBtn').style.display = 'inline-block';
                         }
                     }
@@ -159,8 +164,7 @@
         document.getElementById('proposeBtn')?.addEventListener('click', () => {
             const value = document.getElementById('scheduleDate').value;
             if (!value) return alert("일정을 선택하세요.");
-
-            fetch(`/api/mentoring/${requestId}/propose`, {
+            fetch(`/api/mentoring/requests/${requestId}/propose`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -175,7 +179,7 @@
         });
 
         document.getElementById('confirmBtn')?.addEventListener('click', () => {
-            fetch(`/api/mentoring/${requestId}/confirm`, {
+            fetch(`/api/mentoring/requests/${requestId}/confirm`, {
                 method: 'POST',
                 headers: { [csrfHeader]: csrfToken }
             }).then(res => {
@@ -212,7 +216,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-        fetch(`/api/mentoring/${requestId}/reject`, {
+        fetch(`/api/mentoring/requests/${requestId}/reject`, {
             method: 'POST',
             headers: { [csrfHeader]: csrfToken }
         }).then(res => {
@@ -221,6 +225,7 @@
             location.href = "/mentoring";
         }).catch(err => alert(err.message));
     }
+
 </script>
 </body>
 </html>

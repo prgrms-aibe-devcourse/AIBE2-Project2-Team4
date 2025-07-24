@@ -14,7 +14,9 @@ public class MentoringRequestResponseDto {
     private String message;
     private String status;
     private String createdAt;
+    private Long currentUserId;
 
+    private Long proposedById;
     private String proposedAt;
     private String scheduledAt;
     private String sessionUrl;
@@ -26,6 +28,7 @@ public class MentoringRequestResponseDto {
         dto.setMentorName(entity.getMentor() != null ? entity.getMentor().getName() : "");
         dto.setUserName(entity.getUser().getName());
         dto.setTopic(entity.getTopic());
+        dto.setProposedById(entity.getProposedById());
         dto.setMessage(entity.getMessage() != null ? entity.getMessage() : "No message available");
         dto.setStatus(entity.getStatus().name());
         dto.setCreatedAt(entity.getCreatedAt().toString());

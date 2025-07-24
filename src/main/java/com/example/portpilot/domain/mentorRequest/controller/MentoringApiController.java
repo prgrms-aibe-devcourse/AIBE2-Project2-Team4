@@ -100,7 +100,15 @@ public class MentoringApiController {
     // 특정 요청 상세 조회
     @GetMapping("/requests/{id}")
     public ResponseEntity<MentoringRequestResponseDto> getRequestById(@PathVariable Long id) {
-        return ResponseEntity.ok(MentoringRequestResponseDto.fromEntity(mentoringService.findById(id)));
+        MentoringRequest entity = mentoringService.findById(id);
+        MentoringRequestResponseDto dto = MentoringRequestResponseDto.fromEntity(entity);
+
+        User currentUser = getCurrentUser(); // 로그인 유저 가져오기
+        if (currentUser != null) {
+            dto.setCurrentUserId(currentUser.getId());
+        }
+
+        return ResponseEntity.ok(dto);
     }
 
     // 멘토가 신청 수락
@@ -113,15 +121,21 @@ public class MentoringApiController {
     }
 
     // 일정 제안
-    @PostMapping("/mentoring/{id}/propose")
-    public ResponseEntity<?> propose(@PathVariable Long id, @RequestBody ScheduleDto dto, @AuthenticationPrincipal User currentUser) {
+    @PostMapping("/requests/{id}/propose")
+    public ResponseEntity<?> propose(@PathVariable Long id, @RequestBody ScheduleDto dto) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         mentoringService.proposeSchedule(id, dto.getProposedAt(), currentUser);
         return ResponseEntity.ok().build();
     }
 
     // 일정 확정
-    @PostMapping("/mentoring/{id}/confirm")
+    @PostMapping("/requests/{id}/confirm")
     public ResponseEntity<?> confirm(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+        currentUser = getCurrentUser();
+        if (currentUser == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
         mentoringService.confirmSchedule(id, currentUser);
         return ResponseEntity.ok().build();
     }
