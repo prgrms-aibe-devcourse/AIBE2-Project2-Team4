@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SectionRequest {
-
     private SectionType sectionType;
     private String content;
 }

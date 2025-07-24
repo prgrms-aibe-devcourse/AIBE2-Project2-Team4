@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,19 +102,23 @@ public class ResumeService {
         Resume resume = resumeRepository.findByIdAndUserId(resumeId, userId)
                 .orElseThrow(() -> new RuntimeException("이력서를 찾을 수 없습니다."));
 
-        resumeSectionRepository.findByResumeIdAndSectionType(resumeId, request.getSectionType())
-                .ifPresentOrElse(
-                        section -> section.updateContent(request.getContent()),
-                        () -> {
-                            ResumeSection newSection = ResumeSection.builder()
-                                    .resume(resume)
-                                    .sectionType(request.getSectionType())
-                                    .content(request.getContent())
-                                    .wordCount(request.getContent().length())
-                                    .build();
-                            resumeSectionRepository.save(newSection);
-                        }
-                );
+        // 기존 섹션이 있는지 확인
+        Optional<ResumeSection> existingSection = resumeSectionRepository
+                .findByResumeIdAndSectionType(resumeId, request.getSectionType());
+
+        if (existingSection.isPresent()) {
+            // 기존 섹션 업데이트
+            existingSection.get().updateContent(request.getContent());
+        } else {
+            // 새 섹션 생성
+            ResumeSection section = ResumeSection.builder()
+                    .resume(resume)
+                    .sectionType(request.getSectionType())
+                    .content(request.getContent())
+                    .wordCount(request.getContent() != null ? request.getContent().length() : 0)
+                    .build();
+            resumeSectionRepository.save(section);
+        }
     }
 
     // 학력 추가
