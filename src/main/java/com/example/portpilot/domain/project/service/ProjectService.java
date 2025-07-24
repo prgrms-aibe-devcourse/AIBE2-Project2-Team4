@@ -1,24 +1,25 @@
-// src/main/java/com/example/portpilot/domain/project/service/ProjectService.java
 package com.example.portpilot.domain.project.service;
 
 import com.example.portpilot.domain.project.entity.Participation;
 import com.example.portpilot.domain.project.entity.Project;
+import com.example.portpilot.domain.project.entity.ParticipationStatus;
 import com.example.portpilot.domain.project.entity.ProjectStatus;
+import com.example.portpilot.domain.project.repository.ParticipationRepository;
+import com.example.portpilot.domain.project.repository.ProjectRepository;
+import com.example.portpilot.domain.user.User;
+import com.example.portpilot.domain.user.UserService;
 import com.example.portpilot.domain.project.entity.enums.StartOption;
 import com.example.portpilot.domain.project.entity.enums.ProjectType;
 import com.example.portpilot.domain.project.entity.enums.PlanningState;
 import com.example.portpilot.domain.project.entity.enums.Experience;
 import com.example.portpilot.domain.project.entity.enums.CollaborationOption;
-import com.example.portpilot.domain.project.repository.ParticipationRepository;
-import com.example.portpilot.domain.project.repository.ProjectRepository;
-import com.example.portpilot.domain.user.User;
-import com.example.portpilot.domain.user.UserService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,68 +44,14 @@ public class ProjectService {
         return projectRepo.findByStatus(ProjectStatus.OPEN);
     }
 
-    /** 프로젝트 생성 */
-    public Project createProject(Long ownerId, String title, String description) {
-        User owner = userService.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
-
-        Project p = new Project();
-        p.setOwner(owner);
-        p.setStatus(ProjectStatus.OPEN);
-        p.setTitle(title);
-        p.setDescription(description);
-        return projectRepo.save(p);
-    }
-
-    /** 프로젝트 참여 */
-    public void joinProject(Long projectId, Long userId) {
-        User user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + userId));
-
-        Project project = projectRepo.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로젝트입니다. id=" + projectId));
-
-        if (partRepo.existsByUserIdAndProjectId(userId, projectId)) {
-            throw new IllegalStateException("이미 참여한 프로젝트입니다.");
-        }
-
-        Participation participation = new Participation();
-        participation.setUser(user);
-        participation.setProject(project);
-        partRepo.save(participation);
-    }
-
-    /** 사용자가 참여한 프로젝트 리스트 */
+    /** 프로젝트 상세 조회 */
     @Transactional(readOnly = true)
-    public List<Project> getProjectsForUser(Long userId) {
-        return partRepo.findByUserId(userId).stream()
-                .map(Participation::getProject)
-                .collect(Collectors.toList());
+    public Project findById(Long id) {
+        return projectRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로젝트입니다. id=" + id));
     }
 
-    /** 주어진 소유자·상태의 프로젝트 개수 */
-    @Transactional(readOnly = true)
-    public long countByOwnerAndStatus(Long ownerId, ProjectStatus status) {
-        User owner = userService.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
-
-        return projectRepo.countByOwnerAndStatus(owner, status);
-    }
-
-    /** 전체 프로젝트 개수 조회 (테스트용) */
-    @Transactional(readOnly = true)
-    public long countTotalProjects() {
-        return projectRepo.count();
-    }
-
-    // =================================================
-    // 아래는 새로 추가된 오버로드 메서드입니다.
-    // title, description 외에 모든 옵션 필드를 받아 함께 저장합니다.
-    // =================================================
-
-    /**
-     * 프로젝트 생성 (추가 필드 포함)
-     */
+    /** 프로젝트 생성 (모든 옵션 포함) */
     public Project createProject(
             Long ownerId,
             String title,
@@ -114,8 +61,8 @@ public class ProjectService {
             ProjectType projectType,
             PlanningState planningState,
             Experience experience,
-            CollaborationOption collaborationOption) {
-
+            CollaborationOption collaborationOption
+    ) {
         User owner = userService.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
 
@@ -124,8 +71,6 @@ public class ProjectService {
         p.setStatus(ProjectStatus.OPEN);
         p.setTitle(title);
         p.setDescription(description);
-
-        // 신규 필드 세팅
         p.setDeadline(deadline);
         p.setStartOption(startOption);
         p.setProjectType(projectType);
@@ -135,37 +80,113 @@ public class ProjectService {
 
         return projectRepo.save(p);
     }
+
+    /** 참여 요청 (PENDING) */
+    public void requestParticipation(Long projectId, Long userId) {
+        if (partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.PENDING)
+                || partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.APPROVED)) {
+            throw new IllegalStateException("이미 요청했거나 참여 중입니다.");
+        }
+
+        Project project = findById(projectId);
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 없습니다. id=" + userId));
+
+        Participation p = new Participation();
+        p.setProject(project);
+        p.setUser(user);
+        p.setStatus(ParticipationStatus.PENDING);
+        p.setRequestedAt(LocalDateTime.now());
+        partRepo.save(p);
+    }
+
+    /** joinProject 는 requestParticipation 호출로 대체 */
+    public void joinProject(Long projectId, Long userId) {
+        requestParticipation(projectId, userId);
+    }
+
+    /** 요청 승인 */
+    public void approveParticipation(Long requestId, Long ownerId) {
+        Participation p = partRepo.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청이 없습니다. id=" + requestId));
+        if (!p.getProject().getOwner().getId().equals(ownerId)) {
+            throw new AccessDeniedException("승인 권한이 없습니다.");
+        }
+        p.setStatus(ParticipationStatus.APPROVED);
+    }
+
+    /** 요청 거절 */
+    public void rejectParticipation(Long requestId, Long ownerId) {
+        Participation p = partRepo.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("요청이 없습니다. id=" + requestId));
+        if (!p.getProject().getOwner().getId().equals(ownerId)) {
+            throw new AccessDeniedException("거절 권한이 없습니다.");
+        }
+        p.setStatus(ParticipationStatus.REJECTED);
+    }
+
+    /** 대기 중 요청 전체 조회 (소유자용) */
     @Transactional(readOnly = true)
-    public Project findById(Long id) {
-        return projectRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로젝트입니다. id=" + id));
+    public List<Participation> getPendingRequests(Long ownerId) {
+        return partRepo.findByProjectOwnerIdAndStatus(ownerId, ParticipationStatus.PENDING);
+    }
+
+    /** 이미 요청했는지 */
+    @Transactional(readOnly = true)
+    public boolean isRequested(Long projectId, Long userId) {
+        return partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.PENDING);
+    }
+
+    /** 이미 참여 중인지 */
+    @Transactional(readOnly = true)
+    public boolean isMember(Long projectId, Long userId) {
+        return partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.APPROVED);
     }
 
     /**
-     * 프로젝트 삭제 (소유자만)
+     * 내 프로젝트(소유 + 참여) 조회
      */
+    @Transactional(readOnly = true)
+    public List<Project> getProjectsForUser(Long userId) {
+        // 1) 소유 프로젝트
+        List<Project> owned = projectRepo.findByOwnerId(userId);
+        // 2) 참가자로 승인된 프로젝트
+        List<Project> joined = partRepo.findByUserIdAndStatus(userId, ParticipationStatus.APPROVED).stream()
+                .map(Participation::getProject)
+                .collect(Collectors.toList());
+        // 3) 합치고 중복 제거 (순서 유지)
+        Set<Project> merged = new LinkedHashSet<>();
+        merged.addAll(owned);
+        merged.addAll(joined);
+        return new ArrayList<>(merged);
+    }
+
+    /** 프로젝트 삭제 (소유자만) */
     public void deleteProject(Long projectId, Long ownerId) {
-        Project project = projectRepo.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프로젝트입니다. id=" + projectId));
-
+        Project project = findById(projectId);
         if (!project.getOwner().getId().equals(ownerId)) {
-            throw new SecurityException("본인이 소유한 프로젝트만 삭제할 수 있습니다.");
+            throw new AccessDeniedException("본인이 소유한 프로젝트만 삭제할 수 있습니다.");
         }
-
         projectRepo.delete(project);
     }
 
-    /** 내가 소유한 모든 프로젝트 조회 */
+    /** 내가 만든 프로젝트 전체 조회 */
     @Transactional(readOnly = true)
     public List<Project> findByOwner(Long ownerId) {
         return projectRepo.findByOwnerId(ownerId);
     }
 
-    /** 내가 참여한 모든 프로젝트 조회 */
+    /** 소유자·상태별 프로젝트 개수 */
     @Transactional(readOnly = true)
-    public List<Project> findByParticipation(Long userId) {
-        return partRepo.findByUserId(userId).stream()
-                .map(Participation::getProject)
-                .collect(Collectors.toList());
+    public long countByOwnerAndStatus(Long ownerId, ProjectStatus status) {
+        User owner = userService.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
+        return projectRepo.countByOwnerAndStatus(owner, status);
+    }
+
+    /** 테스트용: 전체 프로젝트 수 조회 */
+    @Transactional(readOnly = true)
+    public long countTotalProjects() {
+        return projectRepo.count();
     }
 }
