@@ -94,7 +94,6 @@
             <button class="btn btn-danger w-50" onclick="reject()">거절</button>
         </div>
 
-        <!-- 일정 제안 -->
         <div id="schedule-section" style="display: none;">
             <label for="scheduleDate">멘토링 날짜 제안:</label>
             <input type="datetime-local" id="scheduleDate" min="">
@@ -102,7 +101,6 @@
             <button id="confirmBtn" class="btn btn-success btn-sm mt-2" style="display:none;">상대 제안 수락</button>
         </div>
 
-        <!-- 확정된 일정 -->
         <div id="confirmed-schedule" style="margin-top: 20px; display: none;">
             <p><strong>확정된 일정:</strong> <span id="scheduleDisplay"></span></p>
             <p><strong>세션 링크:</strong> <a id="sessionLink" href="#" target="_blank"></a></p>
@@ -117,7 +115,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-        let sessionUrl = "", scheduledAt = "", proposedAt = "", userRole = "";
+        let sessionUrl = "", scheduledAt = "", proposedAt = "";
 
         fetch(`/api/mentoring/requests/${requestId}`)
             .then(res => res.json())
@@ -132,19 +130,17 @@
                 sessionUrl = data.sessionUrl;
                 scheduledAt = data.scheduledAt;
                 proposedAt = data.proposedAt;
-                userRole = data.userRole;
 
-                if (data.status === 'PENDING' && userRole === 'MENTOR') {
+                if (data.status === 'PENDING') {
                     document.getElementById('actionButtons').style.display = 'flex';
                 }
 
                 if (data.status === 'ACCEPTED') {
-                    if (!scheduledAt && userRole === 'MENTOR') {
+                    if (!scheduledAt) {
                         document.getElementById('schedule-section').style.display = 'block';
-                    }
-
-                    if (!scheduledAt && proposedAt && userRole === 'MENTOR') {
-                        document.getElementById('confirmBtn').style.display = 'inline-block';
+                        if (proposedAt) {
+                            document.getElementById('confirmBtn').style.display = 'inline-block';
+                        }
                     }
                 }
 
@@ -157,7 +153,6 @@
                 }
             });
 
-        // 일정 제안 시 현재 시각 이후만 가능
         const now = new Date().toISOString().slice(0, 16);
         document.getElementById('scheduleDate').min = now;
 
@@ -165,7 +160,7 @@
             const value = document.getElementById('scheduleDate').value;
             if (!value) return alert("일정을 선택하세요.");
 
-            fetch(`/api/mentoring/mentoring/${requestId}/propose`, {
+            fetch(`/api/mentoring/${requestId}/propose`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,17 +169,15 @@
                 body: JSON.stringify({ proposedAt: value })
             }).then(res => {
                 if (!res.ok) throw new Error("일정 제안 실패");
-                alert("일정이 제안되었습니다. 상대방의 수락을 기다리세요.");
+                alert("일정이 제안되었습니다.");
                 location.reload();
             }).catch(err => alert(err.message));
         });
 
         document.getElementById('confirmBtn')?.addEventListener('click', () => {
-            fetch(`/api/mentoring/mentoring/${requestId}/confirm`, {
+            fetch(`/api/mentoring/${requestId}/confirm`, {
                 method: 'POST',
-                headers: {
-                    [csrfHeader]: csrfToken
-                }
+                headers: { [csrfHeader]: csrfToken }
             }).then(res => {
                 if (!res.ok) throw new Error("확정 실패");
                 return res.json();
@@ -199,9 +192,12 @@
         });
     });
 
-    // 수락/거절 함수
     function accept() {
-        fetch(`/api/mentoring/mentoring/${requestId}/accept`, {
+        const requestId = new URLSearchParams(window.location.search).get('id');
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        fetch(`/api/mentoring/${requestId}/accept`, {
             method: 'POST',
             headers: { [csrfHeader]: csrfToken }
         }).then(res => {
@@ -212,7 +208,11 @@
     }
 
     function reject() {
-        fetch(`/api/mentoring/mentoring/${requestId}/reject`, {
+        const requestId = new URLSearchParams(window.location.search).get('id');
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        fetch(`/api/mentoring/${requestId}/reject`, {
             method: 'POST',
             headers: { [csrfHeader]: csrfToken }
         }).then(res => {

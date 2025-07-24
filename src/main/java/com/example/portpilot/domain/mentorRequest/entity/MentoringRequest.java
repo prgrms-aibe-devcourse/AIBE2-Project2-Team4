@@ -63,7 +63,7 @@ public class MentoringRequest extends BaseEntity {
     // 멘토링 확정 일자
     private LocalDateTime scheduledAt;
 
-    private String SessionUrl;
+    private String sessionUrl;
 
     @PrePersist
     public void init() {

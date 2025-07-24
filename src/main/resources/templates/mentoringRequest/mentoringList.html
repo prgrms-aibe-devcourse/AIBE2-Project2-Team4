@@ -165,7 +165,6 @@
 
                 if (type === 'mentors') {
                     data.forEach(item => {
-
                         const card = document.createElement('div');
                         card.className = 'card mb-3';
                         card.innerHTML = `
@@ -187,12 +186,21 @@
                             ? `<h5 class="card-title">멘티: ${item.userName}</h5>`
                             : `<h5 class="card-title">멘토: ${item.mentorName}</h5>`;
 
+                        let extra = '';
+                        if (item.scheduledAt) {
+                            extra += `<p class="card-text">확정일: ${new Date(item.scheduledAt).toLocaleString()}</p>`;
+                        }
+                        if (item.sessionUrl) {
+                            extra += `<a href="${item.sessionUrl}" target="_blank" class="btn btn-outline-secondary mt-2">멘토링 방으로 이동</a>`;
+                        }
+
                         card.innerHTML = `
                             <div class="card-body">
                                 ${nameLine}
                                 <p class="card-text">주제: ${item.topic}</p>
                                 <p class="card-text text-muted">신청일: ${new Date(item.createdAt).toISOString().slice(0, 10)}</p>
                                 ${statusBadgeMap[item.status] || ''}
+                                ${extra}
                             </div>
                         `;
                         container.appendChild(card);
