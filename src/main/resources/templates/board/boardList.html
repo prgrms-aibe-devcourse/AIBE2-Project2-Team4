@@ -189,7 +189,7 @@
     // 게시글 클릭 시 상세 페이지 이동
     $('tr[data-id]').click(function () {
       const id = $(this).data('id');
-      location.href = `../../static/css/board/${id}`;
+      location.href = `/board/${id}`;
     });
   }
 
