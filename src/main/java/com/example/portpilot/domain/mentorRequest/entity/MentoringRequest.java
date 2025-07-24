@@ -42,6 +42,7 @@ public class MentoringRequest extends BaseEntity {
     @Column(name = "is_completed", nullable = false)
     private boolean isCompleted = false;
 
+
     @Column(nullable = false)
     private String topic;
 
@@ -51,7 +52,15 @@ public class MentoringRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private MentoringStatus status;
 
-    // 멘토링 날
+    // 제안된 일정
+    @Column(name = "proposed_at")
+    private LocalDateTime proposedAt;
+
+    // 일정 확정 여부
+    @Column(name = "schedule_confirmed")
+    private Boolean scheduleConfirmed;
+
+    // 멘토링 확정 일자
     private LocalDateTime scheduledAt;
 
     private String SessionUrl;

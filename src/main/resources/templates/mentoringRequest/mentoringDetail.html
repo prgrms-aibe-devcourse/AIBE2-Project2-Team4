@@ -30,7 +30,6 @@
             color: white;
             font-weight: 500;
             margin: 0;
-            border-radius: 0;
         }
 
         .sidebar a.active,
@@ -95,14 +94,15 @@
             <button class="btn btn-danger w-50" onclick="reject()">거절</button>
         </div>
 
-        <!-- 일정 지정 -->
-        <div id="schedule-section" style="margin-top: 20px; display: none;">
-            <label for="scheduleDate">멘토링 날짜 지정:</label>
+        <!-- 일정 제안 -->
+        <div id="schedule-section" style="display: none;">
+            <label for="scheduleDate">멘토링 날짜 제안:</label>
             <input type="datetime-local" id="scheduleDate" min="">
-            <button id="confirmScheduleBtn" class="btn btn-primary btn-sm">일정 확정</button>
+            <button id="proposeBtn" class="btn btn-primary btn-sm mt-2">일정 제안</button>
+            <button id="confirmBtn" class="btn btn-success btn-sm mt-2" style="display:none;">상대 제안 수락</button>
         </div>
 
-        <!-- 확정된 일정 표시 -->
+        <!-- 확정된 일정 -->
         <div id="confirmed-schedule" style="margin-top: 20px; display: none;">
             <p><strong>확정된 일정:</strong> <span id="scheduleDisplay"></span></p>
             <p><strong>세션 링크:</strong> <a id="sessionLink" href="#" target="_blank"></a></p>
@@ -112,118 +112,115 @@
 </div>
 
 <script>
-    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-    const params = new URLSearchParams(window.location.search);
-    const requestId = params.get('id');
+    document.addEventListener("DOMContentLoaded", () => {
+        const requestId = new URLSearchParams(window.location.search).get('id');
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById("scheduleDate").min = now.toISOString().slice(0,16);
+        let sessionUrl = "", scheduledAt = "", proposedAt = "", userRole = "";
 
-    let status, sessionUrl, scheduledAt;
+        fetch(`/api/mentoring/requests/${requestId}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('mentorName').textContent = data.mentorName || '멘토 미지정';
+                document.getElementById('userName').textContent = data.userName;
+                document.getElementById('topic').textContent = data.topic;
+                document.getElementById('message').textContent = data.message;
+                document.getElementById('createdAt').textContent = data.createdAt;
+                document.getElementById('status').textContent = data.status;
 
-    if (!requestId) {
-        alert("잘못된 접근입니다.");
-        location.href = "/mentoring";
-    }
+                sessionUrl = data.sessionUrl;
+                scheduledAt = data.scheduledAt;
+                proposedAt = data.proposedAt;
+                userRole = data.userRole;
 
-    fetch(`/api/mentoring/requests/${requestId}`)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('mentorName').textContent = data.mentorName;
-            document.getElementById('userName').textContent = data.userName;
-            document.getElementById('topic').textContent = data.topic;
-            document.getElementById('message').textContent = data.message;
-            document.getElementById('createdAt').textContent = data.createdAt;
-            document.getElementById('status').textContent = data.status;
+                if (data.status === 'PENDING' && userRole === 'MENTOR') {
+                    document.getElementById('actionButtons').style.display = 'flex';
+                }
 
-            status = data.status;
-            sessionUrl = data.sessionUrl;
-            scheduledAt = data.scheduledAt;
+                if (data.status === 'ACCEPTED') {
+                    if (!scheduledAt && userRole === 'MENTOR') {
+                        document.getElementById('schedule-section').style.display = 'block';
+                    }
 
-            if (status === 'PENDING') {
-                document.getElementById('actionButtons').style.display = 'flex';
-            }
+                    if (!scheduledAt && proposedAt && userRole === 'MENTOR') {
+                        document.getElementById('confirmBtn').style.display = 'inline-block';
+                    }
+                }
 
-            if (status === 'ACCEPTED' && !scheduledAt) {
-                document.getElementById('schedule-section').style.display = 'block';
-            }
+                if (scheduledAt && sessionUrl) {
+                    document.getElementById('confirmed-schedule').style.display = 'block';
+                    document.getElementById('scheduleDisplay').textContent = new Date(scheduledAt).toLocaleString();
+                    const sessionLink = document.getElementById('sessionLink');
+                    sessionLink.href = sessionUrl;
+                    sessionLink.textContent = sessionUrl;
+                }
+            });
 
-            if (scheduledAt && sessionUrl) {
-                document.getElementById('confirmed-schedule').style.display = 'block';
-                document.getElementById('scheduleDisplay').textContent = scheduledAt;
-                document.getElementById('sessionLink').href = sessionUrl;
-                document.getElementById('sessionLink').textContent = sessionUrl;
-            }
+        // 일정 제안 시 현재 시각 이후만 가능
+        const now = new Date().toISOString().slice(0, 16);
+        document.getElementById('scheduleDate').min = now;
+
+        document.getElementById('proposeBtn')?.addEventListener('click', () => {
+            const value = document.getElementById('scheduleDate').value;
+            if (!value) return alert("일정을 선택하세요.");
+
+            fetch(`/api/mentoring/mentoring/${requestId}/propose`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({ proposedAt: value })
+            }).then(res => {
+                if (!res.ok) throw new Error("일정 제안 실패");
+                alert("일정이 제안되었습니다. 상대방의 수락을 기다리세요.");
+                location.reload();
+            }).catch(err => alert(err.message));
         });
 
+        document.getElementById('confirmBtn')?.addEventListener('click', () => {
+            fetch(`/api/mentoring/mentoring/${requestId}/confirm`, {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            }).then(res => {
+                if (!res.ok) throw new Error("확정 실패");
+                return res.json();
+            }).then(() => {
+                alert("일정이 확정되었습니다.");
+                location.reload();
+            }).catch(err => alert(err.message));
+        });
+
+        document.getElementById('goToRoomBtn')?.addEventListener('click', () => {
+            if (sessionUrl) window.open(sessionUrl, '_blank');
+        });
+    });
+
+    // 수락/거절 함수
     function accept() {
-        fetch(`/api/mentoring/${requestId}/accept`, {
+        fetch(`/api/mentoring/mentoring/${requestId}/accept`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
-            }
-        })
-            .then(res => {
-                if (!res.ok) throw new Error("수락 실패");
-                document.getElementById('status').textContent = 'ACCEPTED';
-                document.getElementById('actionButtons').style.display = 'none';
-                document.getElementById('schedule-section').style.display = 'block';
-            })
-            .catch(err => alert(err.message));
+            headers: { [csrfHeader]: csrfToken }
+        }).then(res => {
+            if (!res.ok) throw new Error("수락 실패");
+            alert("수락되었습니다.");
+            location.reload();
+        }).catch(err => alert(err.message));
     }
 
     function reject() {
-        fetch(`/api/mentoring/requests/${requestId}/reject`, {
+        fetch(`/api/mentoring/mentoring/${requestId}/reject`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
-            }
-        })
-            .then(res => {
-                if (!res.ok) throw new Error("거절 실패");
-                document.getElementById('status').textContent = 'REJECTED';
-                document.getElementById('actionButtons').style.display = 'none';
-            })
-            .catch(err => alert(err.message));
+            headers: { [csrfHeader]: csrfToken }
+        }).then(res => {
+            if (!res.ok) throw new Error("거절 실패");
+            alert("거절되었습니다.");
+            location.href = "/mentoring";
+        }).catch(err => alert(err.message));
     }
-
-    document.getElementById('confirmScheduleBtn').addEventListener('click', () => {
-        const selected = document.getElementById('scheduleDate').value;
-        if (!selected) return alert("날짜를 선택하세요.");
-
-        fetch(`/api/mentoring/${requestId}/schedule`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
-            },
-            body: JSON.stringify({ scheduledAt: selected })
-        })
-            .then(res => res.json())
-            .then(data => {
-                alert("일정이 확정되었습니다.");
-
-                // 세션 링크 아래에 바로 표시
-                document.getElementById('confirmed-schedule').style.display = 'block';
-                document.getElementById('scheduleDisplay').textContent = data.scheduledAt;
-                document.getElementById('sessionLink').href = data.sessionUrl;
-                document.getElementById('sessionLink').textContent = data.sessionUrl;
-
-                // 전역변수도 갱신
-                sessionUrl = data.sessionUrl;
-            })
-            .catch(err => alert(err.message));
-    });
-
-    document.getElementById('goToRoomBtn')?.addEventListener('click', () => {
-        if (sessionUrl) {
-            window.open(sessionUrl, '_blank');
-        }
-    });
 </script>
 </body>
 </html>

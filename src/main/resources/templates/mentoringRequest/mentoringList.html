@@ -92,7 +92,6 @@
         </div>
     </div>
 
-    <!-- 탭 메뉴 -->
     <ul class="nav nav-tabs mb-3" id="mentoringTabs">
         <li class="nav-item">
             <a class="nav-link active" data-type="received" href="#">받은 신청</a>
@@ -127,7 +126,7 @@
     const statusBadgeMap = {
         'PENDING': '<span class="badge bg-warning text-dark">대기중</span>',
         'ACCEPTED': '<span class="badge bg-success">수락됨</span>',
-        'DECLINED': '<span class="badge bg-secondary">거절됨</span>',
+        'REJECTED': '<span class="badge bg-secondary">거절됨</span>',
         'COMPLETED': '<span class="badge bg-dark">완료</span>'
     };
 
@@ -166,15 +165,16 @@
 
                 if (type === 'mentors') {
                     data.forEach(item => {
+
                         const card = document.createElement('div');
                         card.className = 'card mb-3';
                         card.innerHTML = `
-                        <div class="card-body">
-                            <h5 class="card-title">${item.userName}</h5>
-                            <p class="card-text">소개 : ${item.description}</p>
-                            <p class="card-text text-muted">주요 기술: ${item.techStack}</p>
-                        </div>
-                    `;
+                            <div class="card-body">
+                                <h5 class="card-title">${item.userName}</h5>
+                                <p class="card-text">소개 : ${item.description}</p>
+                                <p class="card-text text-muted">주요 기술: ${item.techStack}</p>
+                            </div>
+                        `;
                         container.appendChild(card);
                     });
                 } else {
@@ -182,14 +182,19 @@
                         const card = document.createElement('a');
                         card.className = 'card mb-3 clickable-card';
                         card.href = `/mentoring/detail?id=${item.id}`;
+
+                        const nameLine = type === 'received'
+                            ? `<h5 class="card-title">멘티: ${item.userName}</h5>`
+                            : `<h5 class="card-title">멘토: ${item.mentorName}</h5>`;
+
                         card.innerHTML = `
-                        <div class="card-body">
-                            <h5 class="card-title">멘토: ${item.mentorName}</h5>
-                            <p class="card-text">주제: ${item.topic}</p>
-                            <p class="card-text text-muted">신청일: ${new Date(item.createdAt).toISOString().slice(0, 10)}</p>
-                            ${statusBadgeMap[item.status] || ''}
-                        </div>
-                    `;
+                            <div class="card-body">
+                                ${nameLine}
+                                <p class="card-text">주제: ${item.topic}</p>
+                                <p class="card-text text-muted">신청일: ${new Date(item.createdAt).toISOString().slice(0, 10)}</p>
+                                ${statusBadgeMap[item.status] || ''}
+                            </div>
+                        `;
                         container.appendChild(card);
                     });
                 }
@@ -198,7 +203,6 @@
                 container.innerHTML = `<p class="text-danger">오류 발생: ${err.message}</p>`;
             });
     }
-
 </script>
 </body>
 </html>
