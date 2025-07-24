@@ -15,6 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
 
     Page<User> findByNameContainingOrEmailContaining(String name, String email, Pageable pageable);
+    List<User> findAllByIsBlockedTrueAndBlockedUntilBefore(LocalDateTime time);
 
 
     @Query("SELECT new com.example.portpilot.adminPage.dashboard.SignupStatDto(FUNCTION('DATE', u.createdAt), COUNT(u)) " +

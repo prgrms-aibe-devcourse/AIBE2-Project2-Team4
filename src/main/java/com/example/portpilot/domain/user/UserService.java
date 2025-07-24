@@ -1,15 +1,18 @@
 package com.example.portpilot.domain.user;
 
-import com.example.portpilot.adminPage.userManagement.UserSimpleDto;
+import com.example.portpilot.adminPage.userManagement.UserDetailDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,10 +36,18 @@ public class UserService implements UserDetailsService {
     public void updateUser(User form) {
         User user = userRepository.findById(form.getId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원"));
+
         user.setName(form.getName());
         user.setAddress(form.getAddress());
         user.setDeleted(form.isDeleted());
+
+        if (form.getBlockedUntil() != null) {
+            user.blockUntil(form.getBlockedUntil());
+        } else {
+            user.unblock();
+        }
     }
+
 
 
 
@@ -48,9 +59,9 @@ public class UserService implements UserDetailsService {
     }
 
 
-    public Page<UserSimpleDto> searchUsers(String keyword, Pageable pageable) {
+    public Page<UserDetailDto> searchUsers(String keyword, Pageable pageable) {
         return userRepository.findByNameContainingOrEmailContaining(keyword, keyword, pageable)
-                .map(UserSimpleDto::new);
+                .map(UserDetailDto::new);
     }
 
 
@@ -67,6 +78,15 @@ public class UserService implements UserDetailsService {
                 .password(user.getPassword())        // 인코딩된 비밀번호
                 .roles(user.getRole().toString())    // ROLE_ 접두어는 자동 부여
                 .build();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정
+    @Transactional
+    public void autoUnblockExpiredUsers() {
+        List<User> users = userRepository.findAllByIsBlockedTrueAndBlockedUntilBefore(LocalDateTime.now());
+        for (User user : users) {
+            user.unblock();
+        }
     }
 
 }

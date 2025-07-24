@@ -4,6 +4,7 @@ import com.example.portpilot.global.common.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.portpilot.domain.project.entity.Participation;
 
@@ -42,6 +43,7 @@ public class User extends BaseEntity {
 
     private LocalDateTime blockedAt;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime blockedUntil;
 
     // User 엔터티 생성 메소드.

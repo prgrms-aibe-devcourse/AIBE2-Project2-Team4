@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         pagination.innerHTML = "";
         for (let i = 1; i <= totalPages; i++) {
             const btn = document.createElement("button");
-            btn.className = "btn btn-sm " + (i === current ? "btn-primary" : "btn-outline-secondary");
+            btn.className = "btn btn-sm " + (i === current ? "active" : "btn-outline-secondary");
             btn.textContent = i;
             btn.addEventListener("click", () => {
                 currentPage = i;

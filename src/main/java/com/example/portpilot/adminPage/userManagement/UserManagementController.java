@@ -1,6 +1,7 @@
 package com.example.portpilot.adminPage.userManagement;
 
 import com.example.portpilot.domain.user.User;
+import com.example.portpilot.domain.user.UserFormDto;
 import com.example.portpilot.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +27,7 @@ public class UserManagementController {
     public UserListResponseDto listUsers(@RequestParam(defaultValue = "1") int page,
                                          @RequestParam(defaultValue = "") String keyword) {
         PageRequest pageable = PageRequest.of(page - 1, 10);
-        Page<UserSimpleDto> result = userService.searchUsers(keyword, pageable);
+        Page<UserDetailDto> result = userService.searchUsers(keyword, pageable);
         return new UserListResponseDto(result.getContent(), result.getTotalPages());
     }
 
@@ -39,9 +40,17 @@ public class UserManagementController {
         return "admin/userManagementDetail";
     }
 
+
     @PostMapping("/update")
-    public String updateUser(User userForm) {
-        userService.updateUser(userForm);
+    public String updateUser(UserDetailDto dto) {
+        User user = new User();
+        user.setId(dto.getId());
+        user.setName(dto.getName());
+        user.setAddress(dto.getAddress());
+        user.setDeleted(dto.isDeleted());
+        user.setBlockedUntil(dto.getBlockedUntil());
+
+        userService.updateUser(user);
         return "redirect:/admin/user-management";
     }
 

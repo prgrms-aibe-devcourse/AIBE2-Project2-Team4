@@ -51,16 +51,22 @@
 
         <div class="form-group">
             <label>차단 해제 예정일</label>
-            <p th:text="${user.blockedUntil} ?: '-'">-</p>
+            <input type="datetime-local"
+                   name="blockedUntil"
+                   th:value="${user.blockedUntil != null ? #temporals.format(user.blockedUntil, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                   class="form-control"/>
         </div>
+
+
 
         <div class="form-group">
             <label>탈퇴여부</label>
-            <select name="isDeleted" class="form-control">
+            <select name="isDeleted" class="form-control" disabled>
                 <option th:value="false" th:selected="!${user.isDeleted}">정상</option>
                 <option th:value="true" th:selected="${user.isDeleted}">탈퇴</option>
             </select>
         </div>
+
 
         <button type="submit" class="btn btn-primary">수정</button>
     </form>
