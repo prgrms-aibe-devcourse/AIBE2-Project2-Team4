@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
     const newUserCtx = document.getElementById('newUserChart').getContext('2d');
     const leftUserCtx = document.getElementById('leftUserChart').getContext('2d');
+    const matchingCtx = document.getElementById('matchingChart').getContext('2d');
 
-    let newUserChart, leftUserChart;
+    let newUserChart, leftUserChart, matchingChart;
 
     function drawChart(ctx, data, label, color, backgroundColor, chartRef) {
         if (chartRef.chart) {
@@ -40,6 +41,37 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function drawMatchingChart(data) {
+        if (matchingChart) matchingChart.destroy();
+
+        matchingChart = new Chart(matchingCtx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.status),
+                datasets: [{
+                    label: "매칭 수",
+                    data: data.map(item => item.count),
+                    backgroundColor: '#4e73df'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function fetchAndRender(start, end) {
         const newUserRef = { chart: newUserChart, set chart(val) { newUserChart = val; }, get chart() { return newUserChart; } };
         const leftUserRef = { chart: leftUserChart, set chart(val) { leftUserChart = val; }, get chart() { return leftUserChart; } };
@@ -53,6 +85,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => drawChart(leftUserCtx, data, '일별 탈퇴자 수', '#e74a3b', 'rgba(231, 74, 59, 0.1)', leftUserRef));
     }
 
+    function fetchAndRenderMatchingStatus() {
+        fetch("/admin/api/dashboard/matching-status")
+            .then(res => res.json())
+            .then(data => drawMatchingChart(data));
+    }
+
     // 초기 설정 (최근 7일)
     const today = new Date();
     const start = new Date();
@@ -63,6 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('endDate').value = formatDate(today);
 
     fetchAndRender(formatDate(start), formatDate(today));
+    fetchAndRenderMatchingStatus(); // 매칭 현황 차트도 같이 로드
 
     // 조회 버튼 이벤트
     document.getElementById('loadStatsBtn').addEventListener('click', () => {
