@@ -30,6 +30,7 @@ public class BoardManagementController {
         return new BoardListResponseDto(result.getContent(), result.getTotalPages());
     }
 
+
     @PostMapping("/block")
     @ResponseBody
     public void updateBlockedStatus(@RequestBody BoardBlockRequestDto dto) {
