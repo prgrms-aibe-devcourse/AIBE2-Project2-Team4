@@ -36,4 +36,8 @@ public class DashboardController {
         return dashboardService.getWithdrawStats(start, end);
     }
 
+    @GetMapping("/matching-status")
+    public List<MatchingStatusDto> getMatchingStatus() {
+        return dashboardService.getMatchingStatusCounts();
+    }
 }

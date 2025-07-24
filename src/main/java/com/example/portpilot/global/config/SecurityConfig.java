@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -63,18 +64,32 @@ public class SecurityConfig {
 
         http
                 .antMatcher("/admin/**")
-                .authorizeRequests()
-                .antMatchers("/admin/login", "/admin/login/error").permitAll()
-                .anyRequest().hasRole("ADMIN")
-                .and()
+                .authorizeRequests(authz -> authz
+                        .antMatchers(
+                                "/admin/login",
+                                "/admin/login/error",
+                                "/css/**", "/js/**", "/images/**", "/webjars/**"
+                        ).permitAll()
+                        .anyRequest().hasRole("ADMIN")
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.sendRedirect("/admin/login");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendRedirect("/admin/login");
+                        })
+                )
                 .addFilterAt(customFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin().disable()
-                .logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/admin/logout"))
-                .logoutSuccessUrl("/admin/login");
+                .logout(logout -> logout
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/admin/logout"))
+                        .logoutSuccessUrl("/admin/login")
+                );
 
         return http.build();
     }
+
 
     @Bean
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -98,4 +113,20 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    @Bean
+    @Order(0) // 가장 먼저 적용
+    public SecurityFilterChain staticResources(HttpSecurity http) throws Exception {
+        http
+                .antMatcher("/css/**")
+                .authorizeRequests()
+                .anyRequest().permitAll()
+                .and()
+                .requestCache().disable()
+                .securityContext().disable()
+                .sessionManagement().disable();
+
+        return http.build();
+    }
+
 }
