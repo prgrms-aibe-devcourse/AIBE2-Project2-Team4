@@ -19,6 +19,8 @@ public interface MentoringRequestRepository extends JpaRepository<MentoringReque
 
     List<MentoringRequest> findByUserOrMentor(User user, User mentor);
 
+    long countByStatus(MentoringStatus status);
+
 
     // 멘토로서 받은 신청 중 ACCEPTED 또는 COMPLETED
     List<MentoringRequest> findByMentorAndStatusIn(User mentor, List<MentoringStatus> statuses);

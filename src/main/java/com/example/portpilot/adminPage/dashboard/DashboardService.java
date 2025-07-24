@@ -2,7 +2,9 @@ package com.example.portpilot.adminPage.dashboard;
 
 
 import com.example.portpilot.adminPage.dashboard.SignupStatDto;
-import com.example.portpilot.domain.mentorRequest.MentoringRequest;
+import com.example.portpilot.domain.mentorRequest.entity.MentoringRequest;
+import com.example.portpilot.domain.mentorRequest.entity.MentoringStatus;
+import com.example.portpilot.domain.mentorRequest.repository.MentoringRequestRepository;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class DashboardService {
     }
 
     public List<MatchingStatusDto> getMatchingStatusCounts() {
-        return Arrays.stream(MentoringRequest.RequestStatus.values())
+        return Arrays.stream(MentoringStatus.values())
                 .map(status -> new MatchingStatusDto(
                         status.name(),
                         mentoringRequestRepository.countByStatus(status)
