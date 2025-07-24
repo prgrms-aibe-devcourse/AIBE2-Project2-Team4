@@ -1,5 +1,6 @@
 package com.example.portpilot.domain.board.board;
 
+import com.example.portpilot.adminPage.boardManagement.BoardDetailDto;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -80,4 +82,35 @@ public class BoardService {
         Page<Board> boards = boardRepository.findByUserId(user.getId(), pageable);
         return boards.map(BoardResponseDto::fromEntity);
     }
+
+
+    public Page<BoardDetailDto> searchBoards(String keyword, Pageable pageable) {
+        Page<Board> boards = boardRepository.searchByKeyword(keyword, pageable);
+        return boards.map(board -> BoardDetailDto.builder()
+                .id(board.getId())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .viewCount(board.getViewCount())
+                .jobType(board.getJobType())
+                .techStack(board.getTechStack())
+                .isBlocked(board.isBlocked())
+                .imageUrl(board.getImageUrl())
+                .createdAt(board.getCreatedAt())
+                .userId(board.getUser().getId())
+                .userName(board.getUser().getName())
+                .build());
+    }
+
+    public void updateBlockedStatus(Long boardId, boolean isBlocked) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        board.setBlocked(isBlocked);
+        boardRepository.save(board);
+    }
+
+    public Optional<Board> findById(Long id) {
+        return boardRepository.findById(id);
+    }
+
+
 }

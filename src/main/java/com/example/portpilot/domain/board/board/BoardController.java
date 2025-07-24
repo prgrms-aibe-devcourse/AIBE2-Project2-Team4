@@ -66,6 +66,4 @@ public class BoardController {
         reportService.resolveReport(id, status);
         return "redirect:/admin/report";
     }
-
-
 }

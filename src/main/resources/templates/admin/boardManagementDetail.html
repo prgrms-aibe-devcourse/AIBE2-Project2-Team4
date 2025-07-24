@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}">
+
+<head>
+  <title>게시글 상세 정보</title>
+  <link rel="stylesheet" th:href="@{/css/admin/board-management-detail.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+  <div class="board-detail-container">
+    <h2 class="board-detail-title">게시글 상세 정보</h2>
+
+    <form th:action="@{/admin/board-management/block}" method="post">
+      <input type="hidden" name="boardId" th:value="${board.id}" />
+
+      <div class="form-group">
+        <label>제목</label>
+        <input type="text" th:value="${board.title}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>작성자</label>
+          <a th:href="@{'/admin/user-management/' + ${board.user.id}}" class="user-link">
+            <span th:text="${board.user.name}"></span>
+          </a>
+      </div>
+
+      <div class="form-group">
+        <label>내용</label>
+        <textarea readonly rows="6" th:text="${board.content}"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>조회수</label>
+        <input type="text" th:value="${board.viewCount}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>직무</label>
+        <input type="text" th:value="${board.jobType}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>기술 스택</label>
+        <input type="text" th:value="${board.techStack}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>작성일</label>
+        <input type="text" th:value="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>차단 여부</label>
+        <select name="isBlocked" class="form-select">
+          <option th:value="false" th:selected="!${board.blocked}">정상</option>
+          <option th:value="true" th:selected="${board.blocked}">차단</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">수정</button>
+        <a th:href="@{/admin/board-management}" class="btn btn-secondary">목록으로</a>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>
