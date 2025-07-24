@@ -19,4 +19,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     // 특정 사용자가 신고당한 목록
     List<Report> findByReportedUserId(Long reportedUserId);
+
+    int countByStatus(ReportStatus status);
+
 }
