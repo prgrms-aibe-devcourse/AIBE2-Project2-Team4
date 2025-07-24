@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -34,11 +35,11 @@ public class ResumeController {
 
     // 기본정보 생성
     @PostMapping
-    public ResponseEntity<ResumeResponse> createResume(
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestBody ResumeRequest request) {
-        ResumeResponse resume = resumeService.createResume(userId, request);
-        return ResponseEntity.ok(resume);
+    public ResponseEntity<ResumeResponse> createResume(@RequestHeader("X-User-Id") Long userId,
+                                                       @RequestBody @Valid ResumeRequest request) {
+        ResumeResponse response = resumeService.createResume(userId, request);
+
+        return ResponseEntity.ok(response);
     }
 
     // 기본정보 수정
