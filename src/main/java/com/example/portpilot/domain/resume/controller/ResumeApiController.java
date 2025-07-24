@@ -10,9 +10,9 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/resumes")
+@RequestMapping("/api/resumes")
 @RequiredArgsConstructor
-public class ResumeController {
+public class ResumeApiController {
 
     private final ResumeService resumeService;
 

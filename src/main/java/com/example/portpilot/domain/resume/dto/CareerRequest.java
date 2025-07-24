@@ -11,7 +11,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class CareerRequest {
 
-    @NotBlank(message = "회사명은 필수입니다.")
     @Size(max = 200, message = "회사명은 200자 이하여야 합니다.")
     private String companyName;
 
