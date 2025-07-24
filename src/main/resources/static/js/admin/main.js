@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
+    function fetchUnresolvedReportCount() {
+        fetch("/admin/api/dashboard/unresolved-report-count")
+            .then(res => res.json())
+            .then(count => {
+                document.getElementById("unresolvedReportCount").textContent = `${count} 건`;
+            });
+    }
+
+
+    fetchUnresolvedReportCount();
+
+
     const newUserCtx = document.getElementById('newUserChart').getContext('2d');
     const leftUserCtx = document.getElementById('leftUserChart').getContext('2d');
     const matchingCtx = document.getElementById('matchingChart').getContext('2d');

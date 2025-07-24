@@ -40,4 +40,10 @@ public class DashboardController {
     public List<MatchingStatusDto> getMatchingStatus() {
         return dashboardService.getMatchingStatusCounts();
     }
+
+    @GetMapping("/unresolved-report-count")
+    public int getUnresolvedReportCount() {
+        return dashboardService.getUnresolvedReportCount();
+    }
+
 }

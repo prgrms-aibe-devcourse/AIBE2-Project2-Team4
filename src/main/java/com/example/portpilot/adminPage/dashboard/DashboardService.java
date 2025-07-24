@@ -2,6 +2,8 @@ package com.example.portpilot.adminPage.dashboard;
 
 
 import com.example.portpilot.adminPage.dashboard.SignupStatDto;
+import com.example.portpilot.adminPage.report.ReportRepository;
+import com.example.portpilot.adminPage.report.ReportStatus;
 import com.example.portpilot.domain.mentorRequest.entity.MentoringRequest;
 import com.example.portpilot.domain.mentorRequest.entity.MentoringStatus;
 import com.example.portpilot.domain.mentorRequest.repository.MentoringRequestRepository;
@@ -20,8 +22,8 @@ import java.util.stream.Collectors;
 public class DashboardService {
 
     private final UserRepository userRepository;
-
     private final MentoringRequestRepository mentoringRequestRepository;
+    private final ReportRepository reportRepository;
 
 
     public List<SignupStatDto> getSignupStats(LocalDate start, LocalDate end) {
@@ -40,5 +42,10 @@ public class DashboardService {
                 ))
                 .collect(Collectors.toList());
     }
+
+    public int getUnresolvedReportCount() {
+        return reportRepository.countByStatus(ReportStatus.PENDING);
+    }
+
 
 }
