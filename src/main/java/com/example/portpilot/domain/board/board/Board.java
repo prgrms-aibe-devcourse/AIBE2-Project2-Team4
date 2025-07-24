@@ -38,4 +38,8 @@ public class Board extends BaseEntity {
     private String techStack;
 
     private String imageUrl;
+
+    @Column(name = "is_blocked", nullable = false)
+    private boolean isBlocked = false;
+
 }

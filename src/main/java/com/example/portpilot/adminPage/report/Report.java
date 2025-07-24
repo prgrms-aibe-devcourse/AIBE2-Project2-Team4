@@ -1,9 +1,9 @@
 package com.example.portpilot.adminPage.report;
 
 import com.example.portpilot.adminPage.admin.Admin;
+import com.example.portpilot.domain.user.User;
 import com.example.portpilot.global.common.BaseEntity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -12,15 +12,22 @@ import java.time.LocalDateTime;
 @Table(name = "t_report")
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Report extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long reporterId;
+    @ManyToOne
+    @JoinColumn(name = "reporter_id")
+    private User reporter;
 
-    private Long reportedUserId;
+    @ManyToOne
+    @JoinColumn(name = "reported_user_id")
+    private User reportedUser;
 
     @Enumerated(EnumType.STRING)
     private ReportTargetType targetType;

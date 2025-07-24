@@ -1,5 +1,8 @@
 package com.example.portpilot.domain.board.board;
 
+import com.example.portpilot.adminPage.report.ReportRequestDto;
+import com.example.portpilot.adminPage.report.ReportService;
+import com.example.portpilot.adminPage.report.ReportStatus;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -8,10 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,6 +20,7 @@ public class BoardController {
 
     private final BoardService boardService;
     private final UserRepository userRepository;
+    private final ReportService reportService;
 
     @GetMapping
     public String boardList(@RequestParam(defaultValue = "0") int page,
@@ -51,4 +52,20 @@ public class BoardController {
         model.addAttribute("board", dto);
         return "board/boardEdit";
     }
+
+    @PostMapping("/{boardId}")
+    @ResponseBody
+    public String reportBoard(@PathVariable Long boardId, @RequestBody ReportRequestDto dto) {
+        reportService.reportBoard(boardId, dto);
+        return "신고가 접수되었습니다.";
+    }
+
+    @PostMapping("/{id}/resolve")
+    public String resolveReport(@PathVariable Long id,
+                                @RequestParam ReportStatus status) {
+        reportService.resolveReport(id, status);
+        return "redirect:/admin/report";
+    }
+
+
 }

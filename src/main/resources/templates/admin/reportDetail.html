@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}">
+
+<head>
+    <title>신고 상세보기</title>
+    <link rel="stylesheet" th:href="@{/css/admin/report-detail.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+    <h2 class="report-header">신고 상세보기</h2>
+
+    <div class="report-info">
+        <p><strong>신고 ID:</strong> <span th:text="${report.id}"></span></p>
+        <p><strong>신고자:</strong> <span th:text="${reporterUser.name}"></span> (<span th:text="${reporterUser.email}"></span>)</p>
+        <p>
+            <strong>피신고자:</strong>
+            <a th:href="@{'/admin/user-management/' + ${reportedUser.id}}">
+                <span th:text="${reportedUser.name}"></span> (<span th:text="${reportedUser.email}"></span>)
+            </a>
+        </p>
+
+        <p><strong>신고 대상:</strong> <span th:text="${report.targetType}"></span></p>
+        <p><strong>신고 사유:</strong> <span th:text="${report.reason}"></span></p>
+        <p><strong>상태:</strong> <span th:text="${report.status}"></span></p>
+        <p><strong>처리 일시:</strong> <span th:text="${report.resolvedAt} ?: '-'"></span></p>
+    </div>
+
+    <div th:if="${targetBoard != null}" class="target-board-box">
+        <h2 class="report-header">신고 대상 게시글</h2>
+        <p><strong>제목:</strong> <span th:text="${targetBoard.title}"></span></p>
+        <p><strong>내용:</strong> <span th:text="${targetBoard.content}"></span></p>
+        <p><strong>작성자:</strong> <span th:text="${targetBoard.user.name}"></span></p>
+        <p><strong>작성일:</strong> <span th:text="${targetBoard.createdAt}"></span></p>
+        <p><strong>상태:</strong> <span th:text="${targetBoard.blocked} ? '차단됨' : '정상'"></span></p>
+    </div>
+
+    <form th:action="@{'/board/' + ${report.id} + '/resolve'}" method="post" class="resolve-form">
+        <label for="status">처리 상태:</label>
+        <select name="status" id="status">
+            <option value="RESOLVED">게시글 숨기기</option>
+            <option value="REJECTED">신고 반려</option>
+        </select>
+        <input type="hidden" name="adminId" value="1">
+        <button type="submit">처리하기</button>
+    </form>
+
+    <a href="/admin/report" class="back-link">← 목록으로</a>
+</div>
+</body>
+</html>
