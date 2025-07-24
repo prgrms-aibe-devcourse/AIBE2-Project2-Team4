@@ -49,33 +49,31 @@
             </ul>
 
             <div>
-                <!-- 로그인한 사용자만 참여 버튼 -->
+                <!-- 로그인한 사용자만 참여 버튼 (승인 전) -->
                 <form th:action="@{/projects/join/{id}(id=${project.id})}"
-                      th:if="${principal != null}"
+                      th:if="${principal != null and !member}"
                       method="post" class="d-inline">
-                    <input type="hidden"
-                           th:name="${_csrf.parameterName}"
-                           th:value="${_csrf.token}" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button class="btn btn-success">참여하기</button>
                 </form>
+
+                <!-- 소유자만 수정 버튼 -->
+                <a th:href="@{/projects/edit/{id}(id=${project.id})}"
+                   th:if="${principal != null and principal.id == project.owner.id}"
+                   class="btn btn-primary">
+                    수정
+                </a>
 
                 <!-- 소유자만 삭제 버튼 -->
                 <form th:action="@{/projects/delete/{id}(id=${project.id})}"
                       th:if="${principal != null and principal.id == project.owner.id}"
                       method="post" class="d-inline ms-2">
-                    <input type="hidden"
-                           th:name="${_csrf.parameterName}"
-                           th:value="${_csrf.token}" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div th:if="${error}" class="alert alert-warning" th:text="${error}"></div>
                     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-
-                    <button class="btn btn-danger"
-                            onclick="return confirm('정말 삭제하시겠습니까?');">
-                        삭제
-                    </button>
+                    <button class="btn btn-danger" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</button>
                 </form>
             </div>
-
         </div>
     </div>
 </div>

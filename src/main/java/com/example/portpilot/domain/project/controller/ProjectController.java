@@ -224,7 +224,56 @@ public class ProjectController {
         }
         return "redirect:/projects/manage/requests";
     }
+    /** 수정 폼 보여주기 */
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id,
+                               Authentication authentication,
+                               Model model) {
+        Project project = projectService.findById(id);
+        UserPrincipal principal = principal(authentication);
+        // 소유자가 아니면 목록으로 리다이렉트
+        if (principal == null || !project.getOwner().getId().equals(principal.getId())) {
+            return "redirect:/projects";
+        }
+        model.addAttribute("project", project);
+        // 폼용 enum 목록
+        model.addAttribute("startOptions", StartOption.values());
+        model.addAttribute("projectTypes", ProjectType.values());
+        model.addAttribute("planningStates", PlanningState.values());
+        model.addAttribute("experiences", Experience.values());
+        model.addAttribute("collabs", CollaborationOption.values());
+        return "projects/edit";
+    }
 
+    /** 수정 처리 */
+    @PostMapping("/edit/{id}")
+    public String updateProject(@PathVariable Long id,
+                                @RequestParam String title,
+                                @RequestParam String description,
+                                @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                LocalDateTime deadline,
+                                @RequestParam StartOption startOption,
+                                @RequestParam ProjectType projectType,
+                                @RequestParam PlanningState planningState,
+                                @RequestParam Experience experience,
+                                @RequestParam CollaborationOption collaborationOption,
+                                Authentication authentication) {
+        UserPrincipal principal = principal(authentication);
+        // 서비스에서 권한 체크 포함
+        projectService.updateProject(
+                id,
+                principal.getId(),
+                title,
+                description,
+                deadline,
+                startOption,
+                projectType,
+                planningState,
+                experience,
+                collaborationOption
+        );
+        return "redirect:/projects/" + id;
+    }
     /** 테스트: 전체 개수 확인 */
     @GetMapping("/count")
     @ResponseBody

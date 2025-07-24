@@ -184,6 +184,46 @@ public class ProjectService {
         return projectRepo.countByOwnerAndStatus(owner, status);
     }
 
+
+    /**
+     * 프로젝트 수정 (소유자만 가능)
+     */
+    public Project updateProject(
+            Long projectId,
+            Long ownerId,
+            String title,
+            String description,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime deadline,
+            StartOption startOption,
+            ProjectType projectType,
+            PlanningState planningState,
+            Experience experience,
+            CollaborationOption collaborationOption) {
+
+        // 1) 프로젝트 조회
+        Project project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트가 없습니다. id=" + projectId));
+
+        // 2) 권한 체크
+        if (!project.getOwner().getId().equals(ownerId)) {
+            throw new AccessDeniedException("수정 권한이 없습니다.");
+        }
+
+        // 3) 필드 업데이트
+        project.setTitle(title);
+        project.setDescription(description);
+        project.setDeadline(deadline);
+        project.setStartOption(startOption);
+        project.setProjectType(projectType);
+        project.setPlanningState(planningState);
+        project.setExperience(experience);
+        project.setCollaborationOption(collaborationOption);
+
+        // 4) 저장
+        return projectRepo.save(project);
+    }
+
+
     /** 테스트용: 전체 프로젝트 수 조회 */
     @Transactional(readOnly = true)
     public long countTotalProjects() {
