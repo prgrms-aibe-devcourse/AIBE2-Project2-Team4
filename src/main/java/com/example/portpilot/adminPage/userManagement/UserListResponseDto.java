@@ -8,6 +8,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class UserListResponseDto {
-    private List<UserSimpleDto> users;
+    private List<UserDetailDto> users;
     private int totalPages;
 }

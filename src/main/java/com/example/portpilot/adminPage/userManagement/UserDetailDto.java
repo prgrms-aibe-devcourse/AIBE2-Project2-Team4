@@ -2,9 +2,14 @@ package com.example.portpilot.adminPage.userManagement;
 
 import com.example.portpilot.domain.user.User;
 import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
-public class UserSimpleDto {
+@Setter
+public class UserDetailDto {
+
     private Long id;
     private String name;
     private String email;
@@ -14,10 +19,13 @@ public class UserSimpleDto {
     private boolean isBlocked;
     private String deletedAt;
     private String blockedAt;
-    private String blockedUntil;
+    private LocalDateTime blockedUntil;  // 수정됨
     private String status;
 
-    public UserSimpleDto(User user) {
+    public UserDetailDto() {
+    }
+
+    public UserDetailDto(User user) {
         this.id = user.getId();
         this.name = user.getName();
         this.email = user.getEmail();
@@ -27,7 +35,7 @@ public class UserSimpleDto {
         this.isBlocked = user.isBlocked();
         this.deletedAt = user.getDeletedAt() != null ? user.getDeletedAt().toString() : null;
         this.blockedAt = user.getBlockedAt() != null ? user.getBlockedAt().toString() : null;
-        this.blockedUntil = user.getBlockedUntil() != null ? user.getBlockedUntil().toString() : null;
+        this.blockedUntil = user.getBlockedUntil();  // 수정됨
         this.status = user.isDeleted() ? "탈퇴" : (user.isBlocked() ? "차단" : "정상");
     }
 }
