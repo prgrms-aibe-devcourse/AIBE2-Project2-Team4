@@ -13,4 +13,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     /** 소유자·상태로 개수 세기 */
     long countByOwnerAndStatus(User owner, ProjectStatus status);
+
+    List<Project> findByOwnerId(Long ownerId);
+
 }

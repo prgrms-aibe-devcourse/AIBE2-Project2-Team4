@@ -154,4 +154,18 @@ public class ProjectService {
 
         projectRepo.delete(project);
     }
+
+    /** 내가 소유한 모든 프로젝트 조회 */
+    @Transactional(readOnly = true)
+    public List<Project> findByOwner(Long ownerId) {
+        return projectRepo.findByOwnerId(ownerId);
+    }
+
+    /** 내가 참여한 모든 프로젝트 조회 */
+    @Transactional(readOnly = true)
+    public List<Project> findByParticipation(Long userId) {
+        return partRepo.findByUserId(userId).stream()
+                .map(Participation::getProject)
+                .collect(Collectors.toList());
+    }
 }
