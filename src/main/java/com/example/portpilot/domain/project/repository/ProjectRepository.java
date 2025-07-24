@@ -8,9 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    /** OPEN 상태인 프로젝트 검색에 쓰이는 메서드 */
+    /** OPEN 상태인 프로젝트 검색 */
     List<Project> findByStatus(ProjectStatus status);
 
     /** 소유자·상태로 개수 세기 */
     long countByOwnerAndStatus(User owner, ProjectStatus status);
+
+    /** 소유자 ID로 프로젝트 전체 조회 */
+    List<Project> findByOwnerId(Long ownerId);
 }
