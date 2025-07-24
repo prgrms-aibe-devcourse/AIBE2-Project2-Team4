@@ -58,33 +58,45 @@ public class MentoringService {
         mentoringRequestRepository.save(request);
     }
 
-    // 멘티로 신청한 요청 목록
+    // 멘티가 신청한 목록
     public List<MentoringRequestResponseDto> getRequestsByUser(User user) {
         return mentoringRequestRepository.findByUser(user).stream()
+                .filter(req -> req.getStatus() == MentoringStatus.PENDING)
                 .map(MentoringRequestResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    // 멘토로 받은 요청 목록
+    // 멘토가 받은 신청 목록
     public List<MentoringRequestResponseDto> getRequestsByMentor(User mentor) {
         return mentoringRequestRepository.findByMentor(mentor).stream()
+                .filter(req -> req.getStatus() == MentoringStatus.PENDING)
                 .map(MentoringRequestResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    // 수락 혹은 완료된 멘토링 요청
-    public List<MentoringRequestResponseDto> getCompletedOrAcceptedRequests(User user) {
+    // 수락된 요청 목록
+    public List<MentoringRequestResponseDto> getAcceptedRequests(User user) {
         return mentoringRequestRepository.findByUserOrMentor(user, user).stream()
-                .filter(req -> req.getStatus() == MentoringStatus.ACCEPTED || req.getStatus() == MentoringStatus.COMPLETED)
+                .filter(req -> req.getStatus() == MentoringStatus.ACCEPTED)
                 .map(MentoringRequestResponseDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    // 완료된 요청 목록
+    public List<MentoringRequestResponseDto> getCompletedRequests(User user) {
+        return mentoringRequestRepository.findByUserOrMentor(user, user).stream()
+                .filter(req -> req.getStatus() == MentoringStatus.COMPLETED)
+                .map(MentoringRequestResponseDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // ID로 요청 찾기
     public MentoringRequest findById(Long id) {
         return mentoringRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청이 존재하지 않습니다."));
     }
 
+    // 신청 수락
     public void acceptMentoringOnly(Long id, User mentor) {
         MentoringRequest req = findById(id);
         if (!req.getStatus().equals(MentoringStatus.PENDING)) {
@@ -96,6 +108,7 @@ public class MentoringService {
         mentoringRequestRepository.save(req);
     }
 
+    // 상태 업데이트
     public void updateStatus(Long id, MentoringStatus status, User currentUser) {
         MentoringRequest req = findById(id);
         if (!Objects.equals(req.getMentor(), currentUser) && !Objects.equals(req.getUser(), currentUser)) {
@@ -108,11 +121,9 @@ public class MentoringService {
     // 일정 제안
     public void proposeSchedule(Long requestId, LocalDateTime proposedAt, User currentUser) {
         MentoringRequest request = findById(requestId);
-
         if (!request.getUser().equals(currentUser) && !request.getMentor().equals(currentUser)) {
             throw new AccessDeniedException("권한 없음");
         }
-
         request.setProposedAt(proposedAt);
         request.setScheduleConfirmed(false);
         mentoringRequestRepository.save(request);
@@ -121,32 +132,26 @@ public class MentoringService {
     // 일정 확정
     public void confirmSchedule(Long requestId, User currentUser) {
         MentoringRequest request = findById(requestId);
-
         if (!request.getUser().equals(currentUser) && !request.getMentor().equals(currentUser)) {
             throw new AccessDeniedException("권한 없음");
         }
-
         if (request.getProposedAt() == null) {
             throw new IllegalStateException("제안된 일정 없음");
         }
-
         request.setScheduledAt(request.getProposedAt());
         request.setScheduleConfirmed(true);
-
         if (request.getSessionUrl() == null) {
             request.setSessionUrl(generateSessionLink(request));
         }
-
         mentoringRequestRepository.save(request);
     }
 
-    // 일정 제안 또는 확정
+    // 일정 저장 또는 확정
     public MentoringRequest scheduleMentoring(Long id, LocalDateTime proposedAt, User currentUser) {
         MentoringRequest req = findById(id);
         if (req.getScheduledAt() != null) {
             throw new IllegalStateException("이미 일정이 확정되었습니다.");
         }
-
         if (req.getProposedAt() == null) {
             req.setProposedAt(proposedAt);
         } else if (req.getProposedAt().equals(proposedAt)) {
@@ -156,7 +161,6 @@ public class MentoringService {
         } else {
             throw new IllegalStateException("제안된 일정이 일치하지 않습니다.");
         }
-
         return mentoringRequestRepository.save(req);
     }
 
@@ -165,8 +169,8 @@ public class MentoringService {
         return "https://meet.jit.si/mentoring-" + req.getId();
     }
 
-    // 일정 지난 멘토링 자동 완료 처리
-    @Scheduled(fixedRate = 60000) // 1분마다 확인
+    // 자동 완료 처리
+    @Scheduled(fixedRate = 60000)
     public void completeExpiredMentoring() {
         List<MentoringRequest> list = mentoringRequestRepository.findAllByStatus(MentoringStatus.ACCEPTED);
         for (MentoringRequest req : list) {

@@ -100,7 +100,10 @@
             <a class="nav-link" data-type="sent" href="#">보낸 신청</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-type="completed" href="#">수락 혹은 완료</a>
+            <a class="nav-link" data-type="accepted" href="#">수락됨</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="completed" href="#">완료됨</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" data-type="mentors" href="#">멘토 목록</a>
@@ -142,8 +145,11 @@
             case 'sent':
                 url = '/api/mentoring/requests/sent';
                 break;
+            case 'accepted':
+                url = '/api/mentoring/requests/accepted';
+                break;
             case 'completed':
-                url = '/api/mentoring/requests/accepted-or-completed';
+                url = '/api/mentoring/requests/completed';
                 break;
             case 'mentors':
                 url = '/api/mentoring/mentors';
