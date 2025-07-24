@@ -1,9 +1,8 @@
 .sidebar {
     position: fixed;
-    top: 60px;
     left: 0;
     width: 240px;
-    height: calc(100% - 60px);
+    height:100%;
     background-color: #29459A;
     padding-top: 20px;
     color: white;
@@ -33,6 +32,22 @@
 
 .sidebar ul li a:hover,
 .sidebar ul li a.active {
-    color: #29459A;
+    color: #081551;
     background-color: #DAEBFF;
+    box-shadow: inset 0 0 3px;
+}
+
+.sidebar .logo-text {
+    color: white;
+}
+
+.sidebar .logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.sidebar .logo-container img {
+    height: 100px;
+    margin: 0 10px;
 }
