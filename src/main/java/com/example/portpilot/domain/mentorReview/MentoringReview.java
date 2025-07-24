@@ -1,7 +1,7 @@
 package com.example.portpilot.domain.mentorReview;
 
+import com.example.portpilot.domain.mentorRequest.entity.MentoringRequest;
 import com.example.portpilot.domain.user.User;
-import com.example.portpilot.domain.mentorRequest.MentoringRequest;
 import lombok.*;
 
 import javax.persistence.*;

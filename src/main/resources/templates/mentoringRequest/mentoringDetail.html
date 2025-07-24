@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>멘토링 상세보기</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            background-color: #f7faff;
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background-color: #29459A;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background-color: white;
+            color: #29459A;
+        }
+
+        .content {
+            margin-left: 220px;
+            padding: 40px 20px;
+            background-color: #f7faff;
+            min-height: 100vh;
+        }
+
+        .card {
+            padding: 25px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 25px;
+        }
+
+        .detail-row {
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            margin-top: 30px;
+        }
+
+        #schedule-section {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <div class="menu">
+        <a href="/mentoring" class="active">멘토링 신청</a>
+        <a href="/mentoringReview">멘토링 후기</a>
+        <a href="/study">스터디 만들기</a>
+        <a href="/board">자유게시판</a>
+    </div>
+</div>
+
+<div class="content">
+    <div class="card">
+        <h2>멘토링 신청 상세</h2>
+        <div class="detail-row"><strong>멘토:</strong> <span id="mentorName"></span></div>
+        <div class="detail-row"><strong>멘티:</strong> <span id="userName"></span></div>
+        <div class="detail-row"><strong>주제:</strong> <span id="topic"></span></div>
+        <div class="detail-row"><strong>메시지:</strong> <span id="message"></span></div>
+        <div class="detail-row"><strong>신청일:</strong> <span id="createdAt"></span></div>
+        <div class="detail-row"><strong>상태:</strong> <span id="status"></span></div>
+
+        <div class="btn-group" id="actionButtons" style="display: none;">
+            <button class="btn btn-success w-50 me-2" onclick="accept()">수락</button>
+            <button class="btn btn-danger w-50" onclick="reject()">거절</button>
+        </div>
+
+        <!-- 일정 제안 -->
+        <div id="schedule-section" style="display: none;">
+            <label for="scheduleDate">멘토링 날짜 제안:</label>
+            <input type="datetime-local" id="scheduleDate" min="">
+            <button id="proposeBtn" class="btn btn-primary btn-sm mt-2">일정 제안</button>
+            <button id="confirmBtn" class="btn btn-success btn-sm mt-2" style="display:none;">상대 제안 수락</button>
+        </div>
+
+        <!-- 확정된 일정 -->
+        <div id="confirmed-schedule" style="margin-top: 20px; display: none;">
+            <p><strong>확정된 일정:</strong> <span id="scheduleDisplay"></span></p>
+            <p><strong>세션 링크:</strong> <a id="sessionLink" href="#" target="_blank"></a></p>
+            <button class="btn btn-outline-primary" id="goToRoomBtn">멘토링 방 이동</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const requestId = new URLSearchParams(window.location.search).get('id');
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        let sessionUrl = "", scheduledAt = "", proposedAt = "", userRole = "";
+
+        fetch(`/api/mentoring/requests/${requestId}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('mentorName').textContent = data.mentorName || '멘토 미지정';
+                document.getElementById('userName').textContent = data.userName;
+                document.getElementById('topic').textContent = data.topic;
+                document.getElementById('message').textContent = data.message;
+                document.getElementById('createdAt').textContent = data.createdAt;
+                document.getElementById('status').textContent = data.status;
+
+                sessionUrl = data.sessionUrl;
+                scheduledAt = data.scheduledAt;
+                proposedAt = data.proposedAt;
+                userRole = data.userRole;
+
+                if (data.status === 'PENDING' && userRole === 'MENTOR') {
+                    document.getElementById('actionButtons').style.display = 'flex';
+                }
+
+                if (data.status === 'ACCEPTED') {
+                    if (!scheduledAt && userRole === 'MENTOR') {
+                        document.getElementById('schedule-section').style.display = 'block';
+                    }
+
+                    if (!scheduledAt && proposedAt && userRole === 'MENTOR') {
+                        document.getElementById('confirmBtn').style.display = 'inline-block';
+                    }
+                }
+
+                if (scheduledAt && sessionUrl) {
+                    document.getElementById('confirmed-schedule').style.display = 'block';
+                    document.getElementById('scheduleDisplay').textContent = new Date(scheduledAt).toLocaleString();
+                    const sessionLink = document.getElementById('sessionLink');
+                    sessionLink.href = sessionUrl;
+                    sessionLink.textContent = sessionUrl;
+                }
+            });
+
+        // 일정 제안 시 현재 시각 이후만 가능
+        const now = new Date().toISOString().slice(0, 16);
+        document.getElementById('scheduleDate').min = now;
+
+        document.getElementById('proposeBtn')?.addEventListener('click', () => {
+            const value = document.getElementById('scheduleDate').value;
+            if (!value) return alert("일정을 선택하세요.");
+
+            fetch(`/api/mentoring/mentoring/${requestId}/propose`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({ proposedAt: value })
+            }).then(res => {
+                if (!res.ok) throw new Error("일정 제안 실패");
+                alert("일정이 제안되었습니다. 상대방의 수락을 기다리세요.");
+                location.reload();
+            }).catch(err => alert(err.message));
+        });
+
+        document.getElementById('confirmBtn')?.addEventListener('click', () => {
+            fetch(`/api/mentoring/mentoring/${requestId}/confirm`, {
+                method: 'POST',
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
+            }).then(res => {
+                if (!res.ok) throw new Error("확정 실패");
+                return res.json();
+            }).then(() => {
+                alert("일정이 확정되었습니다.");
+                location.reload();
+            }).catch(err => alert(err.message));
+        });
+
+        document.getElementById('goToRoomBtn')?.addEventListener('click', () => {
+            if (sessionUrl) window.open(sessionUrl, '_blank');
+        });
+    });
+
+    // 수락/거절 함수
+    function accept() {
+        fetch(`/api/mentoring/mentoring/${requestId}/accept`, {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken }
+        }).then(res => {
+            if (!res.ok) throw new Error("수락 실패");
+            alert("수락되었습니다.");
+            location.reload();
+        }).catch(err => alert(err.message));
+    }
+
+    function reject() {
+        fetch(`/api/mentoring/mentoring/${requestId}/reject`, {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken }
+        }).then(res => {
+            if (!res.ok) throw new Error("거절 실패");
+            alert("거절되었습니다.");
+            location.href = "/mentoring";
+        }).catch(err => alert(err.message));
+    }
+</script>
+</body>
+</html>
