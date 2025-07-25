@@ -91,6 +91,7 @@ public class ProfileService {
                 portfolioRepo.countByUserIdAndStatus(user.getId(), PortfolioStatus.PENDING_REVIEW),
                 portfolioRepo.countByUserIdAndStatus(user.getId(), PortfolioStatus.CANCELLED)
         );
+        // 이슈 수는 프로젝트 서비스에서 집계하거나 0으로 둡니다.
         return new ProfileStatsDto(ongoing, delivered, 0, purchases);
     }
 
@@ -158,5 +159,17 @@ public class ProfileService {
                         p.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    /** 내 포트폴리오 삭제 */
+    @Transactional
+    public void deletePortfolio(Long userId, Long portfolioId) {
+        portfolioRepo.findById(portfolioId).ifPresent(p -> {
+            if (p.getUser().getId().equals(userId)) {
+                portfolioRepo.delete(p);
+            } else {
+                throw new IllegalArgumentException("삭제 권한이 없습니다.");
+            }
+        });
     }
 }

@@ -1,41 +1,42 @@
 package com.example.portpilot.domain.portfolio.entity;
 
 import com.example.portpilot.domain.user.User;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "portfolios")
-@Getter
-@Setter
+@Table(name="portfolios")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Portfolio {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 소유 사용자 */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    /** 제목 */
-    @Column(nullable = false)
+    @Column(nullable=false, length=100)
     private String title;
 
-    /** 설명 */
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition="TEXT", nullable=false)
     private String description;
 
-    /** 상태 */
+    // 외부 링크 (단일 혹은 복수라면 List<String> 으로 매핑)
+    private String link;
+
+    // 태그를 콤마로 구분한 문자열로 저장 (간단 구현)
+    private String tags;  // e.g. "Java,Spring,Thymeleaf"
+
+    // 카테고리 (enum으로 두어도 좋습니다)
+    private String category;
+
+    // 이미지 파일명 또는 URL을 콤마로 구분해 저장
+    private String images; // e.g. "uuid1.jpg,uuid2.png"
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PortfolioStatus status;
 
-    /** 생성 일시 */
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable=false)
+    private User user;
 }
