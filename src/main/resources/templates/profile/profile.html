@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title th:text="${pageTitle} + ' - PortPilot'">PortPilot</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"/>
     <style>
         .list-group .active {
             background-color: #0d6efd;
@@ -21,16 +23,24 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="/">PortPilot</a>
+        <a class="navbar-brand" th:href="@{/}">PortPilot</a>
         <ul class="navbar-nav ms-auto">
             <li class="nav-item">
                 <a class="nav-link" th:href="@{/projects}">프로젝트</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" th:href="@{/profile}">내 프로필</a>
+                <a class="nav-link"
+                   th:href="@{/profile}"
+                   th:classappend="${active=='profile'} ? ' active' : ''">
+                    내 프로필
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" th:href="@{/portfolio}">포트폴리오</a>
+                <a class="nav-link"
+                   th:href="@{/portfolio}"
+                   th:classappend="${active=='portfolio'} ? ' active' : ''">
+                    포트폴리오
+                </a>
             </li>
         </ul>
     </div>
@@ -67,14 +77,16 @@
 
         <!-- 메인 콘텐츠 -->
         <div class="col-md-9">
-            <!-- 1) 내 프로필 -->
+
+            <!-- 1) 내 프로필 대시보드 -->
             <section th:if="${active=='profile'}">
-                <!-- 프로필 헤더 -->
                 <div class="card mb-4">
                     <div class="card-body text-center">
                         <h2 th:text="${profile.name}">홍길동</h2>
                         <p class="text-muted" th:text="${profile.position}">백엔드 엔지니어</p>
-                        <a href="/profile/profileedit" class="btn btn-outline-primary btn-sm">프로필 수정</a>
+                        <a href="/profile/profileedit" class="btn btn-outline-primary btn-sm">
+                            프로필 수정
+                        </a>
                     </div>
                 </div>
 
@@ -82,9 +94,9 @@
                 <div class="mb-4">
                     <h5>기술 스택</h5>
                     <div>
-                        <span th:each="skill : ${profile.skills}"
-                              class="badge bg-secondary me-1"
-                              th:text="${skill}">Java</span>
+            <span th:each="skill : ${profile.skills}"
+                  class="badge bg-secondary me-1"
+                  th:text="${skill}">Java</span>
                         <div th:if="${#lists.isEmpty(profile.skills)}" class="text-muted">
                             등록된 기술 스택이 없습니다.
                         </div>
@@ -124,10 +136,7 @@
                 <table class="table table-striped mb-4">
                     <thead>
                     <tr>
-                        <th>날짜</th>
-                        <th>프로젝트</th>
-                        <th>역할</th>
-                        <th>상태</th>
+                        <th>날짜</th><th>프로젝트</th><th>역할</th><th>상태</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -147,10 +156,9 @@
 
                 <!-- 참여 중인 프로젝트 -->
                 <h5>참여 중인 프로젝트</h5>
-                <div class="row g-3">
+                <div class="row g-3 mb-5">
                     <div class="col-md-6" th:each="pj : ${myProjects}">
-                        <a th:href="@{/projects/{id}(id=${pj.id})}"
-                           class="card-link d-block h-100">
+                        <a th:href="@{/projects/{id}(id=${pj.id})}" class="card-link d-block h-100">
                             <div class="card h-100">
                                 <div class="card-body">
                                     <h6 class="card-title" th:text="${pj.title}">프로젝트 제목</h6>
@@ -160,7 +168,7 @@
                         </a>
                     </div>
                     <div th:if="${#lists.isEmpty(myProjects)}"
-                         class="text-center text-muted py-4">
+                         class="col-12 text-center text-muted py-4">
                         참여 중인 프로젝트가 없습니다.
                     </div>
                 </div>
@@ -169,12 +177,10 @@
             <!-- 2) 내가 보낸 요청 -->
             <section th:if="${active=='sentRequests'}">
                 <h4>내가 보낸 요청</h4>
-                <table class="table">
+                <table class="table mb-5">
                     <thead>
                     <tr>
-                        <th>프로젝트</th>
-                        <th>요청일</th>
-                        <th>상태</th>
+                        <th>프로젝트</th><th>요청일</th><th>상태</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -200,13 +206,10 @@
             <!-- 3) 받은 요청 -->
             <section th:if="${active=='receivedRequests'}">
                 <h4>받은 요청</h4>
-                <table class="table">
+                <table class="table mb-5">
                     <thead>
                     <tr>
-                        <th>요청자</th>
-                        <th>프로젝트</th>
-                        <th>요청일</th>
-                        <th>액션</th>
+                        <th>요청자</th><th>프로젝트</th><th>요청일</th><th>액션</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -239,28 +242,48 @@
                 </table>
             </section>
 
-            <!-- 4) 내 포트폴리오 -->
+            <!-- 4) 내가 올린 포트폴리오 -->
             <section th:if="${active=='portfolio'}">
-                <h4>내 포트폴리오</h4>
-                <div th:each="p : ${portfolios}" class="card mb-3">
-                    <div class="card-body">
-                        <h5 th:text="${p.title}">포트폴리오 제목</h5>
-                        <p th:text="${p.description}">설명</p>
-                        <small class="text-muted"
-                               th:text="${#temporals.format(p.createdAt,'yyyy-MM-dd')}">
-                            2025-07-24
-                        </small>
+                <h5 class="mt-5">내가 올린 포트폴리오</h5>
+                <div class="row g-3 mb-5">
+                    <div class="col-md-6" th:each="p : ${portfolios}">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title" th:text="${p.title}">제목</h6>
+                                <p class="card-text text-truncate"
+                                   th:text="${p.description}">설명...</p>
+                            </div>
+                            <div class="card-footer bg-white text-end">
+                                <small class="text-muted me-2"
+                                       th:text="${#temporals.format(p.createdAt,'yyyy-MM-dd')}">
+                                    2025-07-25
+                                </small>
+                                <form th:action="@{/profile/portfolio/delete/{id}(id=${p.id})}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}"/>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('정말 삭제하시겠습니까?');">
+                                        삭제
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(portfolios)}"
+                         class="col-12 text-center text-muted py-4">
+                        등록된 포트폴리오가 없습니다.
                     </div>
                 </div>
-                <div th:if="${#lists.isEmpty(portfolios)}"
-                     class="text-center text-muted py-4">
-                    등록된 포트폴리오가 없습니다.
-                </div>
             </section>
+
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
 </body>
 </html>
