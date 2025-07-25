@@ -96,7 +96,7 @@ public class SecurityConfig {
         http
                 .antMatcher("/**")
                 .authorizeRequests()
-                .antMatchers("/", "/users/login", "/users/login/error", "/item/**", "/images/**", "/users/new").permitAll()
+                .antMatchers("/", "/users/login", "/users/login/error", "/item/**", "/images/**", "/img/**", "/users/new").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
@@ -104,7 +104,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/users/login")
                 .usernameParameter("email")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/users", true)
+                .defaultSuccessUrl("/", true)
                 .failureUrl("/users/login/error")
                 .and()
                 .logout()
