@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${portfolioForm.id} == null
+          ? '새 포트폴리오 등록'
+          : '포트폴리오 수정'">
+        포트폴리오 폼
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+    />
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">PortPilot</a>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link"
+                   th:href="@{/portfolio}"
+                   th:classappend="${active=='portfolio'} ? ' active' : ''">
+                    포트폴리오
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <div class="card">
+        <div class="card-body">
+            <form th:action="${portfolioForm.id} == null
+            ? @{/portfolio/new}
+            : @{/portfolio/{id}/edit(id=${portfolioForm.id})}"
+                  th:object="${portfolioForm}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                <!-- 제목 -->
+                <div class="mb-3">
+                    <label class="form-label">제목 *</label>
+                    <input type="text"
+                           th:field="*{title}"
+                           class="form-control"
+                           placeholder="제목을 입력하세요"
+                           required />
+                </div>
+
+                <!-- 설명 -->
+                <div class="mb-3">
+                    <label class="form-label">설명 *</label>
+                    <textarea th:field="*{description}"
+                              class="form-control"
+                              rows="5"
+                              placeholder="상세 설명을 입력하세요"
+                              required></textarea>
+                </div>
+
+                <!-- 링크 -->
+                <div class="mb-3">
+                    <label class="form-label">링크 (URL)</label>
+                    <input type="url"
+                           th:field="*{link}"
+                           class="form-control"
+                           placeholder="https://..." />
+                </div>
+
+                <!-- 태그 -->
+                <div class="mb-3">
+                    <label class="form-label">태그 (콤마로 구분)</label>
+                    <input type="text"
+                           th:field="*{tags}"
+                           class="form-control"
+                           placeholder="Java,Spring,Thymeleaf" />
+                </div>
+
+                <!-- 카테고리 -->
+                <div class="mb-3">
+                    <label class="form-label">카테고리</label>
+                    <input type="text"
+                           th:field="*{category}"
+                           class="form-control"
+                           placeholder="웹, 모바일 등" />
+                </div>
+
+                <!-- 이미지 업로드 -->
+                <div class="mb-3">
+                    <label class="form-label">스크린샷/이미지 업로드</label>
+                    <input type="file"
+                           name="files"
+                           class="form-control"
+                           multiple />
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary me-2">
+                    저장
+                </button>
+                <a th:href="@{/portfolio}"
+                   class="btn btn-secondary">
+                    취소
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+</script>
+</body>
+</html>
