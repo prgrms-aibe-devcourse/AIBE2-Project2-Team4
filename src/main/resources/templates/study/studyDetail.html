@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title th:text="${study.title}">스터디 상세</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/study/studyDetail.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="menu">
+    <a href="/mentoring">멘토링 신청</a>
+    <a href="/mentoringReview">멘토링 후기</a>
+    <a href="/study" class="active">스터디 만들기</a>
+    <a href="/board">자유게시판</a>
+  </div>
+</div>
+
+<div class="content">
+  <!-- 뒤로가기 버튼 -->
+  <div class="mb-3">
+    <a href="/study" class="btn btn-outline-secondary">← 목록으로</a>
+  </div>
+
+  <!-- 스터디 헤더 -->
+  <div class="study-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2 th:text="${study.title}">스터디 제목</h2>
+        <p class="text-muted mb-2">
+          작성자: <span th:text="${study.user != null ? study.user.name : '알 수 없음'}">작성자명</span> |
+          마감일: <span th:text="${#temporals.format(study.deadline, 'yyyy-MM-dd HH:mm')}">2024-01-01 23:59</span>
+        </p>
+      </div>
+      <div>
+        <span th:if="${study.closed}" class="status-badge status-closed">모집 마감</span>
+        <span th:unless="${study.closed}" class="status-badge status-recruiting">모집 중</span>
+      </div>
+    </div>
+
+    <!-- 모집 현황 -->
+    <div class="progress-section">
+      <h6>모집 현황</h6>
+      <div class="progress-item" th:if="${study.backendRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-backend">백엔드</span>
+        </div>
+        <div>
+          <span class="current-count" id="backend-current">0</span> /
+          <span class="max-count" th:text="${study.backendRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.frontendRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-frontend">프론트엔드</span>
+        </div>
+        <div>
+          <span class="current-count" id="frontend-current">0</span> /
+          <span class="max-count" th:text="${study.frontendRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.designerRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-designer">디자이너</span>
+        </div>
+        <div>
+          <span class="current-count" id="designer-current">0</span> /
+          <span class="max-count" th:text="${study.designerRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.plannerRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-planner">기획자</span>
+        </div>
+        <div>
+          <span class="current-count" id="planner-current">0</span> /
+          <span class="max-count" th:text="${study.plannerRecruit}">0</span>명
+        </div>
+      </div>
+    </div>
+
+    <!-- 기술스택 -->
+    <div th:if="${study.techStacks != null and !study.techStacks.isEmpty()}">
+      <h6>기술 스택</h6>
+      <div>
+        <span th:each="tech : ${study.techStacks}"
+              th:text="${tech.techStack}"
+              class="tech-stack-badge">React</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스터디룸 (참여자만) -->
+  <div th:if="${isParticipant}" class="study-content">
+    <h5>스터디룸</h5>
+    <p class="text-muted">스터디 진행을 위한 도구들입니다.</p>
+    <div class="d-flex gap-2">
+      <a href="#" class="btn btn-primary" id="discord-link">📱 Discord 채팅방 입장</a>
+      <a href="#" class="btn btn-outline-secondary">📋 진행상황 체크</a>
+    </div>
+  </div>
+
+  <!-- 스터디 내용 -->
+  <div class="study-content">
+    <h5>스터디 소개</h5>
+    <div th:text="${study.content}">
+      스터디 내용이 여기에 표시됩니다.
+    </div>
+  </div>
+
+  <!-- 신청 영역: 참여자 아님 && 작성자 아님 && 마감 아님 && 신청 안 한 경우 -->
+  <div th:if="${!isOwner and !study.closed and !isParticipant and !hasPendingApplication}" class="study-content">
+    <div class="apply-section">
+      <h5>스터디 신청하기</h5>
+      <p class="text-muted mb-3">참여하고 싶은 직군을 선택해주세요</p>
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button th:if="${study.backendRecruit > 0}" class="btn btn-outline-primary" onclick="applyToStudy('BACKEND')">백엔드로 신청</button>
+        <button th:if="${study.frontendRecruit > 0}" class="btn btn-outline-success" onclick="applyToStudy('FRONTEND')">프론트엔드로 신청</button>
+        <button th:if="${study.designerRecruit > 0}" class="btn btn-outline-warning" onclick="applyToStudy('DESIGNER')">디자이너로 신청</button>
+        <button th:if="${study.plannerRecruit > 0}" class="btn btn-outline-info" onclick="applyToStudy('PLANNER')">기획자로 신청</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신청 완료: 신청했지만 아직 수락 안 됨 -->
+  <div th:if="${!isOwner and hasPendingApplication}" class="study-content">
+    <div class="apply-section">
+      <h5>✅ 신청 완료!</h5>
+      <p class="text-muted">스터디 신청이 완료되었습니다. 승인을 기다려주세요.</p>
+    </div>
+  </div>
+
+  <!-- 참여 완료: 신청이 승인되어 참여자가 된 경우 -->
+  <div th:if="${isParticipant and !isOwner}" class="study-content">
+    <div class="alert alert-success text-center">
+      <h5>🎉 참여 중!</h5>
+      <p>스터디에 참여하고 있습니다. 열심히 활동해보세요!</p>
+    </div>
+  </div>
+
+  <!-- 참여자 목록 -->
+  <div class="participants-section">
+    <h5>참여자 목록 (<span th:text="${#lists.size(participants)}">0</span>명)</h5>
+
+    <div th:if="${#lists.isEmpty(participants)}" class="text-muted">
+      아직 승인된 참여자가 없습니다.
+    </div>
+
+    <div th:each="participant : ${participants}" class="participant-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong th:text="${participant.name}">참여자명</strong>
+          <span class="text-muted" th:text="'(' + ${participant.email} + ')'">이메일</span>
+        </div>
+        <span th:class="'job-type-badge job-' + ${#strings.toLowerCase(participant.jobType)}"
+              th:text="${participant.jobType}">직군</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신청 관리 (작성자만) -->
+  <div th:if="${isOwner and pendingList != null and !#lists.isEmpty(pendingList)}" class="participants-section">
+    <h5>신청 대기 목록</h5>
+
+    <div th:each="applicant : ${pendingList}" class="participant-card pending-applicant">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong th:text="${applicant.name}">신청자명</strong>
+          <span class="text-muted" th:text="'(' + ${applicant.email} + ')'">이메일</span>
+          <span th:class="'job-type-badge job-' + ${#strings.toLowerCase(applicant.jobType)}"
+                th:text="${applicant.jobType}">직군</span>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-success me-2"
+                  th:onclick="'acceptApplicant(' + ${applicant.participationId} + ')'">
+            승인
+          </button>
+          <button class="btn btn-sm btn-danger"
+                  th:onclick="'rejectApplicant(' + ${applicant.participationId} + ')'">
+            거절
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스터디 관리 (작성자만) -->
+  <div th:if="${isOwner}" class="study-content">
+    <h5>스터디 관리</h5>
+    <div class="d-flex gap-2">
+      <button th:if="${!study.closed}"
+              class="btn btn-warning"
+              onclick="closeStudy()">
+        모집 마감하기
+      </button>
+      <button class="btn btn-info" onclick="generateDiscordLink()">
+        Discord 링크 생성
+      </button>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const studyId = /*[[${study.id}]]*/ 0;
+  const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+  const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+  const participants = /*[[${participantsJson}]]*/ [];
+
+  document.addEventListener('DOMContentLoaded', () => updateParticipantCounts());
+
+  function updateParticipantCounts() {
+    const counts = { BACKEND: 0, FRONTEND: 0, DESIGNER: 0, PLANNER: 0 };
+    participants.forEach(p => {
+      const jobType = p.jobType?.toUpperCase();
+      if (counts[jobType] !== undefined) counts[jobType]++;
+    });
+    ['backend', 'frontend', 'designer', 'planner'].forEach(type => {
+      const el = document.getElementById(`${type}-current`);
+      if (el) el.textContent = counts[type.toUpperCase()];
+    });
+  }
+
+  function applyToStudy(jobType) {
+    if (!confirm(`${jobType} 직군으로 신청하시겠습니까?`)) return;
+    fetch(`/api/studies/${studyId}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', [header]: token },
+      body: JSON.stringify({ jobType })
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('신청 실패: ' + err.message));
+  }
+
+  function acceptApplicant(id) {
+    if (!confirm('이 신청을 승인하시겠습니까?')) return;
+    fetch(`/api/studies/applications/${id}/accept`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
+  }
+
+  function rejectApplicant(id) {
+    if (!confirm('이 신청을 거절하시겠습니까?')) return;
+    fetch(`/api/studies/applications/${id}/reject`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
+  }
+
+  function closeStudy() {
+    if (!confirm('정말로 모집을 마감하시겠습니까?')) return;
+    fetch(`/api/studies/${studyId}/close`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
+  }
+
+  function generateDiscordLink() {
+    const url = `https://discord.gg/study${studyId}`;
+    const el = document.getElementById('discord-link');
+    if (el) el.href = url;
+    navigator.clipboard.writeText(url).then(() => alert('Discord 링크가 복사되었습니다!\n' + url));
+  }
+</script>
+</body>
+</html>
