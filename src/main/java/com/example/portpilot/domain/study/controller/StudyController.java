@@ -92,6 +92,13 @@ public class StudyController {
             model.addAttribute("isOwner", isOwner);
             model.addAttribute("isParticipant", isParticipant);
 
+            boolean hasPendingApplication = false;
+            if (currentUser != null) {
+                hasPendingApplication = pendingList.stream()
+                        .anyMatch(p -> p.getUser().getId().equals(currentUser.getId()));
+            }
+            model.addAttribute("hasPendingApplication", hasPendingApplication);
+
             // 참여자 목록 변환
             List<StudyApplicantDto> participants = acceptedList.stream()
                     .map(p -> StudyApplicantDto.builder()
@@ -99,7 +106,7 @@ public class StudyController {
                             .userId(p.getUser().getId())
                             .name(p.getUser().getName())
                             .email(p.getUser().getEmail())
-                            .jobType(p.getJobType())
+                            .jobType(p.getJobType().name())
                             .build())
                     .collect(Collectors.toList());
 
@@ -116,7 +123,7 @@ public class StudyController {
                                 .userId(p.getUser().getId())
                                 .name(p.getUser().getName())
                                 .email(p.getUser().getEmail())
-                                .jobType(p.getJobType())
+                                .jobType(p.getJobType().name())
                                 .build())
                         .collect(Collectors.toList());
 

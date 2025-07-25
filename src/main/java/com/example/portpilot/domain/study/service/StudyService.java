@@ -7,11 +7,14 @@ import com.example.portpilot.domain.study.repository.StudyRecruitmentRepository;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ public class StudyService {
     private final StudyRecruitmentRepository studyRepo;
     private final StudyParticipationRepository participationRepo;
     private final UserRepository userRepository;
+    private final StudyRecruitmentRepository studyRecruitmentRepo;
 
     // 현재 로그인된 사용자 가져오기
     private User getCurrentUser() {
@@ -63,15 +67,17 @@ public class StudyService {
 
         switch (tab) {
             case "recruiting":
-                return studyRepo.findByClosed(false);
+                return studyRepo.findByClosedFalseAndCompletedFalse();
             case "closed":
-                return studyRepo.findByClosed(true);
+                return studyRepo.findByClosedTrueAndCompletedFalse();
+            case "completed":
+                return studyRepo.findByCompletedTrue();
             case "my":
                 return currentUser != null ? studyRepo.findByUser(currentUser) : List.of();
             case "applied":
                 return getAppliedStudies(currentUser);
             default:
-                return studyRepo.findByClosed(false);
+                return studyRepo.findByClosedFalseAndCompletedFalse();
         }
     }
 
@@ -128,17 +134,14 @@ public class StudyService {
         StudyRecruitment study = studyRepo.findById(studyId)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
 
-        // 마감 체크
         if (study.isRecruitmentClosed()) {
             throw new IllegalStateException("모집이 마감된 스터디입니다.");
         }
 
-        // 중복 신청 체크
         if (participationRepo.findByStudyAndUser(study, currentUser).isPresent()) {
             throw new IllegalStateException("이미 신청한 스터디입니다.");
         }
 
-        // 정원 체크
         long currentCount = participationRepo.findByStudyAndStatus(study, StudyApplyStatus.ACCEPTED)
                 .stream()
                 .filter(p -> p.getJobType() == jobType)
@@ -149,7 +152,6 @@ public class StudyService {
             throw new IllegalStateException("해당 직군은 정원이 마감되었습니다.");
         }
 
-        // 신청 저장
         StudyParticipation participation = StudyParticipation.builder()
                 .study(study)
                 .user(currentUser)
@@ -170,7 +172,7 @@ public class StudyService {
         }
     }
 
-    // 신청 승인
+    // 신청 수락
     public void acceptParticipation(Long participationId) {
         StudyParticipation participation = participationRepo.findById(participationId)
                 .orElseThrow(() -> new IllegalArgumentException("신청이 존재하지 않습니다."));
@@ -196,7 +198,7 @@ public class StudyService {
         participation.setStatus(StudyApplyStatus.REJECTED);
     }
 
-    // 스터디 마감
+    // 스터디 마감 처리
     public void closeStudy(Long studyId) {
         StudyRecruitment study = studyRepo.findById(studyId)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
@@ -222,11 +224,17 @@ public class StudyService {
         return participationRepo.findByStudyAndStatus(study, status);
     }
 
-    //테스트용 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // 테스트용 스터디 삭제
     public void deleteStudy(Long id) {
         StudyRecruitment study = studyRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
         studyRepo.delete(study);
     }
 
+    // 스터디 강제 완료 처리 (테스트용: 누구나 가능)
+    public void completeStudy(Long studyId) {
+        StudyRecruitment study = studyRepo.findById(studyId)
+                .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
+        study.setCompleted(true);
+    }
 }

@@ -12,7 +12,6 @@
             font-family: 'Pretendard', sans-serif;
             margin: 0;
         }
-
         .sidebar {
             width: 220px;
             height: 100vh;
@@ -22,7 +21,6 @@
             left: 0;
             padding-top: 40px;
         }
-
         .sidebar a {
             display: block;
             padding: 15px 25px;
@@ -32,42 +30,35 @@
             margin: 0;
             border-radius: 0;
         }
-
         .sidebar a.active,
         .sidebar a:hover {
             background-color: white;
             color: #29459A;
         }
-
         .content {
             margin-left: 220px;
             padding: 40px 20px;
             background-color: #f7faff;
             min-height: 100vh;
         }
-
         .card-title {
             font-size: 1.1rem;
             font-weight: bold;
         }
-
         .card-text {
             font-size: 0.95rem;
         }
-
         .section-title {
             font-weight: bold;
             font-size: 1.3rem;
             margin-bottom: 20px;
         }
-
         .clickable-card {
             cursor: pointer;
             transition: background-color 0.2s;
             text-decoration: none;
             color: inherit;
         }
-
         .clickable-card:hover {
             background-color: #f0f4ff;
         }
@@ -95,6 +86,7 @@
     <ul class="nav nav-tabs mb-3" id="studyTabs">
         <li class="nav-item"><a class="nav-link active" data-type="recruiting" href="#">모집 중</a></li>
         <li class="nav-item"><a class="nav-link" data-type="closed" href="#">모집 마감</a></li>
+        <li class="nav-item"><a class="nav-link" data-type="completed" href="#">종료된 스터디</a></li>
         <li class="nav-item"><a class="nav-link" data-type="my" href="#">내가 만든 스터디</a></li>
         <li class="nav-item"><a class="nav-link" data-type="applied" href="#">내가 신청한 스터디</a></li>
     </ul>
@@ -156,6 +148,13 @@
 
                     const userName = study.user ? study.user.name : '알 수 없음';
 
+                    let badgeHtml = '';
+                    if (study.completed) {
+                        badgeHtml = '<span class="badge bg-dark">종료됨</span>';
+                    } else {
+                        badgeHtml = statusBadgeMap[study.closed] || '';
+                    }
+
                     card.innerHTML = `
         <div class="card-body">
             <h5 class="card-title">${study.title}</h5>
@@ -164,18 +163,14 @@
             <p class="card-text text-muted">마감일: ${new Date(study.deadline).toLocaleDateString()}</p>
             <p class="card-text text-muted">모집: ${recruitInfo.join(', ')}</p>
             ${techStackHtml}
-            ${statusBadgeMap[study.closed] || ''}
+            ${badgeHtml}
 
-            <!-- 🧪 테스트용 삭제 버튼 - 실제 서비스 배포 시 반드시 제거 -->
-            <button class="btn btn-sm btn-danger mt-2" onclick="event.preventDefault(); deleteStudy(${study.id});">
-                🗑 삭제 (테스트용)
-            </button>
+            <button class="btn btn-sm btn-danger mt-2" onclick="event.preventDefault(); deleteStudy(${study.id});">삭제 (테스트용)</button>
+            <button class="btn btn-sm btn-dark mt-2 ms-2" onclick="event.preventDefault(); completeStudy(${study.id});">스터디 완료처리 (테스트용)</button>
         </div>
     `;
-
                     container.appendChild(card);
                 });
-
             })
             .catch(err => {
                 console.error('Error:', err);
@@ -183,13 +178,10 @@
             });
     }
 
-    // 🧪 테스트용 스터디 삭제 함수 - 서비스 배포 시 반드시 제거할 것
     function deleteStudy(studyId) {
         if (!confirm('정말 삭제하시겠습니까?')) return;
-
         const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
         fetch(`/api/studies/${studyId}`, {
             method: 'DELETE',
             headers: {
@@ -206,6 +198,73 @@
             })
             .catch(err => alert('삭제 실패: ' + err.message));
     }
+
+    function forceCloseStudy(studyId) {
+        if (!confirm('이 스터디를 강제로 모집마감 처리할까요?')) return;
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        fetch(`/api/studies/${studyId}/force-close`, {
+            method: 'POST',
+            headers: {
+                [header]: token
+            }
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('스터디가 마감 처리되었습니다.');
+                    loadTabContent(document.querySelector('#studyTabs .nav-link.active').dataset.type);
+                } else {
+                    return res.text().then(t => { throw new Error(t); });
+                }
+            })
+            .catch(err => alert('처리 실패: ' + err.message));
+    }
+
+    function completeStudy(studyId) {
+        if (!confirm('이 스터디를 실제 완료 상태로 처리할까요?')) return;
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        fetch(`/api/studies/${studyId}/force-complete`, {
+            method: 'POST',
+            headers: {
+                [header]: token
+            }
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('스터디가 완료 처리되었습니다.');
+                    loadTabContent(document.querySelector('#studyTabs .nav-link.active').dataset.type);
+                } else {
+                    return res.text().then(t => { throw new Error(t); });
+                }
+            })
+            .catch(err => alert('처리 실패: ' + err.message));
+    }
+
+    document.getElementById("closeExpiredBtn")?.addEventListener("click", async () => {
+        const confirmed = confirm("마감된 스터디들을 모두 종료 처리할까요?");
+        if (!confirmed) return;
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+        try {
+            const res = await fetch("/api/study/close-expired", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    [header]: token
+                }
+            });
+            if (res.ok) {
+                alert("마감된 스터디가 종료 처리되었습니다.");
+                location.reload();
+            } else {
+                const text = await res.text();
+                alert("처리 실패: " + text);
+            }
+        } catch (err) {
+            alert("에러 발생: " + err.message);
+        }
+    });
 </script>
 
 </body>

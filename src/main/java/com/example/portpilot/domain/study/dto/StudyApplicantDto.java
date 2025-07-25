@@ -11,5 +11,5 @@ public class StudyApplicantDto {
     private Long userId;
     private String name;
     private String email;
-    private JobType jobType;
+    private String jobType;
 }

@@ -5,6 +5,7 @@ import com.example.portpilot.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +26,9 @@ public interface StudyRecruitmentRepository extends JpaRepository<StudyRecruitme
     // 기존 메서드들
     List<StudyRecruitment> findByUser(User user);
     List<StudyRecruitment> findByClosed(boolean b);
+    List<StudyRecruitment> findByCompletedTrue();
+
+    List<StudyRecruitment> findByClosedFalseAndCompletedFalse();
+
+    List<StudyRecruitment> findByClosedTrueAndCompletedFalse();
 }

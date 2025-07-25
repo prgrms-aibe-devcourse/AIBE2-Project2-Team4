@@ -48,6 +48,7 @@ public class StudyApiController {
         }
     }
 
+    // StudyRecruitment -> Map 변환 (프론트 전달용)
     private Map<String, Object> convertToMap(StudyRecruitment study) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", study.getId());
@@ -59,8 +60,9 @@ public class StudyApiController {
         map.put("plannerRecruit", study.getPlannerRecruit());
         map.put("deadline", study.getDeadline());
         map.put("closed", study.isClosed());
+        map.put("completed", study.isCompleted());
 
-        // User 정보
+        // 작성자 정보
         Map<String, Object> userInfo = new HashMap<>();
         if (study.getUser() != null) {
             userInfo.put("name", study.getUser().getName());
@@ -69,7 +71,7 @@ public class StudyApiController {
         }
         map.put("user", userInfo);
 
-        // 기술스택
+        // 기술 스택
         List<String> techStacks = study.getTechStacks().stream()
                 .map(StudyTechStack::getTechStack)
                 .collect(Collectors.toList());
@@ -102,7 +104,7 @@ public class StudyApiController {
         }
     }
 
-    // 신청 승인
+    // 신청 수락
     @PostMapping("/applications/{participationId}/accept")
     public ResponseEntity<String> acceptParticipation(@PathVariable Long participationId) {
         try {
@@ -124,18 +126,18 @@ public class StudyApiController {
         }
     }
 
-    // 스터디 마감
-    @PostMapping("/{id}/close")
-    public ResponseEntity<String> closeStudy(@PathVariable Long id) {
+    // 테스트용 스터디 강제 완료 처리
+    @PostMapping("/{id}/force-complete")
+    public ResponseEntity<String> completeStudy(@PathVariable Long id) {
         try {
-            studyService.closeStudy(id);
-            return ResponseEntity.ok("스터디가 마감되었습니다.");
+            studyService.completeStudy(id);
+            return ResponseEntity.ok("스터디가 완료 처리되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // 테스트용 제거 메서드 !!!!!!!!!!!!!!!!
+    // 테스트용 스터디 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteStudy(@PathVariable Long id) {
         try {
