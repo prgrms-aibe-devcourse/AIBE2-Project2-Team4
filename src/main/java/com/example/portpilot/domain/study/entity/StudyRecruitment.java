@@ -78,4 +78,9 @@ public class StudyRecruitment extends BaseEntity {
             techNames.forEach(name -> addTechStack(jobType, name));
         }
     }
+
+    //스터디 삭제시 연관 테이블 같이 삭제
+    @OneToMany(mappedBy = "study", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<StudyParticipation> participations = new ArrayList<>();
 }

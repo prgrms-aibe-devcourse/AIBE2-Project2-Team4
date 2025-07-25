@@ -134,4 +134,16 @@ public class StudyApiController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // 테스트용 제거 메서드 !!!!!!!!!!!!!!!!
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteStudy(@PathVariable Long id) {
+        try {
+            studyService.deleteStudy(id);
+            return ResponseEntity.ok("스터디가 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 }

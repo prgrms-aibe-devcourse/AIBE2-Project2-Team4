@@ -405,143 +405,85 @@
 
 <script th:inline="javascript">
   const studyId = /*[[${study.id}]]*/ 0;
+  const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+  const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+  const participants = /*[[${participantsJson}]]*/ [];
 
-  // 페이지 로드시 참여자 수 계산
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', () => {
     updateParticipantCounts();
   });
 
   function updateParticipantCounts() {
-    const participants = /*[[${participants}]]*/ [];
-
-    // 직종별 참여자 수 계산
     const counts = {
       BACKEND: 0,
       FRONTEND: 0,
       DESIGNER: 0,
       PLANNER: 0
     };
-
     participants.forEach(p => {
-      if (counts[p.jobType] !== undefined) {
-        counts[p.jobType]++;
+      const jobType = p.jobType?.toUpperCase();
+      if (counts[jobType] !== undefined) {
+        counts[jobType]++;
       }
     });
-
-    // 화면에 반영
-    const backendEl = document.getElementById('backend-current');
-    const frontendEl = document.getElementById('frontend-current');
-    const designerEl = document.getElementById('designer-current');
-    const plannerEl = document.getElementById('planner-current');
-
-    if (backendEl) backendEl.textContent = counts.BACKEND;
-    if (frontendEl) frontendEl.textContent = counts.FRONTEND;
-    if (designerEl) designerEl.textContent = counts.DESIGNER;
-    if (plannerEl) plannerEl.textContent = counts.PLANNER;
+    document.getElementById('backend-current')?.textContent = counts.BACKEND;
+    document.getElementById('frontend-current')?.textContent = counts.FRONTEND;
+    document.getElementById('designer-current')?.textContent = counts.DESIGNER;
+    document.getElementById('planner-current')?.textContent = counts.PLANNER;
   }
 
-  // 스터디 신청
   function applyToStudy(jobType) {
     if (!confirm(`${jobType} 직군으로 신청하시겠습니까?`)) return;
-
-    // CSRF 토큰 가져오기
-    const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
     fetch(`/api/studies/${studyId}/apply`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         [header]: token
       },
-      body: JSON.stringify({
-        jobType: jobType
-      })
+      body: JSON.stringify({ jobType })
     })
-            .then(response => {
-              if (response.ok) {
-                alert('신청이 완료되었습니다!');
-                location.reload();
-              } else {
-                return response.text().then(text => {
-                  throw new Error(text);
-                });
-              }
-            })
-            .catch(error => {
-              alert('신청 실패: ' + error.message);
-            });
+            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('신청 실패: ' + err.message));
   }
 
-  // 신청 승인
   function acceptApplicant(participationId) {
     if (!confirm('이 신청을 승인하시겠습니까?')) return;
-
     fetch(`/api/studies/applications/${participationId}/accept`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { [header]: token }
     })
-            .then(response => {
-              if (response.ok) {
-                alert('승인되었습니다!');
-                location.reload();
-              } else {
-                alert('승인 실패');
-              }
-            })
-            .catch(error => {
-              alert('오류가 발생했습니다: ' + error.message);
-            });
+            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
   }
 
-  // 신청 거절
   function rejectApplicant(participationId) {
     if (!confirm('이 신청을 거절하시겠습니까?')) return;
-
     fetch(`/api/studies/applications/${participationId}/reject`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { [header]: token }
     })
-            .then(response => {
-              if (response.ok) {
-                alert('거절되었습니다.');
-                location.reload();
-              } else {
-                alert('거절 실패');
-              }
-            })
-            .catch(error => {
-              alert('오류가 발생했습니다: ' + error.message);
-            });
+            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
   }
 
-  // 스터디 마감
   function closeStudy() {
     if (!confirm('정말로 모집을 마감하시겠습니까?')) return;
-
     fetch(`/api/studies/${studyId}/close`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { [header]: token }
     })
-            .then(response => {
-              if (response.ok) {
-                alert('모집이 마감되었습니다.');
-                location.reload();
-              } else {
-                alert('마감 실패');
-              }
-            })
-            .catch(error => {
-              alert('오류가 발생했습니다: ' + error.message);
-            });
+            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+            .catch(err => alert('오류: ' + err.message));
   }
 
-  // Discord 링크 생성
   function generateDiscordLink() {
     const discordUrl = `https://discord.gg/study${studyId}`;
-    document.getElementById('discord-link').href = discordUrl;
+    const linkEl = document.getElementById('discord-link');
+    if (linkEl) linkEl.href = discordUrl;
     navigator.clipboard.writeText(discordUrl).then(() => {
-      alert('Discord 링크가 생성되고 클립보드에 복사되었습니다!\n' + discordUrl);
+      alert('Discord 링크가 복사되었습니다!\n' + discordUrl);
     });
   }
 </script>
-
 </body>
 </html>

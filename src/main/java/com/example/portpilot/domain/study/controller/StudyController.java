@@ -8,6 +8,7 @@ import com.example.portpilot.domain.study.entity.StudyRecruitment;
 import com.example.portpilot.domain.study.service.StudyService;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,6 +103,9 @@ public class StudyController {
                             .build())
                     .collect(Collectors.toList());
 
+            ObjectMapper objectMapper = new ObjectMapper();
+            String participantsJson = objectMapper.writeValueAsString(participants);
+            model.addAttribute("participantsJson", participantsJson);
             model.addAttribute("participants", participants);
 
             // 대기 목록 (작성자만)

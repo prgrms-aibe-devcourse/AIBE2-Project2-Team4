@@ -221,4 +221,12 @@ public class StudyService {
     public List<StudyParticipation> getParticipants(StudyRecruitment study, StudyApplyStatus status) {
         return participationRepo.findByStudyAndStatus(study, status);
     }
+
+    //테스트용 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public void deleteStudy(Long id) {
+        StudyRecruitment study = studyRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
+        studyRepo.delete(study);
+    }
+
 }

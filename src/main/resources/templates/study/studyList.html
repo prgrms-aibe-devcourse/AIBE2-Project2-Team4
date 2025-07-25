@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <title>스터디 목록</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <style>
         body {
             background-color: #f7faff;
@@ -91,18 +93,10 @@
     </div>
 
     <ul class="nav nav-tabs mb-3" id="studyTabs">
-        <li class="nav-item">
-            <a class="nav-link active" data-type="recruiting" href="#">모집 중</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="closed" href="#">모집 마감</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="my" href="#">내가 만든 스터디</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="applied" href="#">내가 신청한 스터디</a>
-        </li>
+        <li class="nav-item"><a class="nav-link active" data-type="recruiting" href="#">모집 중</a></li>
+        <li class="nav-item"><a class="nav-link" data-type="closed" href="#">모집 마감</a></li>
+        <li class="nav-item"><a class="nav-link" data-type="my" href="#">내가 만든 스터디</a></li>
+        <li class="nav-item"><a class="nav-link" data-type="applied" href="#">내가 신청한 스터디</a></li>
     </ul>
 
     <div id="study-content"></div>
@@ -133,12 +127,8 @@
         let url = '/api/studies/tab-studies?tab=' + type;
 
         fetch(url)
-            .then(res => {
-                console.log('Response status:', res.status);
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log('Received data:', data);
                 container.innerHTML = '';
 
                 if (!data || data.length === 0) {
@@ -147,51 +137,76 @@
                 }
 
                 data.forEach(study => {
-                    console.log('Processing study:', study);
-
                     const card = document.createElement('a');
-                    card.className = 'card mb-3 clickable-card';
+                    card.className = 'card mb-3 p-3 clickable-card';
                     card.href = `/study/${study.id}`;
+                    card.style.display = 'block';
 
-                    // 모집 정보 생성
                     const recruitInfo = [];
                     if (study.backendRecruit > 0) recruitInfo.push(`백엔드 ${study.backendRecruit}명`);
                     if (study.frontendRecruit > 0) recruitInfo.push(`프론트엔드 ${study.frontendRecruit}명`);
                     if (study.designerRecruit > 0) recruitInfo.push(`디자이너 ${study.designerRecruit}명`);
                     if (study.plannerRecruit > 0) recruitInfo.push(`기획자 ${study.plannerRecruit}명`);
 
-                    // 기술스택 정보
                     let techStackHtml = '';
                     if (study.techStacks && study.techStacks.length > 0) {
                         const techList = study.techStacks.join(', ');
                         techStackHtml = `<p class="card-text text-muted">기술스택: ${techList}</p>`;
                     }
 
-                    // 작성자 정보 - 올바른 접근
-                    console.log('study.user:', study.user);
-                    console.log('study.user.name:', study.user ? study.user.name : 'user 없음');
                     const userName = study.user ? study.user.name : '알 수 없음';
-                    console.log('userName:', userName);
 
                     card.innerHTML = `
-                        <div class="card-body">
-                            <h5 class="card-title">${study.title}</h5>
-                            <p class="card-text">${study.content}</p>
-                            <p class="card-text text-muted">작성자: ${userName}</p>
-                            <p class="card-text text-muted">마감일: ${new Date(study.deadline).toLocaleDateString()}</p>
-                            <p class="card-text text-muted">모집: ${recruitInfo.join(', ')}</p>
-                            ${techStackHtml}
-                            ${statusBadgeMap[study.closed] || ''}
-                        </div>
-                    `;
+        <div class="card-body">
+            <h5 class="card-title">${study.title}</h5>
+            <p class="card-text">${study.content}</p>
+            <p class="card-text text-muted">작성자: ${userName}</p>
+            <p class="card-text text-muted">마감일: ${new Date(study.deadline).toLocaleDateString()}</p>
+            <p class="card-text text-muted">모집: ${recruitInfo.join(', ')}</p>
+            ${techStackHtml}
+            ${statusBadgeMap[study.closed] || ''}
+
+            <!-- 🧪 테스트용 삭제 버튼 - 실제 서비스 배포 시 반드시 제거 -->
+            <button class="btn btn-sm btn-danger mt-2" onclick="event.preventDefault(); deleteStudy(${study.id});">
+                🗑 삭제 (테스트용)
+            </button>
+        </div>
+    `;
+
                     container.appendChild(card);
                 });
+
             })
             .catch(err => {
                 console.error('Error:', err);
                 container.innerHTML = `<p class="text-danger">오류 발생: ${err.message}</p>`;
             });
     }
+
+    // 🧪 테스트용 스터디 삭제 함수 - 서비스 배포 시 반드시 제거할 것
+    function deleteStudy(studyId) {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        fetch(`/api/studies/${studyId}`, {
+            method: 'DELETE',
+            headers: {
+                [header]: token
+            }
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('삭제되었습니다.');
+                    loadTabContent(document.querySelector('#studyTabs .nav-link.active').dataset.type);
+                } else {
+                    return res.text().then(t => { throw new Error(t); });
+                }
+            })
+            .catch(err => alert('삭제 실패: ' + err.message));
+    }
 </script>
+
 </body>
 </html>
