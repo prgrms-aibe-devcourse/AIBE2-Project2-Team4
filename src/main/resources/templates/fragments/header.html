@@ -11,13 +11,6 @@
                 <img src="/img/logo_light.png" alt="PortPilot" style="height: 70px; margin-right: 15px; margin-top: -5px; margin-bottom: -5px;">
             </a>
 
-            <!-- 모바일 토글 버튼 -->
-            <button class="navbar-toggler" type="button" data-toggle="collapse"
-                    data-target="#navbarNav" aria-controls="navbarNav"
-                    aria-expanded="false" aria-label="Toggle navigation" style="border: none;">
-                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
-            </button>
-
             <!-- 네비게이션 메뉴 -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mr-auto">
@@ -85,7 +78,6 @@
 </div>
 
 <style>
-    /* 포트파일럽 원본 디자인 스타일 */
     .navbar {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
@@ -128,29 +120,6 @@
 
     .input-group {
         min-width: 250px;
-    }
-
-    /* 반응형 */
-    @media (max-width: 991px) {
-        .d-flex.align-items-center {
-            flex-direction: column;
-            align-items: stretch !important;
-            margin-top: 15px;
-        }
-
-        .form-inline {
-            margin-bottom: 15px;
-            margin-right: 0 !important;
-        }
-
-        .input-group {
-            min-width: 100%;
-        }
-
-        .navbar-nav .d-flex {
-            flex-direction: row !important;
-            justify-content: center;
-        }
     }
 </style>
 
