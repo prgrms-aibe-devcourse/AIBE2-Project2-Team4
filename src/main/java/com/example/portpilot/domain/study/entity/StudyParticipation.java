@@ -1,6 +1,5 @@
 package com.example.portpilot.domain.study.entity;
 
-import com.example.portpilot.domain.study.StudyRecruitment;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.global.common.BaseEntity;
 import lombok.*;

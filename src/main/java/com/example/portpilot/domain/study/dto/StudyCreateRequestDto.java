@@ -2,8 +2,9 @@ package com.example.portpilot.domain.study.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -18,7 +19,9 @@ public class StudyCreateRequestDto {
     private int designerRecruit;
     private int plannerRecruit;
 
-    private LocalDateTime deadline;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate deadline;
 
     private List<String> techStacks_BACKEND;
     private List<String> techStacks_FRONTEND;

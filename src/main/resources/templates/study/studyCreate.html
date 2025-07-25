@@ -161,7 +161,7 @@
         tag.innerHTML = `
             ${value}
             <span class="remove-tag">&times;</span>
-            <input type="hidden" name="techStacks_${roleKey}[]" value="${value}">
+            <input type="hidden" name="techStacks_${roleKey}" value="${value}">
         `;
         tag.querySelector('.remove-tag').onclick = () => tag.remove();
         tagsDiv.appendChild(tag);

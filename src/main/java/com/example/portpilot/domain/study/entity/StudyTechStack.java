@@ -1,6 +1,7 @@
 package com.example.portpilot.domain.study.entity;
 
-import com.example.portpilot.domain.study.StudyRecruitment;
+import com.example.portpilot.domain.study.entity.StudyRecruitment;
+import com.example.portpilot.global.common.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StudyTechStack {
+public class StudyTechStack extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

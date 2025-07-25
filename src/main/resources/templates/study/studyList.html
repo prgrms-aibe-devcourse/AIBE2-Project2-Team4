@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>스터디 목록</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         body {
             background-color: #f7faff;
@@ -37,37 +37,37 @@
             color: #29459A;
         }
 
-        .main-content {
-            flex-grow: 1;
-            padding: 30px;
-            margin-left: 220px; /* ✅ 사이드바 영역만큼 밀어줌 */
+        .content {
+            margin-left: 220px;
+            padding: 40px 20px;
+            background-color: #f7faff;
+            min-height: 100vh;
         }
 
-        .study-card {
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            padding: 20px;
-            background: white;
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .card-text {
+            font-size: 0.95rem;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 1.3rem;
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
-        .study-card h5 {
-            margin-bottom: 10px;
+        .clickable-card {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: inherit;
         }
 
-        .study-card .stack {
-            font-size: 14px;
-            color: #777;
-        }
-
-        .study-card .deadline {
-            font-size: 13px;
-            color: #d9534f;
-        }
-
-        .study-card button {
-            margin-top: 10px;
+        .clickable-card:hover {
+            background-color: #f0f4ff;
         }
     </style>
 </head>
@@ -82,20 +82,116 @@
     </div>
 </div>
 
-<div class="main-content">
+<div class="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>모집 중인 스터디</h3>
-        <a href="/study/create" class="btn btn-primary">스터디 생성하기</a>
+        <h3>스터디 목록</h3>
+        <div class="d-flex gap-2">
+            <a href="/study/create" class="btn btn-outline-primary">스터디 생성</a>
+        </div>
     </div>
 
-    <div th:each="study : ${studyList}" class="study-card">
-        <h5 th:text="${study.title}">스터디 제목</h5>
-        <div class="stack" th:text="'기술스택: ' + ${study.techStack}">기술스택: Java, Spring</div>
-        <div class="deadline" th:text="'마감일: ' + ${#temporals.format(study.deadline, 'yyyy-MM-dd')}">마감일: 2025-08-15</div>
+    <ul class="nav nav-tabs mb-3" id="studyTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-type="recruiting" href="#">모집 중</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="closed" href="#">모집 마감</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="my" href="#">내가 만든 스터디</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="applied" href="#">내가 신청한 스터디</a>
+        </li>
+    </ul>
 
-        <a th:href="@{'/study/' + ${study.id}}" class="btn btn-primary btn-sm">상세 보기</a>
-    </div>
+    <div id="study-content"></div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('#studyTabs .nav-link').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('#studyTabs .nav-link').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                loadTabContent(tab.dataset.type);
+            });
+        });
+        loadTabContent('recruiting');
+    });
+
+    const statusBadgeMap = {
+        true: '<span class="badge bg-secondary">모집마감</span>',
+        false: '<span class="badge bg-success">모집중</span>'
+    };
+
+    function loadTabContent(type) {
+        const container = document.getElementById('study-content');
+        container.innerHTML = '<p>로딩 중...</p>';
+
+        let url = '/api/studies/tab-studies?tab=' + type;
+
+        fetch(url)
+            .then(res => {
+                console.log('Response status:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('Received data:', data);
+                container.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p>표시할 데이터가 없습니다.</p>';
+                    return;
+                }
+
+                data.forEach(study => {
+                    console.log('Processing study:', study);
+
+                    const card = document.createElement('a');
+                    card.className = 'card mb-3 clickable-card';
+                    card.href = `/study/${study.id}`;
+
+                    // 모집 정보 생성
+                    const recruitInfo = [];
+                    if (study.backendRecruit > 0) recruitInfo.push(`백엔드 ${study.backendRecruit}명`);
+                    if (study.frontendRecruit > 0) recruitInfo.push(`프론트엔드 ${study.frontendRecruit}명`);
+                    if (study.designerRecruit > 0) recruitInfo.push(`디자이너 ${study.designerRecruit}명`);
+                    if (study.plannerRecruit > 0) recruitInfo.push(`기획자 ${study.plannerRecruit}명`);
+
+                    // 기술스택 정보
+                    let techStackHtml = '';
+                    if (study.techStacks && study.techStacks.length > 0) {
+                        const techList = study.techStacks.join(', ');
+                        techStackHtml = `<p class="card-text text-muted">기술스택: ${techList}</p>`;
+                    }
+
+                    // 작성자 정보 - 올바른 접근
+                    console.log('study.user:', study.user);
+                    console.log('study.user.name:', study.user ? study.user.name : 'user 없음');
+                    const userName = study.user ? study.user.name : '알 수 없음';
+                    console.log('userName:', userName);
+
+                    card.innerHTML = `
+                        <div class="card-body">
+                            <h5 class="card-title">${study.title}</h5>
+                            <p class="card-text">${study.content}</p>
+                            <p class="card-text text-muted">작성자: ${userName}</p>
+                            <p class="card-text text-muted">마감일: ${new Date(study.deadline).toLocaleDateString()}</p>
+                            <p class="card-text text-muted">모집: ${recruitInfo.join(', ')}</p>
+                            ${techStackHtml}
+                            ${statusBadgeMap[study.closed] || ''}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                container.innerHTML = `<p class="text-danger">오류 발생: ${err.message}</p>`;
+            });
+    }
+</script>
 </body>
 </html>

@@ -2,15 +2,17 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title>스터디 목록</title>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title th:text="${study.title}">스터디 상세</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/boardList.css" />
   <style>
     body {
       background-color: #f7faff;
       font-family: 'Pretendard', sans-serif;
       margin: 0;
     }
+
     .sidebar {
       width: 220px;
       height: 100vh;
@@ -20,6 +22,7 @@
       left: 0;
       padding-top: 40px;
     }
+
     .sidebar a {
       display: block;
       padding: 15px 25px;
@@ -27,35 +30,170 @@
       color: white;
       font-weight: 500;
     }
+
     .sidebar a.active,
     .sidebar a:hover {
       background-color: white;
       color: #29459A;
     }
+
     .content {
       margin-left: 220px;
       padding: 40px 20px;
     }
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
-    .card-text {
-      font-size: 0.95rem;
-    }
-    .section-title {
-      font-weight: bold;
-      font-size: 1.3rem;
+
+    .study-header {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-    .clickable-card {
-      cursor: pointer;
-      transition: background-color 0.2s;
-      text-decoration: none;
-      color: inherit;
+
+    .study-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
-    .clickable-card:hover {
-      background-color: #f0f4ff;
+
+    .participants-section {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .tech-stack-badge {
+      background-color: #e3f2fd;
+      color: #0275d8;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .job-type-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .job-backend { background-color: #ffebee; color: #c62828; }
+    .job-frontend { background-color: #e8f5e8; color: #2e7d32; }
+    .job-designer { background-color: #fff3e0; color: #ef6c00; }
+    .job-planner { background-color: #f3e5f5; color: #7b1fa2; }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .status-recruiting { background-color: #e8f5e8; color: #2e7d32; }
+    .status-closed { background-color: #ffebee; color: #c62828; }
+
+    .apply-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px dashed #dee2e6;
+      text-align: center;
+    }
+
+    .participant-card {
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      background: #f8f9fa;
+    }
+
+    .pending-applicant {
+      border-left: 4px solid #ffc107;
+      background: #fff9c4;
+    }
+
+    .recruit-info {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+
+    .recruit-item {
+      background: #f8f9fa;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .recruit-number {
+      font-weight: bold;
+      color: #495057;
+    }
+
+    .study-room {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .study-room h5 {
+      color: white;
+      margin-bottom: 15px;
+    }
+
+    .discord-link {
+      background: #5865F2;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .discord-link:hover {
+      background: #4752C4;
+      color: white;
+    }
+
+    .progress-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .progress-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .progress-item:last-child {
+      border-bottom: none;
+    }
+
+    .current-count {
+      font-weight: bold;
+      color: #28a745;
+    }
+
+    .max-count {
+      color: #6c757d;
     }
   </style>
 </head>
@@ -71,68 +209,337 @@
 </div>
 
 <div class="content">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>스터디 목록</h3>
-    <a href="/study/create" class="btn btn-outline-success">스터디 생성</a>
+  <!-- 뒤로가기 버튼 -->
+  <div class="mb-3">
+    <a href="/study" class="btn btn-outline-secondary">← 목록으로</a>
   </div>
 
-  <ul class="nav nav-tabs mb-3" id="studyTabs">
-    <li class="nav-item"><a class="nav-link active" data-type="open" href="#">모집 중</a></li>
-    <li class="nav-item"><a class="nav-link" data-type="closed" href="#">모집 마감</a></li>
-    <li class="nav-item"><a class="nav-link" data-type="mine" href="#">내가 만든 스터디</a></li>
-    <li class="nav-item"><a class="nav-link" data-type="applied" href="#">내가 신청한 스터디</a></li>
-  </ul>
+  <!-- 스터디 헤더 -->
+  <div class="study-header">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h2 th:text="${study.title}">스터디 제목</h2>
+        <p class="text-muted mb-2">
+          작성자: <span th:text="${study.user != null ? study.user.name : '알 수 없음'}">작성자명</span> |
+          마감일: <span th:text="${#temporals.format(study.deadline, 'yyyy-MM-dd HH:mm')}">2024-01-01 23:59</span>
+        </p>
+      </div>
+      <div>
+        <span th:if="${study.closed}" class="status-badge status-closed">모집 마감</span>
+        <span th:unless="${study.closed}" class="status-badge status-recruiting">모집 중</span>
+      </div>
+    </div>
 
-  <div id="study-content">
-    <p>로딩 중...</p>
+    <!-- 모집 현황 -->
+    <div class="progress-section">
+      <h6>모집 현황</h6>
+      <div class="progress-item" th:if="${study.backendRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-backend">백엔드</span>
+        </div>
+        <div>
+          <span class="current-count" id="backend-current">0</span> /
+          <span class="max-count" th:text="${study.backendRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.frontendRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-frontend">프론트엔드</span>
+        </div>
+        <div>
+          <span class="current-count" id="frontend-current">0</span> /
+          <span class="max-count" th:text="${study.frontendRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.designerRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-designer">디자이너</span>
+        </div>
+        <div>
+          <span class="current-count" id="designer-current">0</span> /
+          <span class="max-count" th:text="${study.designerRecruit}">0</span>명
+        </div>
+      </div>
+      <div class="progress-item" th:if="${study.plannerRecruit > 0}">
+        <div>
+          <span class="job-type-badge job-planner">기획자</span>
+        </div>
+        <div>
+          <span class="current-count" id="planner-current">0</span> /
+          <span class="max-count" th:text="${study.plannerRecruit}">0</span>명
+        </div>
+      </div>
+    </div>
+
+    <!-- 기술스택 -->
+    <div th:if="${study.techStacks != null and !study.techStacks.isEmpty()}">
+      <h6>기술 스택</h6>
+      <div>
+                <span th:each="tech : ${study.techStacks}"
+                      th:text="${tech.techStack}"
+                      class="tech-stack-badge">React</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스터디룸 (참여자만) -->
+  <div th:if="${isParticipant}" class="study-room">
+    <h5>🚀 스터디룸</h5>
+    <p>스터디 진행을 위한 도구들입니다.</p>
+    <a href="#" class="discord-link" id="discord-link">
+      📱 Discord 채팅방 입장
+    </a>
+    <a href="#" class="btn btn-light">
+      📋 진행상황 체크
+    </a>
+  </div>
+
+  <!-- 스터디 내용 -->
+  <div class="study-content">
+    <h5>스터디 소개</h5>
+    <div th:text="${study.content}">
+      스터디 내용이 여기에 표시됩니다.
+    </div>
+  </div>
+
+  <!-- 신청 섹션 (로그인한 사용자, 작성자가 아닌 경우, 모집중인 경우) -->
+  <div th:if="${!isOwner and !study.closed and !isParticipant}" class="study-content">
+    <div class="apply-section">
+      <h5>스터디 신청하기</h5>
+      <p class="text-muted mb-3">참여하고 싶은 직군을 선택해주세요</p>
+
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button th:if="${study.backendRecruit > 0}"
+                class="btn btn-outline-primary"
+                onclick="applyToStudy('BACKEND')">
+          백엔드로 신청
+        </button>
+        <button th:if="${study.frontendRecruit > 0}"
+                class="btn btn-outline-success"
+                onclick="applyToStudy('FRONTEND')">
+          프론트엔드로 신청
+        </button>
+        <button th:if="${study.designerRecruit > 0}"
+                class="btn btn-outline-warning"
+                onclick="applyToStudy('DESIGNER')">
+          디자이너로 신청
+        </button>
+        <button th:if="${study.plannerRecruit > 0}"
+                class="btn btn-outline-info"
+                onclick="applyToStudy('PLANNER')">
+          기획자로 신청
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신청 완료 표시 -->
+  <div th:if="${isParticipant and !isOwner}" class="study-content">
+    <div class="alert alert-success text-center">
+      <h5>✅ 신청 완료!</h5>
+      <p>스터디 신청이 완료되었습니다. 승인을 기다려주세요.</p>
+    </div>
+  </div>
+
+  <!-- 참여자 목록 -->
+  <div class="participants-section">
+    <h5>참여자 목록 (<span th:text="${#lists.size(participants)}">0</span>명)</h5>
+
+    <div th:if="${#lists.isEmpty(participants)}" class="text-muted">
+      아직 승인된 참여자가 없습니다.
+    </div>
+
+    <div th:each="participant : ${participants}" class="participant-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong th:text="${participant.name}">참여자명</strong>
+          <span class="text-muted" th:text="'(' + ${participant.email} + ')'">이메일</span>
+        </div>
+        <span th:class="'job-type-badge job-' + ${#strings.toLowerCase(participant.jobType)}"
+              th:text="${participant.jobType}">직군</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신청 관리 (작성자만) -->
+  <div th:if="${isOwner and pendingList != null and !#lists.isEmpty(pendingList)}" class="participants-section">
+    <h5>신청 대기 목록</h5>
+
+    <div th:each="applicant : ${pendingList}" class="participant-card pending-applicant">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong th:text="${applicant.name}">신청자명</strong>
+          <span class="text-muted" th:text="'(' + ${applicant.email} + ')'">이메일</span>
+          <span th:class="'job-type-badge job-' + ${#strings.toLowerCase(applicant.jobType)}"
+                th:text="${applicant.jobType}">직군</span>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-success me-2"
+                  th:onclick="'acceptApplicant(' + ${applicant.participationId} + ')'">
+            승인
+          </button>
+          <button class="btn btn-sm btn-danger"
+                  th:onclick="'rejectApplicant(' + ${applicant.participationId} + ')'">
+            거절
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스터디 관리 (작성자만) -->
+  <div th:if="${isOwner}" class="study-content">
+    <h5>스터디 관리</h5>
+    <div class="d-flex gap-2">
+      <button th:if="${!study.closed}"
+              class="btn btn-warning"
+              onclick="closeStudy()">
+        모집 마감하기
+      </button>
+      <button class="btn btn-info" onclick="generateDiscordLink()">
+        Discord 링크 생성
+      </button>
+    </div>
   </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const tabs = document.querySelectorAll('#studyTabs .nav-link');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', e => {
-        e.preventDefault();
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        loadTab(tab.dataset.type);
-      });
-    });
-    loadTab('open');
+<script th:inline="javascript">
+  const studyId = /*[[${study.id}]]*/ 0;
+
+  // 페이지 로드시 참여자 수 계산
+  document.addEventListener('DOMContentLoaded', function() {
+    updateParticipantCounts();
   });
 
-  function loadTab(type) {
-    const container = document.getElementById('study-content');
-    container.innerHTML = '<p>로딩 중...</p>';
+  function updateParticipantCounts() {
+    const participants = /*[[${participants}]]*/ [];
 
-    let url = '/api/studies?type=' + type;
+    // 직종별 참여자 수 계산
+    const counts = {
+      BACKEND: 0,
+      FRONTEND: 0,
+      DESIGNER: 0,
+      PLANNER: 0
+    };
 
-    fetch(url)
-            .then(res => res.json())
-            .then(data => {
-              container.innerHTML = '';
-              if (data.length === 0) {
-                container.innerHTML = '<p>표시할 스터디가 없습니다.</p>';
-                return;
+    participants.forEach(p => {
+      if (counts[p.jobType] !== undefined) {
+        counts[p.jobType]++;
+      }
+    });
+
+    // 화면에 반영
+    const backendEl = document.getElementById('backend-current');
+    const frontendEl = document.getElementById('frontend-current');
+    const designerEl = document.getElementById('designer-current');
+    const plannerEl = document.getElementById('planner-current');
+
+    if (backendEl) backendEl.textContent = counts.BACKEND;
+    if (frontendEl) frontendEl.textContent = counts.FRONTEND;
+    if (designerEl) designerEl.textContent = counts.DESIGNER;
+    if (plannerEl) plannerEl.textContent = counts.PLANNER;
+  }
+
+  // 스터디 신청
+  function applyToStudy(jobType) {
+    if (!confirm(`${jobType} 직군으로 신청하시겠습니까?`)) return;
+
+    // CSRF 토큰 가져오기
+    const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    fetch(`/api/studies/${studyId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        [header]: token
+      },
+      body: JSON.stringify({
+        jobType: jobType
+      })
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('신청이 완료되었습니다!');
+                location.reload();
+              } else {
+                return response.text().then(text => {
+                  throw new Error(text);
+                });
               }
-              data.forEach(item => {
-                const card = document.createElement('a');
-                card.className = 'card mb-3 clickable-card';
-                card.href = '/study/' + item.id;
-                card.innerHTML = `
-                        <div class="card-body">
-                            <h5 class="card-title">${item.title}</h5>
-                            <p class="card-text">기술스택: ${item.techStack}</p>
-                            <p class="card-text text-muted">마감일: ${item.deadline?.substring(0, 10)}</p>
-                        </div>
-                    `;
-                container.appendChild(card);
-              });
             })
-            .catch(err => {
-              container.innerHTML = `<p class="text-danger">오류 발생: ${err.message}</p>`;
+            .catch(error => {
+              alert('신청 실패: ' + error.message);
             });
+  }
+
+  // 신청 승인
+  function acceptApplicant(participationId) {
+    if (!confirm('이 신청을 승인하시겠습니까?')) return;
+
+    fetch(`/api/studies/applications/${participationId}/accept`, {
+      method: 'POST'
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('승인되었습니다!');
+                location.reload();
+              } else {
+                alert('승인 실패');
+              }
+            })
+            .catch(error => {
+              alert('오류가 발생했습니다: ' + error.message);
+            });
+  }
+
+  // 신청 거절
+  function rejectApplicant(participationId) {
+    if (!confirm('이 신청을 거절하시겠습니까?')) return;
+
+    fetch(`/api/studies/applications/${participationId}/reject`, {
+      method: 'POST'
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('거절되었습니다.');
+                location.reload();
+              } else {
+                alert('거절 실패');
+              }
+            })
+            .catch(error => {
+              alert('오류가 발생했습니다: ' + error.message);
+            });
+  }
+
+  // 스터디 마감
+  function closeStudy() {
+    if (!confirm('정말로 모집을 마감하시겠습니까?')) return;
+
+    fetch(`/api/studies/${studyId}/close`, {
+      method: 'POST'
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('모집이 마감되었습니다.');
+                location.reload();
+              } else {
+                alert('마감 실패');
+              }
+            })
+            .catch(error => {
+              alert('오류가 발생했습니다: ' + error.message);
+            });
+  }
+
+  // Discord 링크 생성
+  function generateDiscordLink() {
+    const discordUrl = `https://discord.gg/study${studyId}`;
+    document.getElementById('discord-link').href = discordUrl;
+    navigator.clipboard.writeText(discordUrl).then(() => {
+      alert('Discord 링크가 생성되고 클립보드에 복사되었습니다!\n' + discordUrl);
+    });
   }
 </script>
 

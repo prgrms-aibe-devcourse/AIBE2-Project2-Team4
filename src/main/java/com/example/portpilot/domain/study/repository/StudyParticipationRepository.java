@@ -1,6 +1,6 @@
 package com.example.portpilot.domain.study.repository;
 
-import com.example.portpilot.domain.study.StudyRecruitment;
+import com.example.portpilot.domain.study.entity.StudyRecruitment;
 import com.example.portpilot.domain.study.entity.StudyParticipation;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.study.entity.StudyApplyStatus;
@@ -16,4 +16,6 @@ public interface StudyParticipationRepository extends JpaRepository<StudyPartici
     List<StudyParticipation> findByStudyAndStatus(StudyRecruitment study, StudyApplyStatus status);
 
     Optional<StudyParticipation> findByStudyAndUser(StudyRecruitment study, User user);
+
+    List<StudyParticipation> findByUser(User user);
 }
