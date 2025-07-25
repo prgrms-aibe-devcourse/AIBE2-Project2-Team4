@@ -1,10 +1,5 @@
 package com.example.portpilot.domain.profile.controller;
 
-import com.example.portpilot.domain.profile.dto.ActivityDto;
-import com.example.portpilot.domain.profile.dto.ParticipationDto;
-import com.example.portpilot.domain.profile.dto.PortfolioDto;
-import com.example.portpilot.domain.profile.dto.ProfileDto;
-import com.example.portpilot.domain.profile.dto.ProfileStatsDto;
 import com.example.portpilot.domain.profile.service.ProfileService;
 import com.example.portpilot.domain.project.service.ProjectService;
 import com.example.portpilot.domain.user.User;
@@ -88,7 +83,7 @@ public class ProfileViewController {
 
         Long userId = principal.getId();
         model.addAttribute("pageTitle", "내 포트폴리오");
-        model.addAttribute("active", "portfolio");
+        model.addAttribute("active", "templates/portfolio");
         model.addAttribute("portfolios", profileService.getMyPortfolios(userId));
         return "profile/profile";
     }

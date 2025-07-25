@@ -23,8 +23,15 @@
     <div class="container">
         <a class="navbar-brand" href="/">PortPilot</a>
         <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/projects">프로젝트</a></li>
-            <li class="nav-item"><a class="nav-link active" href="/profile">내 프로필</a></li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/projects}">프로젝트</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" th:href="@{/profile}">내 프로필</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/portfolio}">포트폴리오</a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -75,9 +82,9 @@
                 <div class="mb-4">
                     <h5>기술 스택</h5>
                     <div>
-            <span th:each="skill : ${profile.skills}"
-                  class="badge bg-secondary me-1"
-                  th:text="${skill}">Java</span>
+                        <span th:each="skill : ${profile.skills}"
+                              class="badge bg-secondary me-1"
+                              th:text="${skill}">Java</span>
                         <div th:if="${#lists.isEmpty(profile.skills)}" class="text-muted">
                             등록된 기술 스택이 없습니다.
                         </div>
@@ -232,7 +239,7 @@
                 </table>
             </section>
 
-            <!-- 4) 포트폴리오 -->
+            <!-- 4) 내 포트폴리오 -->
             <section th:if="${active=='portfolio'}">
                 <h4>내 포트폴리오</h4>
                 <div th:each="p : ${portfolios}" class="card mb-3">
@@ -250,7 +257,6 @@
                     등록된 포트폴리오가 없습니다.
                 </div>
             </section>
-
         </div>
     </div>
 </div>
