@@ -1,0 +1,41 @@
+body {
+    background-color: #f7faff;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+}
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background-color: #29459A;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 40px;
+}
+.sidebar a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    margin: 0;
+    border-radius: 0;
+}
+.sidebar a.active,
+.sidebar a:hover {
+    background-color: white;
+    color: #29459A;
+}
+.content {
+    margin-left: 220px;
+    padding: 40px 20px;
+    background-color: #f7faff;
+    min-height: 100vh;
+}
+.card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.card-text {
+    font-size: 0.95rem;
+}

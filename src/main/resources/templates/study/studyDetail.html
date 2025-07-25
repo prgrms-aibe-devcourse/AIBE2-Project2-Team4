@@ -6,120 +6,7 @@
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   <title th:text="${study.title}">스터디 상세</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    body {
-      background-color: #f7faff;
-      font-family: 'Pretendard', sans-serif;
-      margin: 0;
-    }
-
-    .sidebar {
-      width: 220px;
-      height: 100vh;
-      background-color: #29459A;
-      position: fixed;
-      top: 0;
-      left: 0;
-      padding-top: 40px;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 15px 25px;
-      text-decoration: none;
-      color: white;
-      font-weight: 500;
-    }
-
-    .sidebar a.active,
-    .sidebar a:hover {
-      background-color: white;
-      color: #29459A;
-    }
-
-    .content {
-      margin-left: 220px;
-      padding: 40px 20px;
-    }
-
-    .study-header {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    .study-content {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    .participants-section {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-
-    .tech-stack-badge {
-      background-color: #e3f2fd;
-      color: #0275d8;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      margin-right: 8px;
-      margin-bottom: 8px;
-      display: inline-block;
-    }
-
-    .job-type-badge {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    .job-backend { background-color: #ffebee; color: #c62828; }
-    .job-frontend { background-color: #e8f5e8; color: #2e7d32; }
-    .job-designer { background-color: #fff3e0; color: #ef6c00; }
-    .job-planner { background-color: #f3e5f5; color: #7b1fa2; }
-
-    .status-badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .status-recruiting { background-color: #e8f5e8; color: #2e7d32; }
-    .status-closed { background-color: #ffebee; color: #c62828; }
-
-    .apply-section {
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 12px;
-      border: 2px dashed #dee2e6;
-      text-align: center;
-    }
-
-    .participant-card {
-      border: 1px solid #e9ecef;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 10px;
-      background: #f8f9fa;
-    }
-
-    .pending-applicant {
-      border-left: 4px solid #ffc107;
-      background: #fff9c4;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/study/studyDetail.css">
 </head>
 <body>
 
@@ -199,9 +86,9 @@
     <div th:if="${study.techStacks != null and !study.techStacks.isEmpty()}">
       <h6>기술 스택</h6>
       <div>
-                <span th:each="tech : ${study.techStacks}"
-                      th:text="${tech.techStack}"
-                      class="tech-stack-badge">React</span>
+        <span th:each="tech : ${study.techStacks}"
+              th:text="${tech.techStack}"
+              class="tech-stack-badge">React</span>
       </div>
     </div>
   </div>
@@ -224,42 +111,33 @@
     </div>
   </div>
 
-  <!-- 신청 섹션 (로그인한 사용자, 작성자가 아닌 경우, 모집중인 경우) -->
-  <div th:if="${!isOwner and !study.closed and !isParticipant}" class="study-content">
+  <!-- 신청 영역: 참여자 아님 && 작성자 아님 && 마감 아님 && 신청 안 한 경우 -->
+  <div th:if="${!isOwner and !study.closed and !isParticipant and !hasPendingApplication}" class="study-content">
     <div class="apply-section">
       <h5>스터디 신청하기</h5>
       <p class="text-muted mb-3">참여하고 싶은 직군을 선택해주세요</p>
-
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button th:if="${study.backendRecruit > 0}"
-                class="btn btn-outline-primary"
-                onclick="applyToStudy('BACKEND')">
-          백엔드로 신청
-        </button>
-        <button th:if="${study.frontendRecruit > 0}"
-                class="btn btn-outline-success"
-                onclick="applyToStudy('FRONTEND')">
-          프론트엔드로 신청
-        </button>
-        <button th:if="${study.designerRecruit > 0}"
-                class="btn btn-outline-warning"
-                onclick="applyToStudy('DESIGNER')">
-          디자이너로 신청
-        </button>
-        <button th:if="${study.plannerRecruit > 0}"
-                class="btn btn-outline-info"
-                onclick="applyToStudy('PLANNER')">
-          기획자로 신청
-        </button>
+        <button th:if="${study.backendRecruit > 0}" class="btn btn-outline-primary" onclick="applyToStudy('BACKEND')">백엔드로 신청</button>
+        <button th:if="${study.frontendRecruit > 0}" class="btn btn-outline-success" onclick="applyToStudy('FRONTEND')">프론트엔드로 신청</button>
+        <button th:if="${study.designerRecruit > 0}" class="btn btn-outline-warning" onclick="applyToStudy('DESIGNER')">디자이너로 신청</button>
+        <button th:if="${study.plannerRecruit > 0}" class="btn btn-outline-info" onclick="applyToStudy('PLANNER')">기획자로 신청</button>
       </div>
     </div>
   </div>
 
-  <!-- 신청 완료 표시 -->
+  <!-- 신청 완료: 신청했지만 아직 수락 안 됨 -->
+  <div th:if="${!isOwner and hasPendingApplication}" class="study-content">
+    <div class="apply-section">
+      <h5>✅ 신청 완료!</h5>
+      <p class="text-muted">스터디 신청이 완료되었습니다. 승인을 기다려주세요.</p>
+    </div>
+  </div>
+
+  <!-- 참여 완료: 신청이 승인되어 참여자가 된 경우 -->
   <div th:if="${isParticipant and !isOwner}" class="study-content">
     <div class="alert alert-success text-center">
-      <h5>✅ 신청 완료!</h5>
-      <p>스터디 신청이 완료되었습니다. 승인을 기다려주세요.</p>
+      <h5>🎉 참여 중!</h5>
+      <p>스터디에 참여하고 있습니다. 열심히 활동해보세요!</p>
     </div>
   </div>
 
@@ -325,56 +203,26 @@
   </div>
 </div>
 
-<div class="content">
-  <!-- 뒤로가기 버튼 -->
-  <div class="mb-3">
-    <a href="/study" class="btn btn-outline-secondary">← 목록으로</a>
-  </div>
-
-  <!-- 스터디 헤더 -->
-  <div class="study-header">
-    <!-- 생략 -->
-  </div>
-
-  <!-- 신청 영역 (참여자 아님 && 작성자 아님 && 마감 아님 && 신청 안 한 경우) -->
-  <div th:if="${!isOwner and !study.closed and !isParticipant and !hasPendingApplication}" class="study-content">
-    <div class="apply-section">
-      <h5>스터디 신청하기</h5>
-      <p class="text-muted mb-3">참여하고 싶은 직군을 선택해주세요</p>
-      <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button th:if="${study.backendRecruit > 0}" class="btn btn-outline-primary" onclick="applyToStudy('BACKEND')">백엔드로 신청</button>
-        <button th:if="${study.frontendRecruit > 0}" class="btn btn-outline-success" onclick="applyToStudy('FRONTEND')">프론트엔드로 신청</button>
-        <button th:if="${study.designerRecruit > 0}" class="btn btn-outline-warning" onclick="applyToStudy('DESIGNER')">디자이너로 신청</button>
-        <button th:if="${study.plannerRecruit > 0}" class="btn btn-outline-info" onclick="applyToStudy('PLANNER')">기획자로 신청</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 신청 완료 (신청했지만 수락 안 됨) -->
-  <div th:if="${!isOwner and hasPendingApplication}" class="study-content">
-    <div class="apply-section">
-      <h5>✅ 신청 완료!</h5>
-      <p class="text-muted">스터디 신청이 완료되었습니다. 승인을 기다려주세요.</p>
-    </div>
-  </div>
-
-  <!-- 참여자 목록 + 신청 관리 + 스터디 관리 등 기존 영역 생략 -->
-</div>
-
 <script th:inline="javascript">
   const studyId = /*[[${study.id}]]*/ 0;
   const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
   const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
   const participants = /*[[${participantsJson}]]*/ [];
+
   document.addEventListener('DOMContentLoaded', () => updateParticipantCounts());
+
   function updateParticipantCounts() {
     const counts = { BACKEND: 0, FRONTEND: 0, DESIGNER: 0, PLANNER: 0 };
-    participants.forEach(p => { const jobType = p.jobType?.toUpperCase(); if (counts[jobType] !== undefined) counts[jobType]++; });
+    participants.forEach(p => {
+      const jobType = p.jobType?.toUpperCase();
+      if (counts[jobType] !== undefined) counts[jobType]++;
+    });
     ['backend', 'frontend', 'designer', 'planner'].forEach(type => {
       const el = document.getElementById(`${type}-current`);
       if (el) el.textContent = counts[type.toUpperCase()];
     });
   }
+
   function applyToStudy(jobType) {
     if (!confirm(`${jobType} 직군으로 신청하시겠습니까?`)) return;
     fetch(`/api/studies/${studyId}/apply`, {
@@ -384,24 +232,34 @@
     }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
             .catch(err => alert('신청 실패: ' + err.message));
   }
+
   function acceptApplicant(id) {
     if (!confirm('이 신청을 승인하시겠습니까?')) return;
-    fetch(`/api/studies/applications/${id}/accept`, { method: 'POST', headers: { [header]: token } })
-            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+    fetch(`/api/studies/applications/${id}/accept`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
             .catch(err => alert('오류: ' + err.message));
   }
+
   function rejectApplicant(id) {
     if (!confirm('이 신청을 거절하시겠습니까?')) return;
-    fetch(`/api/studies/applications/${id}/reject`, { method: 'POST', headers: { [header]: token } })
-            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+    fetch(`/api/studies/applications/${id}/reject`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
             .catch(err => alert('오류: ' + err.message));
   }
+
   function closeStudy() {
     if (!confirm('정말로 모집을 마감하시겠습니까?')) return;
-    fetch(`/api/studies/${studyId}/close`, { method: 'POST', headers: { [header]: token } })
-            .then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
+    fetch(`/api/studies/${studyId}/close`, {
+      method: 'POST',
+      headers: { [header]: token }
+    }).then(res => res.ok ? location.reload() : res.text().then(t => { throw new Error(t); }))
             .catch(err => alert('오류: ' + err.message));
   }
+
   function generateDiscordLink() {
     const url = `https://discord.gg/study${studyId}`;
     const el = document.getElementById('discord-link');
