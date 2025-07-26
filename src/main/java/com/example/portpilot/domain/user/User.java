@@ -1,6 +1,7 @@
 package com.example.portpilot.domain.user;
 
 import com.example.portpilot.global.common.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -79,6 +80,7 @@ public class User extends BaseEntity {
     }
     //참여 매핑 필드 선언
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private Set<Participation> participations = new HashSet<>();
 
     //편의 메서드 (양방향 연관관계 동기화)

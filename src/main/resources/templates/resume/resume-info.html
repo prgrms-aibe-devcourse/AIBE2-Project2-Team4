@@ -468,7 +468,6 @@
 
     const headers = {
       'Content-Type': 'application/json',
-      'X-User-Id': '1'
     };
 
     if (token && header) {
@@ -1103,7 +1102,11 @@
 
     } catch (error) {
       console.error('Error:', error);
-      alert('저장 중 오류가 발생했습니다: ' + error.message);
+      if (error.name === 'SyntaxError' && error.message.includes('Unexpected token')) {
+        alert('서버 응답 형식이 올바르지 않습니다. 관리자에게 문의하세요.');
+      } else {
+        alert('저장 중 오류가 발생했습니다: ' + error.message);
+      }
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'AI 이력서 생성';

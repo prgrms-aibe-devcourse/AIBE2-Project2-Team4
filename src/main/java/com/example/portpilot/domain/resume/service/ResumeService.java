@@ -39,12 +39,40 @@ public class ResumeService {
         Resume resume = resumeRepository.findByIdAndUserId(resumeId, userId)
                 .orElseThrow(() -> new RuntimeException("이력서를 찾을 수 없습니다."));
 
-        resume.getSections().size();
-        resume.getEducations().size();
-        resume.getCareers().size();
-        resume.getExperiences().size();
+        initializeLazyCollections(resume);
 
         return new ResumeResponse(resume);
+    }
+
+    // Lazy Collection들을 미리 초기화
+    private void initializeLazyCollections(Resume resume) {
+        // size() 호출로 컬렉션 초기화
+        if (resume.getSections() != null) {
+            resume.getSections().size();
+            // 각 섹션의 연관 엔티티도 초기화
+            resume.getSections().forEach(section -> {
+                if (section.getResume() != null) {
+                    section.getResume().getId(); // resume proxy 초기화
+                }
+            });
+        }
+
+        if (resume.getEducations() != null) {
+            resume.getEducations().size();
+        }
+
+        if (resume.getCareers() != null) {
+            resume.getCareers().size();
+        }
+
+        if (resume.getExperiences() != null) {
+            resume.getExperiences().size();
+        }
+
+        // User 정보도 초기화 (필요한 경우)
+        if (resume.getUser() != null) {
+            resume.getUser().getId();
+        }
     }
 
     // 기본 정보 생성
