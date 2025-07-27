@@ -8,47 +8,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <style>
-        body {
-            background-color: #f7faff;
-            font-family: 'Pretendard', sans-serif;
-            margin: 0;
-        }
-
-        .sidebar {
-            width: 220px;
-            height: 100vh;
-            background-color: #29459A;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 40px;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 15px 25px;
-            text-decoration: none;
-            color: white;
-            font-weight: 500;
-            margin: 0;
-            border-radius: 0;
-        }
-
-        .sidebar a.active,
-        .sidebar a:hover {
-            background-color: white;
-            color: #29459A;
-        }
-
-        .content {
-            margin-left: 220px;
-            padding: 40px 20px;
-            background-color: #f7faff;
-            min-height: 100vh;
-        }
-
-    </style>
+    <link rel="stylesheet" href="/css/mentoringRequest/mentorRegister.css">
 </head>
 <body>
 <!--사이드바-->
@@ -80,38 +40,6 @@
         </div>
     </form>
 </div>
-
-<script>
-
-    const csrfToken = $('meta[name="_csrf"]').attr('content');
-    const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
-
-    $.ajaxSetup({
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader(csrfHeader, csrfToken);
-        }
-    });
-
-    $('#mentorRegisterForm').submit(function (e) {
-        e.preventDefault();
-
-        $.ajax({
-            url: '/api/mentoring/register',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                techStack: this.techStack.value,
-                description: this.description.value
-            }),
-            success: function () {
-                alert('멘토로 등록되었습니다.');
-                location.href = '/mentoring';
-            },
-            error: function () {
-                alert('등록에 실패했습니다.');
-            }
-        });
-    });
-</script>
+<script th:src="@{/js/mentorRequest/mentorRegister.js}"></script>
 </body>
 </html>

@@ -1,0 +1,79 @@
+body {
+    background-color: #f7faff;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+}
+
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background-color: #29459A;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 40px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    margin: 0;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+    background-color: white;
+    color: #29459A;
+}
+
+.content {
+    margin-left: 220px;
+    padding: 40px 20px;
+    background-color: #f7faff;
+    min-height: 100vh;
+}
+
+.card {
+    padding: 25px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+    margin-bottom: 25px;
+}
+
+.detail-row {
+    margin-bottom: 20px;
+}
+
+.btn-group {
+    margin-top: 30px;
+}
+
+#schedule-section {
+    margin-top: 30px;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-accepted { background-color: #d1ecf1; color: #0c5460; }
+.status-completed { background-color: #d4edda; color: #155724; }
+.status-rejected { background-color: #f8d7da; color: #721c24; }
+
+.complete-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+}
