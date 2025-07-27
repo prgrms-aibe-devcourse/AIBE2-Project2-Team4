@@ -185,7 +185,8 @@ public class MentoringService {
         return "https://meet.jit.si/mentoring-" + req.getId();
     }
 
-    // 자동 완료 처리
+    // 자동 완료 처리 (멘토링 시간인 scheduledAt을 1시간 지나면 자동 종료 (completed))
+    // 단 현재
     @Scheduled(fixedRate = 60000)
     public void completeExpiredMentoring() {
         List<MentoringRequest> list = mentoringRequestRepository.findAllByStatus(MentoringStatus.ACCEPTED);
