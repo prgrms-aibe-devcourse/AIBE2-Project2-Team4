@@ -5,13 +5,12 @@
     <title>멘토링 후기</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
-        /* 기본 레이아웃 스타일 */
         body {
             background-color: #f7faff;
+            font-family: 'Pretendard', sans-serif;
             margin: 0;
         }
 
-        /* 사이드바 스타일 */
         .sidebar {
             width: 220px;
             height: 100vh;
@@ -28,6 +27,8 @@
             text-decoration: none;
             color: white;
             font-weight: 500;
+            margin: 0;
+            border-radius: 0;
         }
 
         .sidebar a.active,
@@ -36,14 +37,20 @@
             color: #29459A;
         }
 
-        /* 메인 영역 */
         .content {
             margin-left: 220px;
             padding: 40px 20px;
+            background-color: #f7faff;
             min-height: 100vh;
         }
 
-        /* 테이블 헤더 스타일 */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
         .table th {
             background-color: #f8f9fa;
             font-weight: 600;
@@ -52,7 +59,6 @@
             white-space: nowrap;
         }
 
-        /* 테이블 셀 스타일 */
         .table td {
             padding: 12px;
             border: none;
@@ -61,7 +67,6 @@
             white-space: nowrap;
         }
 
-        /* 테이블 행 호버 효과 */
         .table tbody tr:hover {
             background-color: #f0f4ff;
             cursor: pointer;
@@ -71,7 +76,6 @@
             border-bottom: none;
         }
 
-        /* 별점 표시 스타일 */
         .star-rating {
             color: #ffc107;
             font-size: 1.1rem;
@@ -85,7 +89,6 @@
             color: #ffc107;
         }
 
-        /* 제목 셀 스타일 */
         .title-cell {
             white-space: normal;
             max-width: 300px;
@@ -95,11 +98,25 @@
             font-weight: 500;
             color: #333;
         }
+
+        .pagination .page-link {
+            color: #29459A;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #29459A;
+            border-color: #29459A;
+        }
+
+        .pagination .page-link:hover {
+            color: #29459A;
+            background-color: #e9ecef;
+        }
     </style>
 </head>
 <body>
 
-<!-- 사이드바 네비게이션 -->
 <div class="sidebar">
     <div class="menu">
         <a href="/mentoring">멘토링 신청</a>
@@ -109,17 +126,18 @@
     </div>
 </div>
 
-<!-- 메인 콘텐츠 -->
 <div class="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>멘토링 후기</h3>
         <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" onclick="loadReviews()">전체 보기</button>
+            <button class="btn btn-outline-secondary" onclick="loadMyReceivedReviews()">내가 받은 후기</button>
+            <button class="btn btn-outline-secondary" onclick="loadMyWrittenReviews()">내가 작성한 후기</button>
             <a href="/mentoringReview/write" class="btn btn-outline-primary">후기 작성하기</a>
         </div>
     </div>
 
     <div id="review-content">
-        <!-- 후기 목록 테이블 -->
         <div class="card">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
@@ -134,7 +152,6 @@
                 </tr>
                 </thead>
                 <tbody id="reviewTableBody">
-                <!-- 초기 로딩 상태 표시 -->
                 <tr>
                     <td colspan="7" class="text-center">
                         <div class="spinner-border spinner-border-sm me-2"></div>
@@ -144,97 +161,189 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="pagination" class="d-flex justify-content-center mt-4" style="display: none !important;">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item" id="prevPage">
+                        <a class="page-link" href="#" onclick="loadPage(currentPage - 1)">이전</a>
+                    </li>
+                    <div id="pageNumbers" class="d-flex"></div>
+                    <li class="page-item" id="nextPage">
+                        <a class="page-link" href="#" onclick="loadPage(currentPage + 1)">다음</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
 <script>
-    // 페이지 로드 시 후기 목록 불러오기
+    let currentPage = 0;
+    let totalPages = 0;
+    let pageSize = 10;
+
     document.addEventListener('DOMContentLoaded', () => {
         loadReviews();
     });
 
-    // 서버에서 후기 목록을 가져와서 화면에 표시
-    function loadReviews() {
+    function loadReviews(page = 0) {
+        currentPage = page;
         const tbody = document.getElementById('reviewTableBody');
 
-        // 로딩 상태 표시
         tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center">
-                    <div class="spinner-border spinner-border-sm me-2"></div>
-                    로딩 중...
-                </td>
-            </tr>
-        `;
+        <tr>
+            <td colspan="7" class="text-center">
+                <div class="spinner-border spinner-border-sm me-2"></div>
+                로딩 중...
+            </td>
+        </tr>
+    `;
 
-        fetch('/api/mentoring-review')
+        fetch(`/api/mentoring-review/paged?page=${page}&size=${pageSize}`)
             .then(res => res.json())
             .then(data => {
                 tbody.innerHTML = '';
+                totalPages = data.totalPages || 0;
+                const reviews = Array.isArray(data.reviews) ? data.reviews : [];
 
-                if (data.length === 0) {
+                if (reviews.length === 0) {
                     tbody.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                아직 작성된 후기가 없습니다.
-                            </td>
-                        </tr>
-                    `;
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            아직 작성된 후기가 없습니다.
+                        </td>
+                    </tr>
+                `;
                     return;
                 }
 
-                // 후기 데이터를 테이블 행으로 변환
-                data.forEach((review, index) => {
+                reviews.forEach((review, index) => {
                     const stars = generateStarRating(review.rating);
+                    const globalIndex = data.totalElements
+                        ? data.totalElements - (page * pageSize) - index
+                        : index + 1;
 
                     const row = document.createElement('tr');
                     row.style.cursor = 'pointer';
                     row.onclick = () => viewReview(review.id);
 
-                    // 테이블 행 HTML 구성
                     row.innerHTML = `
-                        <td class="text-center">${data.length - index}</td>
-                        <td>${review.reviewerName}</td>
-                        <td>${review.mentorName}</td>
-                        <td class="title-cell">
-                            <div class="review-title">${review.title}</div>
-                        </td>
-                        <td>
-                            <div class="star-rating">${stars}</div>
-                        </td>
-                        <td class="text-center">${review.viewCount}</td>
-                        <td>${formatDate(review.createdAt)}</td>
-                    `;
+                    <td class="text-center">${globalIndex}</td>
+                    <td>${review.reviewerName || '-'}</td>
+                    <td>${review.mentorName || '-'}</td>
+                    <td class="title-cell"><div class="review-title">${review.title}</div></td>
+                    <td><div class="star-rating">${stars}</div></td>
+                    <td class="text-center">${review.viewCount}</td>
+                    <td>${formatDate(review.createdAt)}</td>
+                `;
                     tbody.appendChild(row);
                 });
+
+                updatePagination();
             })
-            .catch(err => {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center text-danger">
-                            오류 발생: ${err.message}
-                        </td>
-                    </tr>
-                `;
-            });
+            .catch(showError);
     }
 
-    // 별점을 별 모양 HTML로 변환하는 함수
+    function loadMyReceivedReviews() {
+        fetch(`/api/mentoring-review/mentor/me`)
+            .then(res => res.json())
+            .then(data => renderReviewList(data))
+            .catch(showError);
+    }
+
+    function loadMyWrittenReviews() {
+        fetch(`/api/mentoring-review/mentee/me`)
+            .then(res => res.json())
+            .then(data => renderReviewList(data))
+            .catch(showError);
+    }
+
+    function renderReviewList(reviews) {
+        const tbody = document.getElementById('reviewTableBody');
+        const pagination = document.getElementById('pagination');
+        tbody.innerHTML = '';
+        pagination.style.display = 'none';
+
+        if (!Array.isArray(reviews) || reviews.length === 0) {
+            tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    후기가 없습니다.
+                </td>
+            </tr>
+        `;
+            return;
+        }
+
+        reviews.forEach((review, index) => {
+            const stars = generateStarRating(review.rating);
+            const row = document.createElement('tr');
+            row.onclick = () => viewReview(review.id);
+
+            row.innerHTML = `
+            <td class="text-center">${index + 1}</td>
+            <td>${review.reviewerName || '-'}</td>
+            <td>${review.mentorName || '-'}</td>
+            <td class="title-cell"><div class="review-title">${review.title}</div></td>
+            <td><div class="star-rating">${stars}</div></td>
+            <td class="text-center">${review.viewCount}</td>
+            <td>${formatDate(review.createdAt)}</td>
+        `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updatePagination() {
+        const pagination = document.getElementById('pagination');
+        const pageNumbers = document.getElementById('pageNumbers');
+        const prevPage = document.getElementById('prevPage');
+        const nextPage = document.getElementById('nextPage');
+
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = 'flex';
+        prevPage.classList.toggle('disabled', currentPage === 0);
+        nextPage.classList.toggle('disabled', currentPage === totalPages - 1);
+
+        pageNumbers.innerHTML = '';
+        const startPage = Math.max(0, currentPage - 2);
+        const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+
+            const pageLink = document.createElement('a');
+            pageLink.className = 'page-link';
+            pageLink.href = '#';
+            pageLink.textContent = i + 1;
+            pageLink.onclick = (e) => {
+                e.preventDefault();
+                loadPage(i);
+            };
+
+            pageItem.appendChild(pageLink);
+            pageNumbers.appendChild(pageItem);
+        }
+    }
+
+    function loadPage(page) {
+        if (page < 0 || page >= totalPages) return;
+        loadReviews(page);
+    }
+
     function generateStarRating(rating) {
         let stars = '';
         for (let i = 1; i <= 5; i++) {
-            if (i <= rating) {
-                // 채워진 별
-                stars += '<span class="star filled">★</span>';
-            } else {
-                // 빈 별
-                stars += '<span class="star">★</span>';
-            }
+            stars += `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`;
         }
         return stars;
     }
 
-    // 날짜를 MM/DD 형식으로 포맷
     function formatDate(dateString) {
         const date = new Date(dateString);
         return date.toLocaleDateString('ko-KR', {
@@ -243,9 +352,19 @@
         });
     }
 
-    // 후기 상세보기 페이지로 이동
     function viewReview(reviewId) {
         window.location.href = `/mentoringReview/detail?id=${reviewId}`;
+    }
+
+    function showError(err) {
+        const tbody = document.getElementById('reviewTableBody');
+        tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center text-danger">
+                오류 발생: ${err.message}
+            </td>
+        </tr>
+    `;
     }
 </script>
 </body>

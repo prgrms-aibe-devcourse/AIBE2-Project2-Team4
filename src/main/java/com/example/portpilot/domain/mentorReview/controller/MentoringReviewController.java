@@ -25,4 +25,9 @@ public class MentoringReviewController {
     public String showReviewDetailPage() {
         return "mentoringReview/mentoringReviewDetail";
     }
+
+    @GetMapping("/edit")
+    public String showReviewEditPage() {
+        return "mentoringReview/mentoringReviewEdit";
+    }
 }

@@ -17,6 +17,8 @@ public class MentoringReviewResponseDto {
     private Integer rating;           // 별점
     private Integer viewCount;        // 조회수
     private String createdAt;         // 작성일
+    private boolean writer;         // 작성자 인지 판별
+
 
     public static MentoringReviewResponseDto fromEntity(MentoringReview review) {
         MentoringReviewResponseDto dto = new MentoringReviewResponseDto();
@@ -28,6 +30,7 @@ public class MentoringReviewResponseDto {
         dto.setRating(review.getRating());
         dto.setViewCount(review.getViewCount());
         dto.setCreatedAt(review.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        dto.setWriter(true);
         return dto;
     }
 }
