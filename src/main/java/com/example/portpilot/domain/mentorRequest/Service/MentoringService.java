@@ -185,7 +185,8 @@ public class MentoringService {
         return "https://meet.jit.si/mentoring-" + req.getId();
     }
 
-    // 자동 완료 처리
+    // 자동 완료 처리 (멘토링 시간인 scheduledAt을 1시간 지나면 자동 종료 (completed))
+    // 단 현재
     @Scheduled(fixedRate = 60000)
     public void completeExpiredMentoring() {
         List<MentoringRequest> list = mentoringRequestRepository.findAllByStatus(MentoringStatus.ACCEPTED);
@@ -197,4 +198,28 @@ public class MentoringService {
             }
         }
     }
+
+
+    // 정식 완료 처리 (상호 동의 방식)
+    public void completeMentoring(Long id, User currentUser) {
+        MentoringRequest request = findById(id);
+
+        // 권한 체크
+        if (!Objects.equals(request.getMentor(), currentUser) &&
+                !Objects.equals(request.getUser(), currentUser)) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+
+        // 상태 체크
+        if (!request.getStatus().equals(MentoringStatus.ACCEPTED)) {
+            throw new IllegalStateException("진행 중인 멘토링만 완료할 수 있습니다.");
+        }
+
+        // 완료 요청 필드 추가 (엔티티에 completionRequestedBy 필드 필요)
+        // 여기서는 간단히 바로 완료 처리
+        request.setStatus(MentoringStatus.COMPLETED);
+        request.setCompleted(true);
+        mentoringRequestRepository.save(request);
+    }
+
 }
