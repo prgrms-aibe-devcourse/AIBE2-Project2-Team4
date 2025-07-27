@@ -1,12 +1,9 @@
 .sidebar {
     width: 220px;
-    height: 100vh;
     background-color: #29459A;
-    position: fixed;
-    top: 0;
-    left: 0;
+    height: 100%;
     padding-top: 40px;
-    z-index: 10;
+    /* min-height: 100vh; 이 부분 제거 */
 }
 
 .sidebar .menu a {
