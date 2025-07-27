@@ -9,13 +9,11 @@ import com.example.portpilot.domain.project.repository.ParticipationRepository;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserPrincipal;
 import com.example.portpilot.domain.user.UserRepository;
-import com.example.portpilot.domain.project.entity.ParticipationStatus;
 import com.example.portpilot.domain.project.entity.enums.StartOption;
 import com.example.portpilot.domain.project.entity.enums.ProjectType;
 import com.example.portpilot.domain.project.entity.enums.PlanningState;
 import com.example.portpilot.domain.project.entity.enums.Experience;
 import com.example.portpilot.domain.project.entity.enums.CollaborationOption;
-
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -109,15 +107,25 @@ public class ProjectController {
         UserPrincipal p = principal(authentication);
         boolean requested = p != null && projectService.isRequested(id, p.getId());
         boolean member    = p != null && projectService.isMember(id, p.getId());
+        boolean isOwner   = p != null && project.getOwner().getId().equals(p.getId());
+        boolean canJoin   = p != null && !isOwner && !member;
+
         model.addAttribute("requested", requested);
         model.addAttribute("member", member);
+        model.addAttribute("canJoin", canJoin);
 
         return "projects/detail";
     }
 
     /** 프로젝트 등록 폼 */
     @GetMapping("/register")
-    public String showRegisterForm() {
+    public String showRegisterForm(Model model) {
+        // 폼에 필요한 enum 목록도 제공
+        model.addAttribute("startOptions", StartOption.values());
+        model.addAttribute("projectTypes", ProjectType.values());
+        model.addAttribute("planningStates", PlanningState.values());
+        model.addAttribute("experiences", Experience.values());
+        model.addAttribute("collabs", CollaborationOption.values());
         return "projects/register";
     }
 
@@ -161,7 +169,10 @@ public class ProjectController {
         if (p == null) {
             return "redirect:/users/login";
         }
-        if (projectService.isRequested(projectId, p.getId()) ||
+        Project project = projectService.findById(projectId);
+        if (project.getOwner().getId().equals(p.getId())) {
+            ra.addFlashAttribute("error", "프로젝트 소유자는 참여할 수 없습니다.");
+        } else if (projectService.isRequested(projectId, p.getId()) ||
                 projectService.isMember(projectId, p.getId())) {
             ra.addFlashAttribute("error", "이미 요청했거나 참여 중입니다.");
         } else {
@@ -224,6 +235,7 @@ public class ProjectController {
         }
         return "redirect:/projects/manage/requests";
     }
+
     /** 수정 폼 보여주기 */
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id,
@@ -231,12 +243,10 @@ public class ProjectController {
                                Model model) {
         Project project = projectService.findById(id);
         UserPrincipal principal = principal(authentication);
-        // 소유자가 아니면 목록으로 리다이렉트
         if (principal == null || !project.getOwner().getId().equals(principal.getId())) {
             return "redirect:/projects";
         }
         model.addAttribute("project", project);
-        // 폼용 enum 목록
         model.addAttribute("startOptions", StartOption.values());
         model.addAttribute("projectTypes", ProjectType.values());
         model.addAttribute("planningStates", PlanningState.values());
@@ -259,7 +269,6 @@ public class ProjectController {
                                 @RequestParam CollaborationOption collaborationOption,
                                 Authentication authentication) {
         UserPrincipal principal = principal(authentication);
-        // 서비스에서 권한 체크 포함
         projectService.updateProject(
                 id,
                 principal.getId(),
@@ -274,6 +283,7 @@ public class ProjectController {
         );
         return "redirect:/projects/" + id;
     }
+
     /** 테스트: 전체 개수 확인 */
     @GetMapping("/count")
     @ResponseBody
