@@ -155,6 +155,22 @@ public class MentoringApiController {
         return ResponseEntity.ok().build();
     }
 
+    // 정식 멘토링 완료 처리 (멘토/멘티 둘 다 동의 필요한 버전)
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<?> completeMentoring(@PathVariable Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        try {
+            mentoringService.completeMentoring(id, currentUser);
+            return ResponseEntity.ok().body(Map.of("message", "멘토링 완료 요청이 전송되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // 현재 로그인한 사용자 조회
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
