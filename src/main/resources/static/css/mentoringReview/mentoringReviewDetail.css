@@ -1,0 +1,105 @@
+/* 멘토링 후기 상세페이지 버튼 통일 스타일 */
+
+/* 기본 버튼 스타일 통일 */
+.btn {
+    border: 1px solid;
+    background-color: transparent;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* 목록으로 돌아가기 버튼 */
+.btn-secondary, .btn-outline-secondary {
+    border-color: #636e72;
+    color: #636e72;
+}
+
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background-color: #636e72;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99, 110, 114, 0.3);
+    text-decoration: none;
+}
+
+/* 목록 버튼 */
+.btn-light, .btn-outline-light {
+    border-color: #74b9ff;
+    color: #74b9ff;
+}
+
+.btn-light:hover, .btn-outline-light:hover {
+    background-color: #74b9ff;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(116, 185, 255, 0.3);
+    text-decoration: none;
+}
+
+/* 수정 버튼 */
+.btn-warning, .btn-outline-warning {
+    border-color: #fdcb6e;
+    color: #e17055;
+}
+
+.btn-warning:hover, .btn-outline-warning:hover {
+    background-color: #fdcb6e;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(253, 203, 110, 0.3);
+    text-decoration: none;
+}
+
+/* 삭제 버튼 */
+.btn-danger, .btn-outline-danger {
+    border-color: #e17055;
+    color: #e17055;
+}
+
+.btn-danger:hover, .btn-outline-danger:hover {
+    background-color: #e17055;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(225, 112, 85, 0.3);
+    text-decoration: none;
+}
+
+/* 기본 버튼 (회색) */
+.btn-default {
+    border-color: #636e72;
+    color: #636e72;
+}
+
+.btn-default:hover {
+    background-color: #636e72;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99, 110, 114, 0.3);
+    text-decoration: none;
+}
+
+/* 포커스 상태 */
+.btn:focus {
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    outline: none;
+}
+
+/* 버튼 그룹 간격 */
+.btn + .btn {
+    margin-left: 8px;
+}
+
+/* 버튼 컨테이너 정렬 */
+.d-flex .btn {
+    margin-right: 8px;
+}
+
+.d-flex .btn:last-child {
+    margin-right: 0;
+}

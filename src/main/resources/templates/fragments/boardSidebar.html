@@ -1,0 +1,21 @@
+<!-- fragments/boardSidebar.html -->
+<div class="sidebar" th:fragment="sidebar">
+    <div class="menu">
+        <a href="/mentoring"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/mentoring') && !#httpServletRequest.requestURI.contains('Review')} ? 'active'">
+            멘토링 신청
+        </a>
+        <a href="/mentoringReview"
+           th:classappend="${#httpServletRequest.requestURI.contains('Review')} ? 'active'">
+            멘토링 후기
+        </a>
+        <a href="/study"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/study')} ? 'active'">
+            스터디 만들기
+        </a>
+        <a href="/board"
+           th:classappend="${#httpServletRequest.requestURI.startsWith('/board')} ? 'active'">
+            자유게시판
+        </a>
+    </div>
+</div>

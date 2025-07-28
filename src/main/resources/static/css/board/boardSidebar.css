@@ -1,0 +1,21 @@
+.sidebar {
+    width: 220px;
+    background-color: #29459A;
+    height: 100%;
+    padding-top: 40px;
+    /* min-height: 100vh; 이 부분 제거 */
+}
+
+.sidebar .menu a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+}
+
+.sidebar .menu a.active,
+.sidebar .menu a:hover {
+    background-color: white;
+    color: #29459A;
+}

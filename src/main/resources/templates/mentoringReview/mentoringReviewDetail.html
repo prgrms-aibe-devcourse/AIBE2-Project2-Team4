@@ -1,99 +1,45 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout-board}">
+
 <head>
-    <meta charset="UTF-8" />
     <title>멘토링 후기 상세보기</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-    <style>
-        body {
-            background-color: #f7faff;
-            font-family: 'Pretendard', sans-serif;
-            margin: 0;
-        }
-        .sidebar {
-            width: 220px;
-            height: 100vh;
-            background-color: #29459A;
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding-top: 40px;
-        }
-        .sidebar a {
-            display: block;
-            padding: 15px 25px;
-            text-decoration: none;
-            color: white;
-            font-weight: 500;
-        }
-        .sidebar a.active,
-        .sidebar a:hover {
-            background-color: white;
-            color: #29459A;
-        }
-        .content {
-            margin-left: 220px;
-            padding: 40px 20px;
-            background-color: #f7faff;
-            min-height: 100vh;
-        }
-        .detail-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .star-rating .star {
-            color: #ddd;
-        }
-        .star-rating .star.filled {
-            color: #ffc107;
-        }
-        .review-content {
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-    </style>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet" href="/css/mentoringReview/mentoringReviewDetail.css">
+    </th:block>
 </head>
+
 <body>
-
-<!-- 사이드바 -->
-<div class="sidebar">
-    <div class="menu">
-        <a href="/mentoring">멘토링 신청</a>
-        <a href="/mentoringReview" class="active">멘토링 후기</a>
-        <a href="/study">스터디 만들기</a>
-        <a href="/board">자유게시판</a>
-    </div>
-</div>
-
-<div class="content">
+<div layout:fragment="content">
     <div class="detail-container">
+        <!-- 뒤로가기 버튼 -->
         <div class="mb-3">
-            <button type="button" class="btn btn-outline-secondary" onclick="goBack()">← 목록으로 돌아가기</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="goBack()">
+                ← 목록으로 돌아가기
+            </button>
         </div>
 
-        <!-- 로딩 상태 -->
+        <!-- 로딩 상태 표시 -->
         <div id="loadingState" class="text-center py-5">
             <div class="spinner-border text-primary mb-3"></div>
             <div>후기를 불러오는 중...</div>
         </div>
 
-        <!-- 에러 상태 -->
+        <!-- 에러 상태 표시 -->
         <div id="errorState" class="text-center py-5 text-danger" style="display: none;">
             <div class="mb-3">오류 발생</div>
             <div id="errorMessage">후기를 불러올 수 없습니다.</div>
             <button class="btn btn-primary mt-3" onclick="loadReviewDetail()">다시 시도</button>
         </div>
 
-        <!-- 후기 상세 -->
+        <!-- 후기 상세 내용 -->
         <div id="reviewDetail" style="display: none;">
             <div class="card">
+                <!-- 후기 헤더 - 제목, 작성자, 멘토, 별점 정보 -->
                 <div class="card-header">
                     <h4 class="mb-3" id="reviewTitle"></h4>
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -107,9 +53,13 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 후기 본문 내용 -->
                 <div class="card-body">
                     <div class="review-content" id="reviewContent"></div>
                 </div>
+
+                <!-- 후기 푸터 - 작성일, 조회수, 버튼들 -->
                 <div class="card-footer bg-light">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -119,13 +69,18 @@
                             </small>
                         </div>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-outline-secondary" onclick="goBack()">목록</button>
-                            <!-- 작성자만 노출 -->
-                            <div id="ownerButtons" style="display: flex;">
-                                <button type="button" class="btn btn-outline-success me-1" onclick="editReview()">수정</button>
-                                <button type="button" class="btn btn-outline-danger" onclick="deleteReview()">삭제</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="goBack()">
+                                목록
+                            </button>
+                            <!-- 작성자만 보이는 수정/삭제 버튼 -->
+                            <div id="ownerButtons" style="display: none;">
+                                <button type="button" class="btn btn-warning" onclick="editReview()">
+                                    수정
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="deleteReview()">
+                                    삭제
+                                </button>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -134,113 +89,8 @@
     </div>
 </div>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const reviewId = urlParams.get('id');
-
-    // 페이지 로드 시 후기 데이터 요청
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!reviewId) {
-            showError('잘못된 접근입니다.');
-            return;
-        }
-        loadReviewDetail();
-    });
-
-    function loadReviewDetail() {
-        showLoading();
-        fetch(`/api/mentoring-review/${reviewId}`)
-            .then(res => {
-                if (!res.ok) throw new Error('후기를 찾을 수 없습니다.');
-                return res.json();
-            })
-            .then(displayReview)
-            .catch(err => showError(err.message));
-    }
-
-    // 후기 데이터 화면 출력
-    function displayReview(review) {
-        document.getElementById('reviewTitle').textContent = review.title;
-        document.getElementById('reviewerName').textContent = review.reviewerName;
-        document.getElementById('mentorName').textContent = review.mentorName;
-        document.getElementById('createdAt').textContent = formatDate(review.createdAt);
-        document.getElementById('viewCount').textContent = review.viewCount;
-        document.getElementById('reviewContent').textContent = review.content;
-
-        document.getElementById('starRating').innerHTML = generateStarRating(review.rating);
-        document.getElementById('ratingText').textContent = `${review.rating}점`;
-
-        if (review.writer) {
-            document.getElementById('ownerButtons').style.display = 'flex';
-        }
-
-        hideLoading();
-        document.getElementById('reviewDetail').style.display = 'block';
-    }
-
-    function generateStarRating(rating) {
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            stars += `<span class="star${i <= rating ? ' filled' : ''}">★</span>`;
-        }
-        return stars;
-    }
-
-    function formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('ko-KR');
-    }
-
-    function showLoading() {
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('errorState').style.display = 'none';
-        document.getElementById('reviewDetail').style.display = 'none';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingState').style.display = 'none';
-    }
-
-    function showError(message) {
-        hideLoading();
-        document.getElementById('errorState').style.display = 'block';
-        document.getElementById('reviewDetail').style.display = 'none';
-        document.getElementById('errorMessage').textContent = message;
-    }
-
-    function goBack() {
-        window.history.back();
-    }
-
-    function editReview() {
-        window.location.href = `/mentoringReview/edit?id=${reviewId}`;
-    }
-
-    // 후기 삭제 요청
-    function deleteReview() {
-        if (!confirm('정말로 이 후기를 삭제하시겠습니까?')) return;
-
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-
-        const headers = {
-            'Content-Type': 'application/json',
-            ...(csrfToken && csrfHeader ? { [csrfHeader]: csrfToken } : {})
-        };
-
-        fetch(`/api/mentoring-review/${reviewId}`, {
-            method: 'DELETE',
-            headers
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('삭제 실패');
-                return res.json();
-            })
-            .then(data => {
-                alert(data.message || '후기가 삭제되었습니다.');
-                window.location.href = '/mentoringReview';
-            })
-            .catch(error => alert('삭제 실패: ' + error.message));
-    }
-</script>
+<th:block layout:fragment="script">
+    <script th:src="@{/js/mentorReview/mentoringReviewDetail.js}"></script>
+</th:block>
 </body>
 </html>

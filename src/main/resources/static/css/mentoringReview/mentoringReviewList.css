@@ -1,0 +1,82 @@
+body {
+    background-color: #f7faff;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+}
+
+.content {
+    margin-left: 220px;
+    padding: 40px 20px;
+    background-color: #f7faff;
+    min-height: 100vh;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border: none;
+    padding: 12px;
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 12px;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.table tbody tr:hover {
+    background-color: #f0f4ff;
+    cursor: pointer;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.star-rating {
+    color: #ffc107;
+    font-size: 1.1rem;
+}
+
+.star-rating .star {
+    color: #ddd;
+}
+
+.star-rating .star.filled {
+    color: #ffc107;
+}
+
+.title-cell {
+    white-space: normal;
+    max-width: 300px;
+}
+
+.review-title {
+    font-weight: 500;
+    color: #333;
+}
+
+.pagination .page-link {
+    color: #29459A;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #29459A;
+    border-color: #29459A;
+}
+
+.pagination .page-link:hover {
+    color: #29459A;
+    background-color: #e9ecef;
+}

@@ -1,0 +1,74 @@
+body {
+    background-color: #f7faff;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+}
+
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background-color: #29459A;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 40px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    margin: 0;
+    border-radius: 0;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+    background-color: white;
+    color: #29459A;
+}
+
+.content {
+    margin-left: 220px;
+    padding: 40px 20px;
+    background-color: #f7faff;
+    min-height: 100vh;
+}
+
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.star-input {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.star-input:hover,
+.star-input.active,
+.star-input.hover {
+    color: #ffc107;
+}
+
+.form-control:focus {
+    border-color: #29459A;
+    box-shadow: 0 0 0 0.2rem rgba(41, 69, 154, 0.25);
+}

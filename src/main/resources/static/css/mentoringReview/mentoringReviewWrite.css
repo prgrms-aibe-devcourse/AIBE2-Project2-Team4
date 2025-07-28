@@ -1,0 +1,66 @@
+body {
+    background-color: #f7faff;
+    font-family: 'Pretendard', sans-serif;
+    margin: 0;
+}
+.content {
+    margin-left: 220px;
+    padding: 40px 20px;
+    background-color: #f7faff;
+    min-height: 100vh;
+}
+
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.star-input {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.star-input:hover,
+.star-input.active,
+.star-input.hover {
+    color: #ffc107;
+}
+
+.mentoring-option {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mentoring-option:hover {
+    border-color: #29459A;
+    background-color: #f8f9fa;
+}
+
+.mentoring-option.selected {
+    border-color: #29459A;
+    background-color: #e7f1ff;
+}
+
+.form-control:focus {
+    border-color: #29459A;
+    box-shadow: 0 0 0 0.2rem rgba(41, 69, 154, 0.25);
+}
