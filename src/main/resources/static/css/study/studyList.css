@@ -3,16 +3,116 @@ body {
     font-family: 'Pretendard', sans-serif;
     margin: 0;
 }
+
 .content {
     margin-left: 220px;
     padding: 40px 20px;
     background-color: #f7faff;
     min-height: 100vh;
 }
+
 .card-title {
     font-size: 1.1rem;
     font-weight: bold;
 }
+
 .card-text {
     font-size: 0.95rem;
+}
+
+/* 모집중 태그 */
+.badge.bg-success {
+    background-color: #00b894 !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.badge.bg-secondary {
+    background-color: #636e72 !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.badge.bg-dark {
+    background-color: #2d3436 !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* 테스트 버튼들 스타일 개선 - 오른쪽 위 버튼 스타일로 */
+.btn-sm {
+    border: 1px solid;
+    background-color: transparent;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-danger {
+    border-color: #e17055;
+    color: #e17055;
+}
+
+.btn-danger:hover {
+    background-color: #e17055;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(225, 112, 85, 0.3);
+}
+
+.btn-dark {
+    border-color: #636e72;
+    color: #636e72;
+}
+
+.btn-dark:hover {
+    background-color: #636e72;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(99, 110, 114, 0.3);
+}
+
+/* 스터디 생성 버튼도 통일 */
+.btn-outline-primary {
+    border: 1px solid #6c5ce7;
+    color: #6c5ce7;
+    background-color: transparent;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-outline-primary:hover {
+    background-color: #6c5ce7;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    text-decoration: none;
+}
+.card a {
+    text-decoration: none;
+}
+
+.card a:hover {
+    text-decoration: none;
+}
+a.card {
+    text-decoration: none !important;
+}
+
+a.card:hover {
+    text-decoration: none !important;
 }
