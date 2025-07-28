@@ -34,6 +34,41 @@ function setQueryParams(params) {
     history.pushState({}, '', url);
 }
 
+// 게시물 빈 상태 메시지 정의
+function getEmptyMessage(searchType) {
+    const messages = {
+        'all': '작성된 게시글이 없습니다.',
+        'search': '검색 결과가 없습니다.',
+        'my': '작성한 게시글이 없습니다.',
+        'filter': '조건에 맞는 게시글이 없습니다.'
+    };
+
+    return messages[searchType] || '게시글이 없습니다.';
+}
+
+// 게시판 목록 로드 시 빈 상태 처리
+function displayEmptyState(container, searchType = 'all') {
+    const emptyMessage = getEmptyMessage(searchType);
+    container.html(`
+        <tr>
+            <td colspan="7" class="text-center py-4 text-muted">
+                ${emptyMessage}
+            </td>
+        </tr>
+    `);
+}
+
+// 현재 상태 확인 (검색, 필터, 내 글 여부)
+function getCurrentSearchType() {
+    const keyword = $('#keywordInput').val();
+    const jobType = $('#jobTypeFilter').val();
+    const techStack = $('#techStackFilter').val();
+
+    if (keyword) return 'search';
+    if (jobType || techStack) return 'filter';
+    return 'all';
+}
+
 // 게시글 목록 로드 (Ajax)
 function loadBoards(page = 0) {
     const jobType = $('#jobTypeFilter').val();
@@ -43,8 +78,8 @@ function loadBoards(page = 0) {
 
     $.get('/api/board', { page, size: 10, jobType, techStack, keyword })
         .done(res => {
-            renderBoardList(res);
-            renderPagination(res);
+            renderBoardList(res, false); // false = 내 글이 아님
+            renderPagination(res, false);
         })
         .fail(() => alert('게시글 로딩 실패'));
 }
@@ -53,18 +88,23 @@ function loadBoards(page = 0) {
 function loadMyBoards(page = 0) {
     $.get('/api/board/my', { page, size: 10 })
         .done(res => {
-            renderBoardList(res);
-            renderPagination(res);
+            renderBoardList(res, true); // true = 내 글
+            renderPagination(res, true);
         })
         .fail(() => alert('내 글 목록 로딩 실패'));
 }
 
 // 게시글 목록 렌더링
-function renderBoardList(res) {
-    const tbody = $('#boardTableBody').empty();
+function renderBoardList(res, isMyBoards = false) {
+    const tbody = $('#boardTableBody');
+
     if (res.content.length === 0) {
-        return tbody.append('<tr><td colspan="7">게시글 없음</td></tr>');
+        const searchType = isMyBoards ? 'my' : getCurrentSearchType();
+        displayEmptyState(tbody, searchType);
+        return;
     }
+
+    tbody.empty();
     res.content.forEach(b => {
         const created = b.createdAt.replace('T', ' ').substring(0, 16);
         const row = `
@@ -89,15 +129,17 @@ function renderBoardList(res) {
 }
 
 // 페이지네이션 렌더링
-function renderPagination(res) {
+function renderPagination(res, isMyBoards = false) {
     const container = $('#pagination').empty();
     if (res.totalPages <= 1) return;
+
+    const loadFunction = isMyBoards ? 'loadMyBoards' : 'loadBoards';
 
     const appendBtn = (n, label, isActive, isDisabled) => {
         const activeClass = isActive ? 'btn-primary' : 'btn-outline-primary';
         const disabledAttr = isDisabled ? 'disabled' : '';
         container.append(`
-        <button class="btn btn-sm mx-1 ${activeClass}" ${disabledAttr} onclick="loadBoards(${n})">${label}</button>
+        <button class="btn btn-sm mx-1 ${activeClass}" ${disabledAttr} onclick="${loadFunction}(${n})">${label}</button>
       `);
     };
 

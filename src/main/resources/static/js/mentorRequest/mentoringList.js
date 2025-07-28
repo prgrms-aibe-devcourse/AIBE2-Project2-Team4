@@ -14,12 +14,25 @@ const statusBadgeMap = {
     'PENDING': '<span class="badge bg-warning text-dark">대기중</span>',
     'ACCEPTED': '<span class="badge bg-success">수락됨</span>',
     'REJECTED': '<span class="badge bg-secondary">거절됨</span>',
-    'COMPLETED': '<span class="badge bg-dark">완료</span>'
+    'COMPLETED': '<span class="badge bg-primary">완료</span>'  // 까만색 → 파란색으로 변경
 };
+
+// 탭별 빈 상태 메시지 정의
+function getEmptyMessage(tabType) {
+    const messages = {
+        'received': '받은 신청이 없습니다.',
+        'sent': '보낸 신청이 없습니다.',
+        'accepted': '진행 중인 멘토링이 없습니다.',
+        'completed': '완료된 멘토링이 없습니다.',
+        'mentors': '등록된 멘토가 없습니다.'
+    };
+
+    return messages[tabType] || '데이터가 없습니다.';
+}
 
 function loadTabContent(type) {
     const container = document.getElementById('mentoring-content');
-    container.innerHTML = '<p>로딩 중...</p>';
+    container.innerHTML = '<p class="text-muted">로딩 중...</p>';
 
     let url = '';
     switch (type) {
@@ -49,7 +62,16 @@ function loadTabContent(type) {
             container.innerHTML = '';
 
             if (data.length === 0) {
-                container.innerHTML = '<p>표시할 데이터가 없습니다.</p>';
+                const emptyMessage = getEmptyMessage(type);
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="text-muted mb-3">
+                            <i class="fas fa-inbox fa-3x"></i>
+                        </div>
+                        <h5 class="text-muted">${emptyMessage}</h5>
+                        <p class="text-muted small">새로운 활동을 시작해보세요!</p>
+                    </div>
+                `;
                 return;
             }
 
