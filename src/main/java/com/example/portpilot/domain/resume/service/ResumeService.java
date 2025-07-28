@@ -135,6 +135,8 @@ public class ResumeService {
             resume.updateStatus(request.getStatus());
         }
 
+        initializeLazyCollections(resume);
+
         return new ResumeResponse(resume);
     }
 
