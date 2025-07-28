@@ -43,10 +43,10 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <th:block layout:fragment="script"></th:block>
+    <!-- 페이지별 CSS 추가 -->
     <th:block layout:fragment="css"></th:block>
-
 </head>
+
 <body>
 
 <div th:replace="fragments/header::header"></div>
@@ -63,6 +63,9 @@
 </div>
 
 <div th:replace="fragments/footer::footer"></div>
+
+<!-- 페이지별 스크립트는 body 끝에서 삽입되도록 수정 -->
+<th:block layout:fragment="script"></th:block>
 
 </body>
 </html>
