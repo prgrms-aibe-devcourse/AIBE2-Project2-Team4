@@ -1,20 +1,26 @@
 package com.example.portpilot.domain.portfolio.dto;
 
 import lombok.*;
-
 import javax.validation.constraints.NotBlank;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PortfolioRequest {
-    private Long id;               // 수정 시 필요
+    private Long id;
+
     @NotBlank
     private String title;
+
+    @NotBlank
+    private String background;
+
+    private String results;
+    private String features;
+    private String stages;
+    private String details;
+
     @NotBlank
     private String description;
+
     private String link;
     private String tags;
     private String category;
@@ -23,6 +29,11 @@ public class PortfolioRequest {
         return PortfolioRequest.builder()
                 .id(resp.getId())
                 .title(resp.getTitle())
+                .background(resp.getBackground())
+                .results(resp.getResults())
+                .features(resp.getFeatures())
+                .stages(resp.getStages())
+                .details(resp.getDetails())
                 .description(resp.getDescription())
                 .link(resp.getLink())
                 .tags(resp.getTags())

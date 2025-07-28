@@ -6,108 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link
             href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-    />
+            rel="stylesheet"/>
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        /* ======= 네비게이션 바 ======= */
-        .navbar {
-            background-color: #4A68C4 !important;
-        }
-
-        .navbar .navbar-brand,
-        .navbar .nav-link {
-            color: white !important;
-            font-weight: 500;
-        }
-
-        .navbar .nav-link.active,
-        .navbar .nav-link:hover {
-            color: #FFD700 !important;
-            text-decoration: underline;
-        }
-
-        /* ======= 카드 ======= */
-        .card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: white;
-        }
-
-        .card-body h1 {
-            font-size: 26px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .card-body p {
-            font-size: 16px;
-            color: #444;
-        }
-
-        /* ======= 메타 정보 ======= */
-        .text-muted {
-            color: #6c757d !important;
-            font-size: 14px;
-        }
-
-        /* ======= 태그, 카테고리 ======= */
-        .badge.bg-secondary {
-            background-color: #4A68C4 !important;
-            font-size: 13px;
-        }
-
-        .badge.bg-info {
-            background-color: #17a2b8 !important;
-            font-size: 13px;
-        }
-
-        /* ======= 이미지 ======= */
-        .card-img {
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
-        /* ======= 버튼 ======= */
-        .btn-outline-primary {
-            color: #4A68C4;
-            border-color: #4A68C4;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: #4A68C4;
-            color: white;
-        }
-
-        .btn-outline-secondary {
-            color: #555;
-            border-color: #ccc;
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: #eee;
-        }
-
-        /* ======= 제목 구분 ======= */
-        h6 {
-            font-weight: 600;
-            color: #444;
-        }
-
-        /* 여백 정리 */
-        .mt-3, .mt-4 {
-            margin-top: 1.5rem !important;
-        }
-
-        .mb-1, .mb-3 {
-            margin-bottom: 1rem !important;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; }
+        .navbar { background-color: #4A68C4 !important; }
+        .navbar .navbar-brand, .navbar .nav-link { color: white !important; font-weight: 500; }
+        .navbar .nav-link.active, .navbar .nav-link:hover { color: #FFD700 !important; text-decoration: underline; }
+        .card { border: 1px solid #ddd; border-radius: 8px; background-color: white; }
+        .card-body h1 { font-size: 26px; font-weight: bold; color: #333; }
+        .card-body p { font-size: 16px; color: #444; }
+        .text-muted { color: #6c757d !important; font-size: 14px; }
+        .badge.bg-secondary { background-color: #4A68C4 !important; font-size: 13px; }
+        .badge.bg-info { background-color: #17a2b8 !important; font-size: 13px; }
+        .card-img { max-height: 300px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; }
+        .btn-outline-primary { color: #4A68C4; border-color: #4A68C4; }
+        .btn-outline-primary:hover { background-color: #4A68C4; color: white; }
+        .btn-outline-secondary { color: #555; border-color: #ccc; }
+        .btn-outline-secondary:hover { background-color: #eee; }
+        h6 { font-weight: 600; color: #444; }
+        .mt-3, .mt-4 { margin-top: 1.5rem !important; }
+        .mb-1, .mb-3 { margin-bottom: 1rem !important; }
     </style>
 </head>
 <body class="bg-light">
@@ -146,20 +64,41 @@
         <div class="card-body">
             <h1 th:text="${portfolio.title}">제목</h1>
             <p class="text-muted mb-1">
-                작성일:
-                <span th:text="${#temporals.format(portfolio.createdAt,'yyyy-MM-dd')}">
-          2025-07-25
-        </span>
-                &nbsp;|&nbsp;
-                상태: <span th:text="${portfolio.status}">PENDING_REVIEW</span>
+                작성일: <span th:text="${#temporals.format(portfolio.createdAt,'yyyy-MM-dd')}"></span>
+                | 상태: <span th:text="${portfolio.status}"></span>
             </p>
             <p class="mb-3">
-                작성자: <strong th:text="${portfolio.authorName}">홍길동</strong>
+                작성자: <strong th:text="${portfolio.authorName}"></strong>
             </p>
             <hr/>
-            <p th:text="${portfolio.description}">설명...</p>
 
-            <div th:if="${portfolio.link}">
+            <div th:if="${portfolio.background}" class="mt-4">
+                <h6>프로젝트 배경</h6>
+                <p th:text="${portfolio.background}"></p>
+            </div>
+            <div th:if="${portfolio.results}" class="mt-3">
+                <h6>프로젝트 성과</h6>
+                <p th:text="${portfolio.results}"></p>
+            </div>
+            <div th:if="${portfolio.features}" class="mt-3">
+                <h6>핵심 기능</h6>
+                <p th:text="${portfolio.features}"></p>
+            </div>
+            <div th:if="${portfolio.stages}" class="mt-3">
+                <h6>진행 단계</h6>
+                <p th:text="${portfolio.stages}"></p>
+            </div>
+            <div th:if="${portfolio.details}" class="mt-3">
+                <h6>프로젝트 상세</h6>
+                <p th:text="${portfolio.details}"></p>
+            </div>
+
+            <div th:if="${portfolio.description}" class="mt-3">
+                <h6>추가 설명</h6>
+                <p th:text="${portfolio.description}"></p>
+            </div>
+
+            <div th:if="${portfolio.link}" class="mt-4">
                 <a th:href="${portfolio.link}"
                    target="_blank"
                    class="btn btn-outline-primary btn-sm mb-3">
@@ -167,13 +106,11 @@
                 </a>
             </div>
 
-            <div th:if="${portfolio.tags}">
-                <h6 class="mt-4">기술 스택</h6>
+            <div th:if="${portfolio.tags}" class="mt-3">
+                <h6>기술 스택</h6>
                 <span th:each="tag : ${portfolio.tags.split(',')}"
                       class="badge bg-secondary me-1"
-                      th:text="${tag}">
-          Java
-        </span>
+                      th:text="${tag}">Java</span>
             </div>
 
             <div th:if="${portfolio.category}" class="mt-3">
@@ -181,13 +118,13 @@
                 <span class="badge bg-info" th:text="${portfolio.category}">웹</span>
             </div>
 
-            <!-- 여기만 바꿨습니다 -->
             <div th:if="${!#lists.isEmpty(portfolio.images)}" class="mt-4">
                 <h6>이미지</h6>
                 <div class="row g-3">
                     <div class="col-md-4" th:each="img : ${portfolio.images}">
-                        <img th:src="@{|/uploads/${img}|}"
-                             class="img-fluid card-img" />
+                        <img th:src="@{|/image-files/${img}|}"
+                             class="img-fluid card-img"
+                             alt="포트폴리오 이미지"/>
                     </div>
                 </div>
             </div>
@@ -206,8 +143,6 @@
     </div>
 </div>
 
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
