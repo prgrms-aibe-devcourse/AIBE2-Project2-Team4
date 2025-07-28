@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}">
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/admin/main.js}" defer></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div class="main">
+        <div class="dashboard-header">대시보드</div>
+
+        <!-- 날짜 선택 영역 -->
+        <div class="date-filter">
+            <label for="startDate">시작일</label>
+            <input type="date" id="startDate" name="startDate">
+
+            <label for="endDate">종료일</label>
+            <input type="date" id="endDate" name="endDate">
+
+            <button id="loadStatsBtn">조회</button>
+        </div>
+
+
+        <!-- 상단 통계 -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">👥 신규 회원 수</div>
+                    <div class="card-content">
+                        <canvas id="newUserChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">👥 탈퇴 회원 수</div>
+                    <div class="card-content">
+                        <canvas id="leftUserChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 통계 -->
+        <div class="row" style="margin-top:2rem;">
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">📍 미처리 신고 수</div>
+                    <div class="unresolved-count" id="unresolvedReportCount">0 건</div>
+                    <div class="unresolved-action">
+                        <a href="/admin/report" class="unresolved-button">처리하러 가기</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-title">🤝 멘토링 매칭 현황</div>
+                    <div class="card-content">
+                        <canvas id="matchingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

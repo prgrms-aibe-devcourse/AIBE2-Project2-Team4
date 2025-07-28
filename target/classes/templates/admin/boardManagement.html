@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layouts/layout}">
+
+<head>
+  <title>게시글 관리</title>
+  <link rel="stylesheet" th:href="@{/css/admin/board-management.css}">
+  <script th:src="@{/js/admin/board-management.js}" defer></script>
+</head>
+
+<body>
+<div layout:fragment="content">
+  <h2 class="board-management-header">게시글 관리</h2>
+  <div class="search-bar">
+    <input type="text" id="searchKeyword" placeholder="제목, 내용, 작성자로 검색" />
+    <button id="searchBtn">검색</button>
+  </div>
+
+
+  <table class="board-table">
+    <thead>
+    <tr>
+      <th>번호</th>
+      <th>제목</th>
+      <th>작성자</th>
+      <th>조회수</th>
+      <th>작성일</th>
+      <th>차단 여부</th>
+      <th>관리</th>
+    </tr>
+    </thead>
+    <tbody id="boardTableBody">
+    <!-- JavaScript로 채워짐 -->
+    </tbody>
+  </table>
+
+  <div id="pagination" class="pagination">
+    <!-- JavaScript로 채워짐 -->
+  </div>
+</div>
+</body>
+</html>
