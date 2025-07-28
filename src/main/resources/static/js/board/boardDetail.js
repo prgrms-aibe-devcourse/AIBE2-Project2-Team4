@@ -8,12 +8,22 @@ $(document).ready(function () {
     });
 
     // 게시글 불러오기
-    $.get(`/api/board/${boardId}`, function (data) {
-        $('#boardTitle').text(data.title);
-        $('#boardMeta').contents().first()[0].textContent = `작성자: ${data.userName} | 작성일: ${data.createdAt.replace('T', ' ').slice(0, 16)} | 조회수: ${data.viewCount} `;
-        $('#editBtn').attr('href', `/board/edit/${data.id}`);
-        $('#boardContent').text(data.content);
-    });
+    $.get(`/api/board/${boardId}`)
+        .done(function (data) {
+            $('#boardTitle').text(data.title);
+            $('#boardMeta').contents().first()[0].textContent = `작성자: ${data.userName} | 작성일: ${data.createdAt.replace('T', ' ').slice(0, 16)} | 조회수: ${data.viewCount} `;
+            $('#editBtn').attr('href', `/board/edit/${data.id}`);
+            $('#boardContent').text(data.content);
+        })
+        .fail(function(xhr) {
+            if (xhr.status === 400) {
+                alert("삭제된 게시물입니다.");
+                location.href = "/board";
+            } else {
+                alert("게시물을 불러올 수 없습니다.");
+                location.href = "/board";
+            }
+        });
 
     // 게시글 삭제
     $('#deleteBtn').click(function () {
@@ -32,7 +42,7 @@ $(document).ready(function () {
         const reason = prompt('신고 사유를 입력해주세요.');
         if (!reason) return;
         $.ajax({
-            url: `/board/${boardId}`,
+            url: `/api/report/board/${boardId}`,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ reason }),
@@ -73,6 +83,22 @@ $(document).ready(function () {
 
     // 댓글 렌더링 (대댓글 포함 재귀)
     function renderComment(c, container, depth = 0) {
+        // 차단된 댓글 처리
+        if (c.isBlocked) {
+            const div = $(`
+              <div class="border rounded p-2 mb-2 ${depth > 0 ? 'reply' : ''}" data-id="${c.id}">
+                <div class="text-muted">삭제된 댓글입니다.</div>
+              </div>
+            `);
+            container.append(div);
+
+            // 차단된 댓글의 자식 댓글들은 여전히 표시
+            if (c.children && c.children.length) {
+                c.children.forEach(child => renderComment(child, container, depth + 1));
+            }
+            return;
+        }
+
         const div = $(`
           <div class="border rounded p-2 mb-2 ${depth > 0 ? 'reply' : ''}" data-id="${c.id}">
             <div>
