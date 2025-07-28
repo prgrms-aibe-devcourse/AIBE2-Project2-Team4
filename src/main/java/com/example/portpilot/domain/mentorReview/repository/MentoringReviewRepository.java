@@ -11,23 +11,24 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+
 public interface MentoringReviewRepository extends JpaRepository<MentoringReview, Long> {
 
+    // 전체 후기 조회
+    @Query("SELECT mr FROM MentoringReview mr WHERE mr.is_blocked = false ORDER BY mr.createdAt DESC")
     List<MentoringReview> findAllByOrderByCreatedAtDesc();
-    Optional<MentoringReview> findByMentoringRequestId(Long mentoringRequestId);
-    List<MentoringReview> findByMentorOrderByCreatedAtDesc(User mentor);
-    List<MentoringReview> findByReviewerOrderByCreatedAtDesc(User reviewer);
-    Long countByMentor(User mentor);
-    Long countByReviewer(User reviewer);
 
-    @Query("SELECT AVG(r.rating) FROM MentoringReview r WHERE r.mentor = :mentor")
-    Double findAverageRatingByMentor(@Param("mentor") User mentor);
+    // 멘토링 요청 ID로 후기 찾기
+    @Query("SELECT mr FROM MentoringReview mr WHERE mr.mentoringRequestId = :mentoringRequestId AND mr.is_blocked = false")
+    Optional<MentoringReview> findByMentoringRequestId(@Param("mentoringRequestId") Long mentoringRequestId);
 
-    @Query("SELECT COUNT(r) FROM MentoringReview r WHERE r.mentor = :mentor")
-    Long countReviewsByMentor(@Param("mentor") User mentor);
-
-    // 새로 추가할 페이징 메소드들
+    // 페이징 메소드들
+    @Query("SELECT mr FROM MentoringReview mr WHERE mr.is_blocked = false ORDER BY mr.createdAt DESC")
     Page<MentoringReview> findAllByOrderByCreatedAtDesc(Pageable pageable);
-    Page<MentoringReview> findByMentorOrderByCreatedAtDesc(User mentor, Pageable pageable);
-    Page<MentoringReview> findByReviewerOrderByCreatedAtDesc(User reviewer, Pageable pageable);
+
+    @Query("SELECT mr FROM MentoringReview mr WHERE mr.mentor = :mentor AND mr.is_blocked = false ORDER BY mr.createdAt DESC")
+    Page<MentoringReview> findByMentorOrderByCreatedAtDesc(@Param("mentor") User mentor, Pageable pageable);
+
+    @Query("SELECT mr FROM MentoringReview mr WHERE mr.reviewer = :reviewer AND mr.is_blocked = false ORDER BY mr.createdAt DESC")
+    Page<MentoringReview> findByReviewerOrderByCreatedAtDesc(@Param("reviewer") User reviewer, Pageable pageable);
 }

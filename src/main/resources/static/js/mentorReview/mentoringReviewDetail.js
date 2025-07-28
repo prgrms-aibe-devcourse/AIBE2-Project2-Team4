@@ -14,11 +14,55 @@ function loadReviewDetail() {
     showLoading();
     fetch(`/api/mentoring-review/${reviewId}`)
         .then(res => {
-            if (!res.ok) throw new Error('후기를 찾을 수 없습니다.');
+            if (!res.ok) {
+                if (res.status === 400) {
+                    throw new Error('BLOCKED');
+                }
+                throw new Error('후기를 찾을 수 없습니다.');
+            }
             return res.json();
         })
         .then(displayReview)
-        .catch(err => showError(err.message));
+        .catch(err => {
+            if (err.message === 'BLOCKED') {
+                showError('삭제된 후기입니다.');
+                setTimeout(() => {
+                    window.location.href = '/mentoringReview';
+                }, 2000);
+            } else {
+                showError(err.message);
+            }
+        });
+}
+
+// 멘토링 후기 신고 함수
+function reportReview() {
+    const reason = prompt('신고 사유를 입력해주세요.');
+    if (!reason) return;
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+    fetch(`/api/report/mentoring-review/${reviewId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken && csrfHeader ? { [csrfHeader]: csrfToken } : {})
+        },
+        body: JSON.stringify({ reason })
+    })
+        .then(res => {
+            if (res.ok) {
+                alert('신고가 접수되었습니다.');
+            } else {
+                return res.text().then(text => {
+                    throw new Error('신고 접수에 실패했습니다: ' + text);
+                });
+            }
+        })
+        .catch(err => {
+            alert(err.message);
+        });
 }
 
 // 후기 데이터 화면 출력
@@ -95,12 +139,24 @@ function deleteReview() {
         headers
     })
         .then(res => {
-            if (!res.ok) throw new Error('삭제 실패');
+            if (!res.ok) {
+                if (res.status === 400) {
+                    throw new Error('삭제된 후기입니다.');
+                }
+                throw new Error('삭제 실패');
+            }
             return res.json();
         })
         .then(data => {
             alert(data.message || '후기가 삭제되었습니다.');
             window.location.href = '/mentoringReview';
         })
-        .catch(error => alert('삭제 실패: ' + error.message));
+        .catch(error => {
+            if (error.message === '삭제된 후기입니다.') {
+                alert(error.message);
+                window.location.href = '/mentoringReview';
+            } else {
+                alert('삭제 실패: ' + error.message);
+            }
+        });
 }

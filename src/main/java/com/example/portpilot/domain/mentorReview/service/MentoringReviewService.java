@@ -76,6 +76,11 @@ public class MentoringReviewService {
         MentoringReview review = mentoringReviewRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("후기를 찾을 수 없습니다."));
 
+        // 차단된 후기 접근 차단
+        if (review.is_blocked()) {
+            throw new IllegalArgumentException("삭제된 후기입니다.");
+        }
+
         review.incrementViewCount();
         mentoringReviewRepository.save(review);
 
@@ -108,6 +113,11 @@ public class MentoringReviewService {
         MentoringReview review = mentoringReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("후기를 찾을 수 없습니다."));
 
+        // 차단된 후기 접근 차단
+        if (review.is_blocked()) {
+            throw new IllegalArgumentException("삭제된 후기입니다.");
+        }
+
         if (!review.getReviewer().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("본인이 작성한 후기만 수정할 수 있습니다.");
         }
@@ -124,6 +134,11 @@ public class MentoringReviewService {
     public void deleteReview(Long reviewId, User currentUser) {
         MentoringReview review = mentoringReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("후기를 찾을 수 없습니다."));
+
+        // 차단된 후기 접근 차단
+        if (review.is_blocked()) {
+            throw new IllegalArgumentException("삭제된 후기입니다.");
+        }
 
         if (!review.getReviewer().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("본인이 작성한 후기만 삭제할 수 있습니다.");
