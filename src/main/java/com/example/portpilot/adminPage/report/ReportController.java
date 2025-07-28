@@ -22,7 +22,7 @@ public class ReportController {
     public String reportList(Model model) {
         List<Report> reports = reportService.getAllReports();
         model.addAttribute("reports", reports);
-        return "/admin/report";
+        return "admin/report";
     }
 
     @GetMapping("/{id}")
