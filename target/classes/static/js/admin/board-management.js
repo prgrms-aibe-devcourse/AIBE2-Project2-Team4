@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </td>
         <td>${board.viewCount}</td>
         <td>${board.createdAt || '-'}</td>
-        <td>${board.blocked ? "FALSE" : "TRUE"}</td>
+        <td>${board.blocked ? "차단" : "정상"}</td>
         <td>
             <a href="/admin/board-management/${board.id}" class="view-link">상세보기</a>
         </td>
