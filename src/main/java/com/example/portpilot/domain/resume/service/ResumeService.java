@@ -123,14 +123,20 @@ public class ResumeService {
         Resume resume = resumeRepository.findByIdAndUserId(resumeId, userId)
                 .orElseThrow(() -> new RuntimeException("이력서를 찾을 수 없습니다."));
 
-        resume.updateBasicInfo(
-                request.getTitle(),
-                request.getIndustry(),
-                request.getPosition(),
-                request.getTargetCompany(),
-                request.getHighlights()
-        );
+        if (request.getTitle() != null || request.getIndustry() != null ||
+                request.getPosition() != null || request.getTargetCompany() != null ||
+                request.getHighlights() != null) {
 
+            resume.updateBasicInfo(
+                    request.getTitle() != null ? request.getTitle() : resume.getTitle(),
+                    request.getIndustry() != null ? request.getIndustry() : resume.getIndustry(),
+                    request.getPosition() != null ? request.getPosition() : resume.getPosition(),
+                    request.getTargetCompany() != null ? request.getTargetCompany() : resume.getTargetCompany(),
+                    request.getHighlights() != null ? request.getHighlights() : resume.getHighlights()
+            );
+        }
+
+        // 상태만 변경하는 요청인 경우 처리
         if (request.getStatus() != null) {
             resume.updateStatus(request.getStatus());
         }
