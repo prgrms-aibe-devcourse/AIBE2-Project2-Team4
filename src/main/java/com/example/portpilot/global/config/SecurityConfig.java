@@ -120,6 +120,7 @@ public class SecurityConfig {
         http
                 .antMatcher("/css/**")
                 .authorizeRequests()
+                .antMatchers("/error/**").permitAll()
                 .anyRequest().permitAll()
                 .and()
                 .requestCache().disable()
