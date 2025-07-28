@@ -43,8 +43,13 @@ public class ResumeService {
     private final UserRepository userRepository;
 
     // 목록 조회
+    @Transactional(readOnly = true)
     public List<ResumeResponse> getResumeList(Long userId) {
         List<Resume> resumes = resumeRepository.findByUserIdOrderByUpdatedAtDesc(userId);
+
+        // 각 resume의 lazy collection 초기화
+        resumes.forEach(this::initializeLazyCollections);
+
         return resumes.stream()
                 .map(ResumeResponse::new)
                 .collect(Collectors.toList());
