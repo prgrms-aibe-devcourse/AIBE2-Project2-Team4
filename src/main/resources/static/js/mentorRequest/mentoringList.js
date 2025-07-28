@@ -125,6 +125,19 @@ function loadTabContent(type) {
                     card.className = 'card mb-3 clickable-card';
                     card.href = `/mentoring/detail?id=${item.id}`;
 
+                    // 클릭 이벤트 추가 - 어떤 탭에서 왔는지 저장
+                    card.addEventListener('click', function(e) {
+                        // 권한 정보 저장
+                        if (type === 'received') {
+                            sessionStorage.setItem('userRole', 'mentor'); // 받은 신청 = 멘토 권한
+                        } else if (type === 'sent') {
+                            sessionStorage.setItem('userRole', 'mentee'); // 보낸 신청 = 멘티 권한
+                        } else {
+                            sessionStorage.setItem('userRole', 'both'); // 수락됨/완료됨 = 둘 다
+                        }
+                        console.log('권한 저장:', sessionStorage.getItem('userRole'));
+                    });
+
                     const nameLine = type === 'received'
                         ? `<h5 class="card-title">멘티: ${item.userName}</h5>`
                         : `<h5 class="card-title">멘토: ${item.mentorName}</h5>`;
