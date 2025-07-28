@@ -40,6 +40,12 @@ public class BoardService {
     public BoardResponseDto viewBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        //차단 추가
+        if (board.isBlocked()) {
+            throw new IllegalArgumentException("삭제된 게시물입니다.");
+        }
+
         board.setViewCount(board.getViewCount() + 1);
         return BoardResponseDto.fromEntity(board);
     }
@@ -47,6 +53,10 @@ public class BoardService {
     public BoardResponseDto getById(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+        //차단
+        if (board.isBlocked()) {
+            throw new IllegalArgumentException("삭제된 게시물입니다.");
+        }
         return BoardResponseDto.fromEntity(board);
     }
 

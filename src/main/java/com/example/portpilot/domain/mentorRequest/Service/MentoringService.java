@@ -92,8 +92,15 @@ public class MentoringService {
 
     // ID로 요청 찾기
     public MentoringRequest findById(Long id) {
-        return mentoringRequestRepository.findById(id)
+        MentoringRequest request = mentoringRequestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청이 존재하지 않습니다."));
+
+        // 차단된 멘토링 접근 차단
+        if (request.isBlocked()) {
+            throw new IllegalArgumentException("삭제된 멘토링 신청입니다.");
+        }
+
+        return request;
     }
 
     // 신청 수락

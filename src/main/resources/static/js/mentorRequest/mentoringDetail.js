@@ -6,8 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let sessionUrl = "", scheduledAt = "", proposedAt = "";
     let currentUserId = null, proposedById = null, currentStatus = "";
 
+    // 멘토링 신청 정보 불러오기 - 에러 처리 추가
     fetch(`/api/mentoring/requests/${requestId}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                if (res.status === 400) {
+                    throw new Error("BLOCKED");
+                }
+                throw new Error("멘토링 신청을 불러올 수 없습니다.");
+            }
+            return res.json();
+        })
         .then(data => {
             document.getElementById('mentorName').textContent = data.mentorName || '멘토 미지정';
             document.getElementById('userName').textContent = data.userName;
@@ -27,7 +36,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 상태별 UI 표시
             showUIForStatus(currentStatus);
+        })
+        .catch(err => {
+            if (err.message === "BLOCKED") {
+                alert("삭제된 멘토링 신청입니다.");
+                location.href = "/mentoring";
+            } else {
+                alert(err.message);
+                location.href = "/mentoring";
+            }
         });
+
+    // 멘토링 신고 버튼 클릭 이벤트
+    document.getElementById('reportMentoringBtn')?.addEventListener('click', function() {
+        const reason = prompt('신고 사유를 입력해주세요.');
+        if (!reason) return;
+
+        fetch(`/api/report/mentoring/${requestId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ reason })
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('신고가 접수되었습니다.');
+                } else {
+                    throw new Error('신고 접수에 실패했습니다.');
+                }
+            })
+            .catch(err => {
+                alert(err.message);
+            });
+    });
 
     // 상태 배지 표시
     function displayStatusBadge(status) {

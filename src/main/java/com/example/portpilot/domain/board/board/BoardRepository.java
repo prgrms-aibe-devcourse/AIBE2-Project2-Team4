@@ -18,11 +18,12 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
                              @Param("keyword") String keyword,
                              Pageable pageable);
 
+    @Query("SELECT b FROM Board b WHERE b.user.id = :userId AND b.isBlocked = false")
     Page<Board> findByUserId(Long userId, Pageable pageable);
 
     @Query(
-            value = "SELECT b FROM Board b WHERE b.title LIKE %:keyword%",
-            countQuery = "SELECT COUNT(b) FROM Board b WHERE b.title LIKE %:keyword%"
+            value = "SELECT b FROM Board b WHERE b.title LIKE %:keyword% AND b.isBlocked = false",
+            countQuery = "SELECT COUNT(b) FROM Board b WHERE b.title LIKE %:keyword% AND b.isBlocked = false"
     )
     Page<Board> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
