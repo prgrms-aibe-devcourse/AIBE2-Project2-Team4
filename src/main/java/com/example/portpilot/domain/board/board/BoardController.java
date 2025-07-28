@@ -53,7 +53,7 @@ public class BoardController {
         return "board/boardEdit";
     }
 
-    @PostMapping("/{boardId}")
+    @PostMapping("/report/{boardId}")
     @ResponseBody
     public String reportBoard(@PathVariable Long boardId, @RequestBody ReportRequestDto dto) {
         reportService.reportBoard(boardId, dto);

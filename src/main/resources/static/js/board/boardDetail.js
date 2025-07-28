@@ -42,7 +42,7 @@ $(document).ready(function () {
         const reason = prompt('신고 사유를 입력해주세요.');
         if (!reason) return;
         $.ajax({
-            url: `/api/report/board/${boardId}`,
+            url: `/board/report/${boardId}`,
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ reason }),
