@@ -1,9 +1,19 @@
-const studyId = /*[[${study.id}]]*/ 0;
+const urlParams = new URLSearchParams(window.location.search);
+const studyId = urlParams.get('id') || window.location.pathname.split('/').pop();
+
 const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
 const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-const participants = /*[[${participantsJson}]]*/ [];
+
+let participants = [];
+try {
+    participants = JSON.parse(document.getElementById('participants-data').textContent || '[]');
+} catch (e) {
+    console.warn('참여자 데이터 파싱 실패:', e);
+    participants = [];
+}
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Study ID:', studyId);
     updateParticipantCounts();
 });
 
@@ -47,16 +57,30 @@ function updateParticipantCounts() {
 }
 
 function applyToStudy(jobType) {
+    if (!studyId || studyId === '0') {
+        alert('잘못된 스터디 ID입니다.');
+        return;
+    }
+
     if (!confirm(`${jobType} 직군으로 신청하시겠습니까?`)) return;
+
+    console.log('신청 요청:', `POST /api/studies/${studyId}/apply`);
+
     fetch(`/api/studies/${studyId}/apply`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', [header]: token },
+        headers: {
+            'Content-Type': 'application/json',
+            [header]: token
+        },
         body: JSON.stringify({ jobType })
     }).then(res => {
+        console.log('응답 상태:', res.status);
         if (res.ok) {
+            alert('신청이 완료되었습니다!');
             location.reload();
         } else {
             return res.text().then(t => {
+                console.error('에러 응답:', t);
                 // 차단된 스터디 접근 시 처리
                 if (t.includes('삭제된 스터디')) {
                     alert('삭제된 스터디입니다.');
@@ -67,6 +91,7 @@ function applyToStudy(jobType) {
             });
         }
     }).catch(err => {
+        console.error('신청 에러:', err);
         alert('신청 실패: ' + err.message);
     });
 }

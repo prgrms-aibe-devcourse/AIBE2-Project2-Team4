@@ -16,6 +16,12 @@
 
 <body>
 <div layout:fragment="content">
+  <!-- 스터디 ID를 JavaScript에서 사용할 수 있도록 데이터 속성으로 추가 -->
+  <div id="study-data" th:data-study-id="${study.id}" style="display: none;"></div>
+
+  <!-- 참여자 데이터를 JSON으로 전달 -->
+  <script id="participants-data" type="application/json" th:text="${participantsJson ?: '[]'}">[]</script>
+
   <!-- 뒤로가기 버튼 -->
   <div class="mb-3">
     <a href="/study" class="btn btn-outline-secondary">← 목록으로</a>
