@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         users.forEach((user, index) => {
             const joinDate = user.createdAt || '-';
-            const status = user.isDeleted ? "탈퇴" : (user.isBlocked ? "차단" : "정상");
+            const status = user.isDeleted ? "탈퇴" : (user.blocked ? "차단" : "정상");
 
             const tr = document.createElement('tr');
             tr.innerHTML = `

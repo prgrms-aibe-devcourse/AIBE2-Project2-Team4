@@ -80,7 +80,7 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정
+    @Scheduled(cron = "0 * * * * *")
     @Transactional
     public void autoUnblockExpiredUsers() {
         List<User> users = userRepository.findAllByIsBlockedTrueAndBlockedUntilBefore(LocalDateTime.now());

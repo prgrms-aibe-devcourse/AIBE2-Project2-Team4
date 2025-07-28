@@ -13,7 +13,7 @@
   <div class="board-detail-container">
     <h2 class="board-detail-title">게시글 상세 정보</h2>
 
-    <form th:action="@{/admin/board-management/block}" method="post">
+    <form th:action="@{/admin/board-management/block/래ㄱ}" method="post">
       <input type="hidden" name="boardId" th:value="${board.id}" />
 
       <div class="form-group">
@@ -56,9 +56,10 @@
       <div class="form-group">
         <label>차단 여부</label>
         <select name="isBlocked" class="form-select">
-          <option th:value="false" th:selected="!${board.blocked}">정상</option>
-          <option th:value="true" th:selected="${board.blocked}">차단</option>
+          <option th:value="false" th:selected="${board.blocked == false}">정상</option>
+          <option th:value="true" th:selected="${board.blocked == true}">차단</option>
         </select>
+
       </div>
 
       <div class="form-actions">
