@@ -5,6 +5,7 @@ import com.example.portpilot.domain.resume.service.ResumeService;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -112,6 +113,52 @@ public class ResumeApiController {
         resumeService.addExperience(resumeId, userId, request);
         return ResponseEntity.ok().build();
     }
+
+    // 파일 내보내기
+    @PostMapping("/{resumeId}/export")
+    public ResponseEntity<Resource> exportResume(
+            @PathVariable Long resumeId,
+            Authentication authentication,
+            @RequestBody ExportRequest request) {
+
+        Long userId = getCurrentUserId(authentication);
+
+        try {
+            // 파일 생성 및 Resource 반환
+            Resource resource = resumeService.exportResume(resumeId, userId, request.getFormat());
+
+            // 파일명 설정
+            ResumeResponse resume = resumeService.getResume(resumeId, userId);
+            String filename = generateFilename(resume.getTitle(), request.getFormat());
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", getContentType(request.getFormat()))
+                    .body(resource);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private String generateFilename(String title, String format) {
+        String safeTitle = title != null ? title.replaceAll("[^가-힣a-zA-Z0-9\\s]", "") : "자기소개서";
+        String extension = format.equals("docx") ? "docx" : format;
+        return safeTitle + "." + extension;
+    }
+
+    private String getContentType(String format) {
+        switch (format.toLowerCase()) {
+            case "pdf":
+                return "application/pdf";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "txt":
+            default:
+                return "text/plain;charset=UTF-8";
+        }
+    }
+
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("로그인이 필요합니다.");
