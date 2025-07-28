@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="_csrf" th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-  <title>이력서 작성</title>
+  <title id="pageTitle">이력서 작성</title>
   <style>
     * {
       margin: 0;
@@ -269,6 +269,27 @@
       margin: 0;
     }
 
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 4rem;
+      color: #6b7280;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e5e7eb;
+      border-radius: 50%;
+      border-top-color: #3b82f6;
+      animation: spin 1s ease-in-out infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
@@ -294,12 +315,18 @@
 <body>
 <div class="header">
   <div class="header-content">
-    <h1>이력서 작성</h1>
-    <p>나만의 특별한 이력서로 원하는 취업에 도전하세요.</p>
+    <h1 id="headerTitle">이력서 작성</h1>
+    <p id="headerDescription">나만의 특별한 이력서로 원하는 취업에 도전하세요.</p>
   </div>
 </div>
 
-<div class="container">
+<!-- 로딩 상태 -->
+<div id="loadingState" class="loading">
+  <div class="spinner"></div>
+  <p>이력서 정보를 불러오는 중...</p>
+</div>
+
+<div class="container" id="mainContainer" style="display: none;">
   <div class="main-content">
     <!-- 제목 섹션 -->
     <section id="basic" class="section">
@@ -425,13 +452,15 @@
         </nav>
       </div>
 
-      <button class="submit-btn" onclick="handleSubmit()" disabled>AI 이력서 생성</button>
+      <button class="submit-btn" onclick="handleSubmit()" id="submitBtn">AI 이력서 생성</button>
     </div>
   </div>
 </div>
 
 <script>
-  // 데이터 구조
+  // 전역 변수
+  let isEditMode = false;
+  let currentResumeId = null;
   let formData = {
     title: '',
     industry: '',
@@ -445,7 +474,7 @@
     experiences: []
   };
 
-  let resumeCounter = 1; // 이력서 자동 번호
+  let resumeCounter = 1; // 기본값, 실제로는 서버에서 조회해서 설정
 
   // 업종별 직무 매핑
   const industryToPositionMapping = {
@@ -461,7 +490,7 @@
     '기타': ['경영기획', '사업기획', '총무', '인사', '마케팅기획', '영업', '기타']
   };
 
-  // CSRF 토큰 가져오기 함수
+  // CSRF 토큰 가져오기
   function getCSRFHeaders() {
     const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
@@ -477,12 +506,275 @@
     return headers;
   }
 
-  // 초기화
-  function init() {
+  // URL에서 resumeId 파라미터 추출
+  function getResumeIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('resumeId');
+  }
+
+  // 기존 이력서 개수 조회하여 다음 번호 설정
+  async function loadResumeCount() {
+    try {
+      const response = await fetch('/api/resumes', {
+        method: 'GET',
+        headers: getCSRFHeaders()
+      });
+
+      if (response.ok) {
+        const resumes = await response.json();
+        // 기존 이력서 개수 + 1로 설정
+        resumeCounter = resumes.length + 1;
+        console.log(`기존 이력서 ${resumes.length}개, 다음 번호: ${resumeCounter}`);
+      } else {
+        // API 호출 실패 시 기본값 1 사용
+        console.warn('이력서 목록 조회 실패, 기본 번호 사용');
+        resumeCounter = 1;
+      }
+    } catch (error) {
+      console.error('이력서 개수 조회 중 오류:', error);
+      // 오류 발생 시 기본값 1 사용
+      resumeCounter = 1;
+    }
+  }
+
+  // 페이지 초기화
+  async function init() {
     setupYearOptions();
+
+    // URL에서 resumeId 확인
+    const resumeId = getResumeIdFromUrl();
+
+    if (resumeId) {
+      // 편집 모드
+      isEditMode = true;
+      currentResumeId = resumeId;
+
+      // UI 변경
+      document.getElementById('pageTitle').textContent = '이력서 수정';
+      document.getElementById('headerTitle').textContent = '이력서 수정';
+      document.getElementById('headerDescription').textContent = '기존 이력서 정보를 수정하세요.';
+      document.getElementById('submitBtn').textContent = 'AI 이력서 수정';
+
+      // 기존 데이터 로드
+      await loadExistingData(resumeId);
+    } else {
+      // 새 작성 모드
+      isEditMode = false;
+      // 먼저 기존 이력서 개수를 조회하여 다음 번호 설정
+      await loadResumeCount();
+      // 그 다음 제목 설정
+      setDefaultTitle();
+      hideLoading();
+    }
+
     setupEventListeners();
-    setDefaultTitle();
-    // 기본으로 하나씩 추가하지 않음 - 사용자가 필요시에만 추가
+  }
+
+  // 기존 데이터 로드
+  async function loadExistingData(resumeId) {
+    try {
+      showLoading();
+
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'GET',
+        headers: getCSRFHeaders()
+      });
+
+      if (response.ok) {
+        const resumeData = await response.json();
+        populateFormWithData(resumeData);
+        hideLoading();
+      } else {
+        throw new Error('이력서 데이터를 불러올 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('Load error:', error);
+      alert('이력서 데이터를 불러오는 중 오류가 발생했습니다: ' + error.message);
+      // 목록으로 돌아가기
+      window.location.href = '/resumes';
+    }
+  }
+
+  // 폼에 기존 데이터 채우기
+  function populateFormWithData(resumeData) {
+    // 기본 정보
+    document.getElementById('title').value = resumeData.title || '';
+    document.getElementById('target-company').value = resumeData.targetCompany || '';
+    document.getElementById('highlights-text').value = resumeData.highlights || '';
+
+    // 업종/직무
+    if (resumeData.industry) {
+      document.getElementById('industry').value = resumeData.industry;
+      updatePositionOptions();
+      if (resumeData.position) {
+        document.getElementById('position').value = resumeData.position;
+      }
+    }
+
+    // formData 업데이트
+    formData.title = resumeData.title || '';
+    formData.industry = resumeData.industry || '';
+    formData.position = resumeData.position || '';
+    formData.targetCompany = resumeData.targetCompany || '';
+    formData.highlights = resumeData.highlights || '';
+
+    // 학력 정보 (고등학교)
+    if (resumeData.educations) {
+      const highSchool = resumeData.educations.find(edu => edu.type === 'HIGH_SCHOOL');
+      if (highSchool) {
+        document.getElementById('highschool-name').value = highSchool.schoolName || '';
+        if (highSchool.graduationDate) {
+          const gradYear = new Date(highSchool.graduationDate).getFullYear();
+          document.getElementById('highschool-year').value = gradYear;
+        }
+        formData.highschool.schoolName = highSchool.schoolName || '';
+        formData.highschool.graduationYear = document.getElementById('highschool-year').value;
+      }
+
+      // 대학교
+      const universities = resumeData.educations.filter(edu => edu.type === 'UNIVERSITY');
+      universities.forEach(university => {
+        addUniversity();
+        const index = formData.universities.length - 1;
+        formData.universities[index] = {
+          schoolName: university.schoolName || '',
+          type: university.level || '',
+          major: university.major || '',
+          additionalMajor: university.additionalMajor || '',
+          admissionDate: university.admissionDate || '',
+          graduationDate: university.graduationDate || '',
+          isCurrent: university.isCurrent || false
+        };
+        updateUniversityDisplay(index);
+      });
+
+      // 대학원
+      const graduateSchools = resumeData.educations.filter(edu => edu.type === 'GRADUATE_SCHOOL');
+      graduateSchools.forEach(graduate => {
+        addGraduateSchool();
+        const index = formData.graduateSchools.length - 1;
+        formData.graduateSchools[index] = {
+          schoolName: graduate.schoolName || '',
+          type: graduate.level || '',
+          major: graduate.major || '',
+          admissionDate: graduate.admissionDate || '',
+          graduationDate: graduate.graduationDate || '',
+          isCurrent: graduate.isCurrent || false
+        };
+        updateGraduateSchoolDisplay(index);
+      });
+    }
+
+    // 경력 정보
+    if (resumeData.careers) {
+      resumeData.careers.forEach(career => {
+        addCareer();
+        const index = formData.careers.length - 1;
+        formData.careers[index] = {
+          companyName: career.companyName || '',
+          department: career.department || '',
+          positionTitle: career.positionTitle || '',
+          startDate: career.startDate || '',
+          endDate: career.endDate || '',
+          isCurrent: career.isCurrent || false,
+          responsibilities: career.responsibilities || '',
+          resignationReason: career.resignationReason || ''
+        };
+        updateCareerDisplay(index);
+      });
+    }
+
+    // 활동/경험
+    if (resumeData.experiences) {
+      resumeData.experiences.forEach(experience => {
+        addExperience();
+        const index = formData.experiences.length - 1;
+        formData.experiences[index] = {
+          activityName: experience.activityName || '',
+          institution: experience.institution || '',
+          startDate: experience.startDate || '',
+          endDate: experience.endDate || '',
+          isCurrent: experience.isCurrent || false,
+          content: experience.content || ''
+        };
+        updateExperienceDisplay(index);
+      });
+    }
+  }
+
+  // 표시 업데이트 함수들
+  function updateUniversityDisplay(index) {
+    const container = document.getElementById('universities');
+    const universityDiv = container.children[index];
+    const data = formData.universities[index];
+
+    universityDiv.querySelector('input[placeholder="대학교명"]').value = data.schoolName;
+    universityDiv.querySelector('select').value = data.type;
+    const inputs = universityDiv.querySelectorAll('input');
+    inputs[1].value = data.admissionDate; // 입학일
+    inputs[2].value = data.graduationDate; // 졸업일
+    inputs[3].value = data.major; // 전공
+    inputs[4].value = data.additionalMajor; // 추가전공
+    universityDiv.querySelector('input[type="checkbox"]').checked = data.isCurrent;
+  }
+
+  function updateGraduateSchoolDisplay(index) {
+    const container = document.getElementById('graduate-schools');
+    const graduateDiv = container.children[index];
+    const data = formData.graduateSchools[index];
+
+    graduateDiv.querySelector('input[placeholder="대학원명"]').value = data.schoolName;
+    graduateDiv.querySelector('select').value = data.type;
+    const inputs = graduateDiv.querySelectorAll('input');
+    inputs[1].value = data.admissionDate; // 입학일
+    inputs[2].value = data.graduationDate; // 졸업일
+    inputs[3].value = data.major; // 전공
+    graduateDiv.querySelector('input[type="checkbox"]').checked = data.isCurrent;
+  }
+
+  function updateCareerDisplay(index) {
+    const container = document.getElementById('careers');
+    const careerDiv = container.children[index];
+    const data = formData.careers[index];
+
+    const inputs = careerDiv.querySelectorAll('input');
+    const textareas = careerDiv.querySelectorAll('textarea');
+
+    inputs[0].value = data.companyName; // 회사명
+    inputs[1].value = data.department; // 부서
+    inputs[2].value = data.startDate; // 입사일
+    inputs[3].value = data.endDate; // 퇴사일
+    inputs[4].value = data.positionTitle; // 직급
+    careerDiv.querySelector('input[type="checkbox"]').checked = data.isCurrent;
+    textareas[0].value = data.responsibilities; // 담당업무
+    inputs[5].value = data.resignationReason; // 퇴사사유
+  }
+
+  function updateExperienceDisplay(index) {
+    const container = document.getElementById('experiences');
+    const experienceDiv = container.children[index];
+    const data = formData.experiences[index];
+
+    const inputs = experienceDiv.querySelectorAll('input');
+    const textarea = experienceDiv.querySelector('textarea');
+
+    inputs[0].value = data.activityName; // 활동명
+    inputs[1].value = data.institution; // 기관/장소
+    inputs[2].value = data.startDate; // 시작일
+    inputs[3].value = data.endDate; // 종료일
+    experienceDiv.querySelector('input[type="checkbox"]').checked = data.isCurrent;
+    textarea.value = data.content; // 내용
+  }
+
+  // 로딩 상태 표시/숨김
+  function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('mainContainer').style.display = 'none';
+  }
+
+  function hideLoading() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'flex';
   }
 
   // 기본 제목 설정
@@ -599,51 +891,51 @@
     const universityDiv = document.createElement('div');
     universityDiv.className = 'dynamic-item';
     universityDiv.innerHTML = `
-                <button type="button" class="remove-btn" onclick="removeUniversity(${index})">×</button>
-                <div class="form-content">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>학교명</label>
-                            <input type="text" placeholder="대학교명" onchange="updateUniversity(${index}, 'schoolName', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>분류</label>
-                            <select onchange="updateUniversity(${index}, 'type', this.value)">
-                                <option value="">선택</option>
-                                <option value="2년제">2년제</option>
-                                <option value="3년제">3년제</option>
-                                <option value="4년제">4년제</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>입학</label>
-                            <input type="month" data-field="admission" onchange="updateUniversity(${index}, 'admissionDate', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>졸업</label>
-                            <input type="month" data-field="graduation" onchange="updateUniversity(${index}, 'graduationDate', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>전공</label>
-                            <input type="text" placeholder="전공" onchange="updateUniversity(${index}, 'major', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>추가전공</label>
-                            <input type="text" placeholder="부전공, 복수전공 등" onchange="updateUniversity(${index}, 'additionalMajor', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" onchange="updateUniversity(${index}, 'isCurrent', this.checked)">
-                            <span>재학중</span>
-                        </label>
-                    </div>
-                </div>
-            `;
+      <button type="button" class="remove-btn" onclick="removeUniversity(${index})">×</button>
+      <div class="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label>학교명</label>
+            <input type="text" placeholder="대학교명" onchange="updateUniversity(${index}, 'schoolName', this.value)">
+          </div>
+          <div class="form-group">
+            <label>분류</label>
+            <select onchange="updateUniversity(${index}, 'type', this.value)">
+              <option value="">선택</option>
+              <option value="2년제">2년제</option>
+              <option value="3년제">3년제</option>
+              <option value="4년제">4년제</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>입학</label>
+            <input type="month" data-field="admission" onchange="updateUniversity(${index}, 'admissionDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label>졸업</label>
+            <input type="month" data-field="graduation" onchange="updateUniversity(${index}, 'graduationDate', this.value)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>전공</label>
+            <input type="text" placeholder="전공" onchange="updateUniversity(${index}, 'major', this.value)">
+          </div>
+          <div class="form-group">
+            <label>추가전공</label>
+            <input type="text" placeholder="부전공, 복수전공 등" onchange="updateUniversity(${index}, 'additionalMajor', this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" onchange="updateUniversity(${index}, 'isCurrent', this.checked)">
+            <span>재학중</span>
+          </label>
+        </div>
+      </div>
+    `;
 
     container.appendChild(universityDiv);
     formData.universities.push({
@@ -698,45 +990,45 @@
     const graduateDiv = document.createElement('div');
     graduateDiv.className = 'dynamic-item';
     graduateDiv.innerHTML = `
-                <button type="button" class="remove-btn" onclick="removeGraduateSchool(${index})">×</button>
-                <div class="form-content">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>학교명</label>
-                            <input type="text" placeholder="대학원명" onchange="updateGraduateSchool(${index}, 'schoolName', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>과정</label>
-                            <select onchange="updateGraduateSchool(${index}, 'type', this.value)">
-                                <option value="">선택</option>
-                                <option value="석사">석사</option>
-                                <option value="박사">박사</option>
-                                <option value="석박통합">석박통합</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>입학</label>
-                            <input type="month" data-field="admission" onchange="updateGraduateSchool(${index}, 'admissionDate', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>졸업</label>
-                            <input type="month" data-field="graduation" onchange="updateGraduateSchool(${index}, 'graduationDate', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>전공</label>
-                        <input type="text" placeholder="전공" onchange="updateGraduateSchool(${index}, 'major', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" onchange="updateGraduateSchool(${index}, 'isCurrent', this.checked)">
-                            <span>재학중</span>
-                        </label>
-                    </div>
-                </div>
-            `;
+      <button type="button" class="remove-btn" onclick="removeGraduateSchool(${index})">×</button>
+      <div class="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label>학교명</label>
+            <input type="text" placeholder="대학원명" onchange="updateGraduateSchool(${index}, 'schoolName', this.value)">
+          </div>
+          <div class="form-group">
+            <label>과정</label>
+            <select onchange="updateGraduateSchool(${index}, 'type', this.value)">
+              <option value="">선택</option>
+              <option value="석사">석사</option>
+              <option value="박사">박사</option>
+              <option value="석박통합">석박통합</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>입학</label>
+            <input type="month" data-field="admission" onchange="updateGraduateSchool(${index}, 'admissionDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label>졸업</label>
+            <input type="month" data-field="graduation" onchange="updateGraduateSchool(${index}, 'graduationDate', this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>전공</label>
+          <input type="text" placeholder="전공" onchange="updateGraduateSchool(${index}, 'major', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" onchange="updateGraduateSchool(${index}, 'isCurrent', this.checked)">
+            <span>재학중</span>
+          </label>
+        </div>
+      </div>
+    `;
 
     container.appendChild(graduateDiv);
     formData.graduateSchools.push({
@@ -781,48 +1073,48 @@
     const careerDiv = document.createElement('div');
     careerDiv.className = 'dynamic-item';
     careerDiv.innerHTML = `
-                <button type="button" class="remove-btn" onclick="removeCareer(${index})">×</button>
-                <div class="form-content">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>회사명</label>
-                            <input type="text" placeholder="회사명" onchange="updateCareer(${index}, 'companyName', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>부서</label>
-                            <input type="text" placeholder="부서" onchange="updateCareer(${index}, 'department', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>입사일</label>
-                            <input type="date" data-field="start" onchange="updateCareer(${index}, 'startDate', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>퇴사일</label>
-                            <input type="date" data-field="end" onchange="updateCareer(${index}, 'endDate', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>직급</label>
-                        <input type="text" placeholder="직급" onchange="updateCareer(${index}, 'positionTitle', this.value)">
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" onchange="updateCareer(${index}, 'isCurrent', this.checked)">
-                            <span>재직중</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label>담당업무</label>
-                        <textarea placeholder="담당업무를 상세히 입력하세요" rows="3" onchange="updateCareer(${index}, 'responsibilities', this.value)"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>퇴사 사유</label>
-                        <input type="text" placeholder="퇴사 사유" onchange="updateCareer(${index}, 'resignationReason', this.value)">
-                    </div>
-                </div>
-            `;
+      <button type="button" class="remove-btn" onclick="removeCareer(${index})">×</button>
+      <div class="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label>회사명</label>
+            <input type="text" placeholder="회사명" onchange="updateCareer(${index}, 'companyName', this.value)">
+          </div>
+          <div class="form-group">
+            <label>부서</label>
+            <input type="text" placeholder="부서" onchange="updateCareer(${index}, 'department', this.value)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>입사일</label>
+            <input type="date" data-field="start" onchange="updateCareer(${index}, 'startDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label>퇴사일</label>
+            <input type="date" data-field="end" onchange="updateCareer(${index}, 'endDate', this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>직급</label>
+          <input type="text" placeholder="직급" onchange="updateCareer(${index}, 'positionTitle', this.value)">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" onchange="updateCareer(${index}, 'isCurrent', this.checked)">
+            <span>재직중</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>담당업무</label>
+          <textarea placeholder="담당업무를 상세히 입력하세요" rows="3" onchange="updateCareer(${index}, 'responsibilities', this.value)"></textarea>
+        </div>
+        <div class="form-group">
+          <label>퇴사 사유</label>
+          <input type="text" placeholder="퇴사 사유" onchange="updateCareer(${index}, 'resignationReason', this.value)">
+        </div>
+      </div>
+    `;
 
     container.appendChild(careerDiv);
     formData.careers.push({
@@ -868,40 +1160,40 @@
     const experienceDiv = document.createElement('div');
     experienceDiv.className = 'dynamic-item';
     experienceDiv.innerHTML = `
-                <button type="button" class="remove-btn" onclick="removeExperience(${index})">×</button>
-                <div class="form-content">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>활동명</label>
-                            <input type="text" placeholder="활동명" onchange="updateExperience(${index}, 'activityName', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>기관/장소</label>
-                            <input type="text" placeholder="기관명 또는 장소" onchange="updateExperience(${index}, 'institution', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>시작일</label>
-                            <input type="date" data-field="start" onchange="updateExperience(${index}, 'startDate', this.value)">
-                        </div>
-                        <div class="form-group">
-                            <label>종료일</label>
-                            <input type="date" data-field="end" onchange="updateExperience(${index}, 'endDate', this.value)">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" onchange="updateExperience(${index}, 'isCurrent', this.checked)">
-                            <span>진행중</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label>내용</label>
-                        <textarea placeholder="활동 내용을 상세히 입력하세요" rows="3" onchange="updateExperience(${index}, 'content', this.value)"></textarea>
-                    </div>
-                </div>
-            `;
+      <button type="button" class="remove-btn" onclick="removeExperience(${index})">×</button>
+      <div class="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label>활동명</label>
+            <input type="text" placeholder="활동명" onchange="updateExperience(${index}, 'activityName', this.value)">
+          </div>
+          <div class="form-group">
+            <label>기관/장소</label>
+            <input type="text" placeholder="기관명 또는 장소" onchange="updateExperience(${index}, 'institution', this.value)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>시작일</label>
+            <input type="date" data-field="start" onchange="updateExperience(${index}, 'startDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label>종료일</label>
+            <input type="date" data-field="end" onchange="updateExperience(${index}, 'endDate', this.value)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" onchange="updateExperience(${index}, 'isCurrent', this.checked)">
+            <span>진행중</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>내용</label>
+          <textarea placeholder="활동 내용을 상세히 입력하세요" rows="3" onchange="updateExperience(${index}, 'content', this.value)"></textarea>
+        </div>
+      </div>
+    `;
 
     container.appendChild(experienceDiv);
     formData.experiences.push({
@@ -948,7 +1240,7 @@
 
     const submitBtn = document.querySelector('.submit-btn');
     submitBtn.disabled = true;
-    submitBtn.textContent = '생성 중...';
+    submitBtn.textContent = isEditMode ? '수정 중...' : '생성 중...';
 
     try {
       console.log('=== 제출 전 데이터 검증 ===');
@@ -961,7 +1253,7 @@
 
       // 정리된 요청 데이터 준비
       const requestData = {
-        title: formData.title || `이력서 ${String(resumeCounter).padStart(2, '0')}`,
+        title: formData.title || (isEditMode ? '이력서' : `이력서 ${String(resumeCounter).padStart(2, '0')}`),
         industry: cleanStringValue(formData.industry),
         position: cleanStringValue(formData.position),
         targetCompany: cleanStringValue(formData.targetCompany),
@@ -970,26 +1262,49 @@
 
       console.log('전송할 요청 데이터:', requestData);
 
-      // 1. 이력서 기본 정보 저장
-      const resumeResponse = await fetch('/api/resumes', {
-        method: 'POST',
-        headers: getCSRFHeaders(),
-        body: JSON.stringify(requestData)
-      });
+      let resumeId;
 
-      if (!resumeResponse.ok) {
-        // 에러 응답의 상세 정보 출력
-        const errorText = await resumeResponse.text();
-        console.error('Resume API Error:', {
-          status: resumeResponse.status,
-          statusText: resumeResponse.statusText,
-          errorBody: errorText
+      if (isEditMode) {
+        // 기존 이력서 수정
+        const resumeResponse = await fetch(`/api/resumes/${currentResumeId}`, {
+          method: 'PUT',
+          headers: getCSRFHeaders(),
+          body: JSON.stringify(requestData)
         });
-        throw new Error(`이력서 저장에 실패했습니다. (${resumeResponse.status}): ${errorText}`);
-      }
 
-      const resume = await resumeResponse.json();
-      const resumeId = resume.id;
+        if (!resumeResponse.ok) {
+          const errorText = await resumeResponse.text();
+          console.error('Resume Update API Error:', {
+            status: resumeResponse.status,
+            statusText: resumeResponse.statusText,
+            errorBody: errorText
+          });
+          throw new Error(`이력서 수정에 실패했습니다. (${resumeResponse.status}): ${errorText}`);
+        }
+
+        const resume = await resumeResponse.json();
+        resumeId = resume.id;
+      } else {
+        // 새 이력서 생성
+        const resumeResponse = await fetch('/api/resumes', {
+          method: 'POST',
+          headers: getCSRFHeaders(),
+          body: JSON.stringify(requestData)
+        });
+
+        if (!resumeResponse.ok) {
+          const errorText = await resumeResponse.text();
+          console.error('Resume API Error:', {
+            status: resumeResponse.status,
+            statusText: resumeResponse.statusText,
+            errorBody: errorText
+          });
+          throw new Error(`이력서 저장에 실패했습니다. (${resumeResponse.status}): ${errorText}`);
+        }
+
+        const resume = await resumeResponse.json();
+        resumeId = resume.id;
+      }
 
       // 2. 고등학교 정보 저장 (학교명이 실제로 입력된 경우만)
       if (formData.highschool.schoolName && formData.highschool.schoolName.trim() !== '') {
@@ -1092,10 +1407,12 @@
         console.warn('자소서 생성에 실패했지만 이력서는 저장되었습니다.');
       }
 
-      alert('이력서가 성공적으로 저장되었습니다!');
+      alert(isEditMode ? '이력서가 성공적으로 수정되었습니다!' : '이력서가 성공적으로 저장되었습니다!');
 
-      // 다음 이력서를 위해 카운터 증가
-      resumeCounter++;
+      // 다음 이력서를 위해 카운터 증가 (새 작성인 경우만)
+      if (!isEditMode) {
+        resumeCounter++;
+      }
 
       // Gemini 결과 페이지로 이동
       window.location.href = `/resumes/result?resumeId=${resumeId}`;
@@ -1105,11 +1422,11 @@
       if (error.name === 'SyntaxError' && error.message.includes('Unexpected token')) {
         alert('서버 응답 형식이 올바르지 않습니다. 관리자에게 문의하세요.');
       } else {
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
+        alert(`${isEditMode ? '수정' : '저장'} 중 오류가 발생했습니다: ` + error.message);
       }
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'AI 이력서 생성';
+      submitBtn.textContent = isEditMode ? 'AI 이력서 수정' : 'AI 이력서 생성';
     }
   }
 
