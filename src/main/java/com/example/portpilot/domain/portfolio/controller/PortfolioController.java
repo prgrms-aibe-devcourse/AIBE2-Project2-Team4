@@ -22,26 +22,21 @@ public class PortfolioController {
     private final PortfolioService portfolioService;
     private final UserRepository userRepository;
 
-    /** 1) 내 포트폴리오 목록 조회 */
     @GetMapping
     public ResponseEntity<List<PortfolioResponse>> listMine(Principal principal) {
         User user = userRepository.findByEmail(principal.getName());
-        List<PortfolioResponse> list = portfolioService.getUserPortfolios(user.getId());
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(portfolioService.getUserPortfolios(user.getId()));
     }
 
-    /** 2) 새 포트폴리오 생성 */
     @PostMapping
     public ResponseEntity<PortfolioResponse> create(
             @Validated @RequestBody PortfolioRequest request,
             Principal principal
     ) {
         User user = userRepository.findByEmail(principal.getName());
-        PortfolioResponse resp = portfolioService.createPortfolio(user.getId(), request);
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(portfolioService.createPortfolio(user.getId(), request));
     }
 
-    /** 3) 전체 포트폴리오 탐색 (검색 + 페이징) */
     @GetMapping("/explore")
     public ResponseEntity<Page<PortfolioResponse>> explore(
             @RequestParam(value = "q", required = false) String keyword,
@@ -49,9 +44,7 @@ public class PortfolioController {
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         Page<PortfolioResponse> results = portfolioService.searchPortfolios(
-                keyword,
-                PageRequest.of(page, size)
-        );
+                keyword, PageRequest.of(page, size));
         return ResponseEntity.ok(results);
     }
 }

@@ -8,16 +8,16 @@ import com.example.portpilot.domain.portfolio.repository.PortfolioRepository;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +28,10 @@ public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
     private final UserService userService;
 
+    // application.properties 의 uploadPath 값을 주입받아 사용
+    @Value("${uploadPath}")
+    private String uploadPath;
+
     /** 1) 기본 포트폴리오 생성 (파일 무시) */
     @Transactional
     public PortfolioResponse createPortfolio(Long userId, PortfolioRequest req) {
@@ -36,6 +40,11 @@ public class PortfolioService {
 
         Portfolio p = Portfolio.builder()
                 .title(req.getTitle())
+                .background(req.getBackground())
+                .results(req.getResults())
+                .features(req.getFeatures())
+                .stages(req.getStages())
+                .details(req.getDetails())
                 .description(req.getDescription())
                 .link(req.getLink())
                 .tags(req.getTags())
@@ -57,11 +66,15 @@ public class PortfolioService {
         User user = userService.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 사용자 ID: " + userId));
 
-        // 실제 파일 저장
         List<String> storedNames = storeFiles(files);
 
         Portfolio p = Portfolio.builder()
                 .title(req.getTitle())
+                .background(req.getBackground())
+                .results(req.getResults())
+                .features(req.getFeatures())
+                .stages(req.getStages())
+                .details(req.getDetails())
                 .description(req.getDescription())
                 .link(req.getLink())
                 .tags(req.getTags())
@@ -73,8 +86,7 @@ public class PortfolioService {
                 .user(user)
                 .build();
 
-        Portfolio saved = portfolioRepository.save(p);
-        return saved.getId();
+        return portfolioRepository.save(p).getId();
     }
 
     /** 3) 사용자별 포트폴리오 목록 조회 */
@@ -99,12 +111,9 @@ public class PortfolioService {
     /** 5) 전체 탐색 (검색 + 페이징) */
     @Transactional(readOnly = true)
     public Page<PortfolioResponse> searchPortfolios(String keyword, Pageable pageable) {
-        Page<Portfolio> page;
-        if (keyword == null || keyword.isBlank()) {
-            page = portfolioRepository.findAll(pageable);
-        } else {
-            page = portfolioRepository.findByTitleContainingIgnoreCase(keyword, pageable);
-        }
+        Page<Portfolio> page = (keyword == null || keyword.isBlank())
+                ? portfolioRepository.findAll(pageable)
+                : portfolioRepository.findByTitleContainingIgnoreCase(keyword, pageable);
         return page.map(this::toResponse);
     }
 
@@ -115,13 +124,17 @@ public class PortfolioService {
                 .orElseThrow(() -> new IllegalArgumentException("포트폴리오가 없습니다. id=" + id));
 
         p.setTitle(req.getTitle());
+        p.setBackground(req.getBackground());
+        p.setResults(req.getResults());
+        p.setFeatures(req.getFeatures());
+        p.setStages(req.getStages());
+        p.setDetails(req.getDetails());
         p.setDescription(req.getDescription());
         p.setLink(req.getLink());
         p.setTags(req.getTags());
         p.setCategory(req.getCategory());
         p.setUpdatedAt(LocalDateTime.now());
 
-        // 새 파일 저장 후 기존 이미지와 합치기
         List<String> existing = p.getImages() != null
                 ? new ArrayList<>(Arrays.asList(p.getImages().split(",")))
                 : new ArrayList<>();
@@ -130,18 +143,17 @@ public class PortfolioService {
             existing.addAll(added);
             p.setImages(String.join(",", existing));
         }
-
         portfolioRepository.save(p);
     }
 
     /**
-     * MultipartFile[] → 프로젝트 루트/uploads 폴더에 저장 → 저장된 파일명 리스트 반환
+     * MultipartFile[] → uploadPath 폴더에 저장 → 저장된 파일명 리스트 반환
      */
     private List<String> storeFiles(MultipartFile[] files) {
         if (files == null || files.length == 0) {
             return Collections.emptyList();
         }
-        Path uploadRoot = Paths.get(System.getProperty("user.dir"), "uploads");
+        Path uploadRoot = Paths.get(uploadPath);
         try {
             Files.createDirectories(uploadRoot);
         } catch (IOException e) {
@@ -158,9 +170,8 @@ public class PortfolioService {
             if (dot > 0) ext = original.substring(dot);
 
             String stored = UUID.randomUUID().toString() + ext;
-            Path target = uploadRoot.resolve(stored);
             try {
-                file.transferTo(target.toFile());
+                file.transferTo(uploadRoot.resolve(stored).toFile());
                 result.add(stored);
             } catch (IOException e) {
                 throw new RuntimeException("파일 저장 실패: " + original, e);
@@ -171,13 +182,18 @@ public class PortfolioService {
 
     /** 엔티티 → DTO 변환 */
     private PortfolioResponse toResponse(Portfolio p) {
-        List<String> images = p.getImages() != null
+        List<String> images = (p.getImages() != null)
                 ? Arrays.asList(p.getImages().split(","))
                 : Collections.emptyList();
 
         return PortfolioResponse.builder()
                 .id(p.getId())
                 .title(p.getTitle())
+                .background(p.getBackground())
+                .results(p.getResults())
+                .features(p.getFeatures())
+                .stages(p.getStages())
+                .details(p.getDetails())
                 .description(p.getDescription())
                 .link(p.getLink())
                 .tags(p.getTags())
