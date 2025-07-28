@@ -81,28 +81,24 @@ public class ProjectService {
         return projectRepo.save(p);
     }
 
-    /** 참여 요청 (PENDING) */
+    /** 참여 요청 (PENDING) — 소유자 차단 추가 */
     public void requestParticipation(Long projectId, Long userId) {
+        Project project = findById(projectId);
+        if (project.getOwner().getId().equals(userId)) {
+            throw new IllegalStateException("프로젝트 소유자는 참여할 수 없습니다.");
+        }
         if (partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.PENDING)
                 || partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.APPROVED)) {
             throw new IllegalStateException("이미 요청했거나 참여 중입니다.");
         }
 
-        Project project = findById(projectId);
-        User user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저가 없습니다. id=" + userId));
-
         Participation p = new Participation();
         p.setProject(project);
-        p.setUser(user);
+        p.setUser(userService.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저가 없습니다. id=" + userId)));
         p.setStatus(ParticipationStatus.PENDING);
         p.setRequestedAt(LocalDateTime.now());
         partRepo.save(p);
-    }
-
-    /** joinProject 는 requestParticipation 호출로 대체 */
-    public void joinProject(Long projectId, Long userId) {
-        requestParticipation(projectId, userId);
     }
 
     /** 요청 승인 */
@@ -137,24 +133,20 @@ public class ProjectService {
         return partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.PENDING);
     }
 
-    /** 이미 참여 중인지 */
+    /** 이미 참여(승인) 중인지 */
     @Transactional(readOnly = true)
     public boolean isMember(Long projectId, Long userId) {
         return partRepo.existsByProjectIdAndUserIdAndStatus(projectId, userId, ParticipationStatus.APPROVED);
     }
 
-    /**
-     * 내 프로젝트(소유 + 참여) 조회
-     */
+    /** 내 프로젝트(소유 + 참여) 조회 */
     @Transactional(readOnly = true)
     public List<Project> getProjectsForUser(Long userId) {
-        // 1) 소유 프로젝트
         List<Project> owned = projectRepo.findByOwnerId(userId);
-        // 2) 참가자로 승인된 프로젝트
-        List<Project> joined = partRepo.findByUserIdAndStatus(userId, ParticipationStatus.APPROVED).stream()
+        List<Project> joined = partRepo.findByUserIdAndStatus(userId, ParticipationStatus.APPROVED)
+                .stream()
                 .map(Participation::getProject)
                 .collect(Collectors.toList());
-        // 3) 합치고 중복 제거 (순서 유지)
         Set<Project> merged = new LinkedHashSet<>();
         merged.addAll(owned);
         merged.addAll(joined);
@@ -179,15 +171,14 @@ public class ProjectService {
     /** 소유자·상태별 프로젝트 개수 */
     @Transactional(readOnly = true)
     public long countByOwnerAndStatus(Long ownerId, ProjectStatus status) {
-        User owner = userService.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId));
-        return projectRepo.countByOwnerAndStatus(owner, status);
+        return projectRepo.countByOwnerAndStatus(
+                userService.findById(ownerId)
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + ownerId)),
+                status
+        );
     }
 
-
-    /**
-     * 프로젝트 수정 (소유자만 가능)
-     */
+    /** 프로젝트 수정 (소유자만 가능) */
     public Project updateProject(
             Long projectId,
             Long ownerId,
@@ -200,16 +191,12 @@ public class ProjectService {
             Experience experience,
             CollaborationOption collaborationOption) {
 
-        // 1) 프로젝트 조회
         Project project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트가 없습니다. id=" + projectId));
-
-        // 2) 권한 체크
         if (!project.getOwner().getId().equals(ownerId)) {
             throw new AccessDeniedException("수정 권한이 없습니다.");
         }
 
-        // 3) 필드 업데이트
         project.setTitle(title);
         project.setDescription(description);
         project.setDeadline(deadline);
@@ -219,10 +206,8 @@ public class ProjectService {
         project.setExperience(experience);
         project.setCollaborationOption(collaborationOption);
 
-        // 4) 저장
         return projectRepo.save(project);
     }
-
 
     /** 테스트용: 전체 프로젝트 수 조회 */
     @Transactional(readOnly = true)
