@@ -79,24 +79,22 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="status">처리 상태</label>
-            <select name="status" id="status" class="form-control">
-                <option value="RESOLVED">게시글 숨기기</option>
-                <option value="REJECTED">신고 반려</option>
-            </select>
-            <input type="hidden" name="adminId" value="1">
-        </div>
-
-        <div class="form-group" style="margin-top: 1rem;">
-            <form th:action="@{'/board/' + ${report.id} + '/resolve'}" method="post" style="display: inline;">
-                <!-- 위에서 받은 값들 form 안으로 필요하면 다시 넣어야 함 -->
-                <input type="hidden" name="status" th:value="${report.status}">
+        <form th:action="@{'/board/' + ${report.id} + '/resolve'}" method="post" class="form-group" style="flex-direction: column; align-items: flex-start;">
+            <div class="form-group">
+                <label for="status">처리 상태</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="RESOLVED">게시글 숨기기</option>
+                    <option value="REJECTED">신고 반려</option>
+                </select>
                 <input type="hidden" name="adminId" value="1">
+            </div>
+
+            <div class="form-actions">
                 <button type="submit" class="btn btn-primary">처리하기</button>
-                <a href="/admin/report" class="btn btn-secondary" style="margin-left: 0.5rem;">목록으로</a>
-            </form>
-        </div>
+                <a href="/admin/report" class="btn btn-secondary">목록으로</a>
+            </div>
+        </form>
+
 
     </div>
 

@@ -84,3 +84,19 @@ textarea {
     cursor: pointer;
 }
 
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-left: 146px; /* label 너비(130px) + label-margin(16px) 맞춤 */
+}
+
+.btn-primary {
+    background-color: #276ef1;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #7f8c8d;
+    color: white;
+}
