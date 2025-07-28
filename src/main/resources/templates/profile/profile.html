@@ -161,22 +161,32 @@
         <!-- 사이드바 -->
         <div class="col-md-3 mb-4">
             <div class="list-group">
-                <a href="/profile"
+                <a th:href="@{/profile}"
                    th:classappend="${active=='profile'} ? ' active' : ''"
                    class="list-group-item list-group-item-action">
                     내 프로필
                 </a>
-                <a href="/profile/requests/sent"
+                <a th:href="@{/profile/notifications}"
+                   th:classappend="${active=='notifications'} ? ' active' : ''"
+                   class="list-group-item list-group-item-action">
+                    나의 알림
+                </a>
+                <a th:href="@{/profile/requests/sent}"
                    th:classappend="${active=='sentRequests'} ? ' active' : ''"
                    class="list-group-item list-group-item-action">
                     내가 보낸 요청
                 </a>
-                <a href="/profile/requests/received"
+                <a th:href="@{/profile/requests/received}"
                    th:classappend="${active=='receivedRequests'} ? ' active' : ''"
                    class="list-group-item list-group-item-action">
                     받은 요청
                 </a>
-                <a href="/profile/portfolio"
+                <a th:href="@{/profile/projects}"
+                   th:classappend="${active=='projects'} ? ' active' : ''"
+                   class="list-group-item list-group-item-action">
+                    프로젝트
+                </a>
+                <a th:href="@{/profile/portfolio}"
                    th:classappend="${active=='portfolio'} ? ' active' : ''"
                    class="list-group-item list-group-item-action">
                     포트폴리오
@@ -203,9 +213,9 @@
                 <div class="mb-4">
                     <h5>기술 스택</h5>
                     <div>
-            <span th:each="skill : ${profile.skills}"
-                  class="badge bg-secondary me-1"
-                  th:text="${skill}">Java</span>
+                        <span th:each="skill : ${profile.skills}"
+                              class="badge bg-secondary me-1"
+                              th:text="${skill}">Java</span>
                         <div th:if="${#lists.isEmpty(profile.skills)}" class="text-muted">
                             등록된 기술 스택이 없습니다.
                         </div>
@@ -351,7 +361,132 @@
                 </table>
             </section>
 
-            <!-- 4) 내가 올린 포트폴리오 -->
+            <!-- 4) 나의 알림 -->
+            <section th:if="${active=='notifications'}">
+                <h5>나의 알림</h5>
+                <ul class="list-group mb-4">
+                    <li th:each="n : ${notifications}"
+                        class="list-group-item"
+                        th:classappend="${!n.isRead} ? ' list-group-item-info'">
+                        <a th:href="@{${n.targetUrl}}"
+                           th:text="${n.message}">알림 메시지</a>
+                        <small class="text-muted float-end"
+                               th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')}">
+                        </small>
+                    </li>
+                    <li th:if="${#lists.isEmpty(notifications)}"
+                        class="list-group-item text-muted">
+                        새로운 알림이 없습니다.
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 5) 프로젝트 전체 관리 -->
+            <section th:if="${active=='projects'}">
+                <h4>내 프로젝트 관리</h4>
+
+                <!-- 5-1) 내가 소유한 프로젝트 -->
+                <h5 class="mt-4">내가 소유한 프로젝트</h5>
+                <div class="row g-3 mb-5">
+                    <div class="col-md-6" th:each="pj : ${ownedProjects}">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <a th:href="@{/projects/{id}(id=${pj.id})}"
+                                       th:text="${pj.title}">프로젝트 제목</a>
+                                </h6>
+                                <p class="card-text" th:text="${pj.description}">설명...</p>
+
+                                <!-- 상태 변경 -->
+                                <form th:action="@{/profile/projects/{id}/status(id=${pj.id})}"
+                                      method="post" class="d-flex align-items-center mb-2">
+                                    <select name="status" class="form-select form-select-sm me-2">
+                                        <option th:value="OPEN"
+                                                th:selected="${pj.status.name()=='OPEN'}">진행중
+                                        </option>
+                                        <option th:value="CLOSED"
+                                                th:selected="${pj.status.name()=='CLOSED'}">완료
+                                        </option>
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-primary">변경</button>
+                                </form>
+
+                                <!-- 팀원 (승인된 참여자) -->
+                                <div class="mt-3">
+                                    <strong>팀원:</strong>
+                                    <ul class="list-unstyled mb-0">
+                                        <li th:each="part : ${pj.participants}"
+                                            th:if="${part.status.name()=='APPROVED'}">
+                                            <span class="badge bg-secondary me-1"
+                                                  th:text="${part.user.name}">이름</span>
+                                            <form th:action="@{/profile/projects/{projId}/participant/{partId}/status(
+                                                             projId=${pj.id}, partId=${part.id})}"
+                                                  method="post" class="d-inline">
+                                                <input type="hidden" name="status" value="REJECTED"/>
+                                                <button class="btn btn-sm btn-outline-danger">제외</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- 대기 중 요청 -->
+                                <div class="mt-3">
+                                    <strong>대기 중 요청:</strong>
+                                    <ul class="list-unstyled mb-0">
+                                        <li th:each="part : ${pj.participants}"
+                                            th:if="${part.status.name()=='PENDING'}">
+                                            <span th:text="${part.user.name}" class="me-2">이름</span>
+                                            <form th:action="@{/profile/projects/{projId}/participant/{partId}/status(
+                                                             projId=${pj.id}, partId=${part.id})}"
+                                                  method="post" class="d-inline me-1">
+                                                <input type="hidden" name="status" value="APPROVED"/>
+                                                <button class="btn btn-sm btn-success">승인</button>
+                                            </form>
+                                            <form th:action="@{/profile/projects/{projId}/participant/{partId}/status(
+                                                             projId=${pj.id}, partId=${part.id})}"
+                                                  method="post" class="d-inline">
+                                                <input type="hidden" name="status" value="REJECTED"/>
+                                                <button class="btn btn-sm btn-outline-danger">거절</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(ownedProjects)}"
+                         class="col-12 text-center text-muted py-4">
+                        소유한 프로젝트가 없습니다.
+                    </div>
+                </div>
+
+                <!-- 5-2) 내가 참여 중인 프로젝트 -->
+                <h5 class="mt-4">내가 참여 중인 프로젝트</h5>
+                <div class="row g-3 mb-5">
+                    <div class="col-md-6" th:each="pj : ${joinedProjects}">
+                        <a th:href="@{/projects/{id}(id=${pj.id})}" class="card-link d-block h-100">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title" th:text="${pj.title}">제목</h6>
+                                    <p class="card-text" th:text="${pj.description}">설명...</p>
+                                </div>
+                                <div class="card-footer text-end">
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(pj.createdAt,'yyyy-MM-dd')}">
+                                        생성일
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div th:if="${#lists.isEmpty(joinedProjects)}"
+                         class="col-12 text-center text-muted py-4">
+                        참여 중인 프로젝트가 없습니다.
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6) 내가 올린 포트폴리오 -->
             <section th:if="${active=='portfolio'}">
                 <h5 class="mt-5">내가 올린 포트폴리오</h5>
                 <div class="row g-3 mb-5">

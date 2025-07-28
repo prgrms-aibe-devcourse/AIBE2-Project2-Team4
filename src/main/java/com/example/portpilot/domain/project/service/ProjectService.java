@@ -81,6 +81,16 @@ public class ProjectService {
         return projectRepo.save(p);
     }
 
+    /** 상태 변경 (소유자만) */
+    public void changeStatus(Long projectId, Long ownerId, ProjectStatus newStatus) {
+        Project project = findById(projectId);
+        if (!project.getOwner().getId().equals(ownerId)) {
+            throw new AccessDeniedException("상태 변경 권한이 없습니다.");
+        }
+        project.setStatus(newStatus);
+        projectRepo.save(project);
+    }
+
     /** 참여 요청 (PENDING) — 소유자 차단 추가 */
     public void requestParticipation(Long projectId, Long userId) {
         Project project = findById(projectId);
