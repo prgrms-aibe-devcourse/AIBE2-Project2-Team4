@@ -1,6 +1,5 @@
 package com.example.portpilot.domain.notification;
 
 public enum NotificationType {
-    REQUEST_APPROVED,
-    REQUEST_REJECTED
+    PROJECT_RESULT  // 프로젝트 승인/거절 결과
 }

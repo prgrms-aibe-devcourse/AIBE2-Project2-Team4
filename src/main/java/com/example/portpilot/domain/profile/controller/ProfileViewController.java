@@ -1,5 +1,6 @@
 package com.example.portpilot.domain.profile.controller;
 
+import com.example.portpilot.domain.notification.Notification;
 import com.example.portpilot.domain.notification.NotificationService;
 import com.example.portpilot.domain.profile.service.ProfileService;
 import com.example.portpilot.domain.project.entity.Participation;
@@ -155,7 +156,25 @@ public class ProfileViewController {
         return "redirect:/profile";
     }
 
-    /** 8) 프로젝트 전체 관리 */
+    /** 8) 나의 알림 보기 */
+    @GetMapping("/profile/notifications")
+    public String notifications(Authentication auth, Model model) {
+        UserPrincipal p = toPrincipal(auth);
+        if (p == null) return "redirect:/users/login";
+        Long userId = p.getId();
+
+        model.addAttribute("profile",      profileService.getProfile());
+        model.addAttribute("activityList", profileService.getRecentActivity(5));
+        model.addAttribute("stats",        profileService.getStats());
+        model.addAttribute("myProjects",   projectService.getProjectsForUser(userId));
+        model.addAttribute("notifications", notificationService.getNotifications(userId));
+
+        model.addAttribute("pageTitle", "나의 알림");
+        model.addAttribute("active",    "notifications");
+        return "profile/profile";
+    }
+
+    /** 9) 프로젝트 전체 관리 */
     @GetMapping("/profile/projects")
     public String manageOwnProjects(Authentication auth, Model model) {
         UserPrincipal p = toPrincipal(auth);
@@ -180,7 +199,7 @@ public class ProfileViewController {
         return "profile/profile";
     }
 
-    /** 9) 프로젝트 상태 변경 처리 */
+    /** 10) 프로젝트 상태 변경 처리 */
     @PostMapping("/profile/projects/{projectId}/status")
     public String changeStatus(@PathVariable Long projectId,
                                @RequestParam ProjectStatus status,
@@ -192,7 +211,7 @@ public class ProfileViewController {
         return "redirect:/profile/projects";
     }
 
-    /** 10) 팀원 상태 변경 (승인/제외) */
+    /** 11) 팀원 상태 변경 (승인/제외) */
     @PostMapping("/profile/projects/{projectId}/participant/{partId}/status")
     public String changeParticipantStatus(@PathVariable Long projectId,
                                           @PathVariable Long partId,
@@ -208,5 +227,4 @@ public class ProfileViewController {
         }
         return "redirect:/profile/projects";
     }
-
 }
