@@ -95,6 +95,11 @@ public class StudyService {
         StudyRecruitment study = studyRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
 
+        // 차단된 스터디 접근 차단
+        if (study.isBlocked()) {
+            throw new IllegalArgumentException("삭제된 스터디입니다.");
+        }
+
         List<StudyParticipantDto> participants = participationRepo.findByStudyAndStatus(study, StudyApplyStatus.ACCEPTED)
                 .stream()
                 .map(p -> StudyParticipantDto.builder()
@@ -211,11 +216,18 @@ public class StudyService {
         study.setClosed(true);
     }
 
-    // 스터디 상세 조회 (Thymeleaf용)
+    // 스터디 상세 조회
     @Transactional(readOnly = true)
     public StudyRecruitment getStudyForDetail(Long id) {
-        return studyRepo.findById(id)
+        StudyRecruitment study = studyRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
+
+        // 차단된 스터디 접근 차단
+        if (study.isBlocked()) {
+            throw new IllegalArgumentException("삭제된 스터디입니다.");
+        }
+
+        return study;
     }
 
     // 참여자 목록 조회
@@ -231,7 +243,7 @@ public class StudyService {
         studyRepo.delete(study);
     }
 
-    // 스터디 강제 완료 처리 (테스트용: 누구나 가능)
+    // 스터디 강제 완료 처리 테스트용이에요
     public void completeStudy(Long studyId) {
         StudyRecruitment study = studyRepo.findById(studyId)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));

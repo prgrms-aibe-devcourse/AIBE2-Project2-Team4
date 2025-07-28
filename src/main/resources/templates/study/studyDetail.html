@@ -31,9 +31,16 @@
           마감일: <span th:text="${#temporals.format(study.deadline, 'yyyy-MM-dd HH:mm')}">2024-01-01 23:59</span>
         </p>
       </div>
-      <div>
-        <span th:if="${study.closed}" class="status-badge status-closed">모집 마감</span>
-        <span th:unless="${study.closed}" class="status-badge status-recruiting">모집 중</span>
+      <div class="d-flex align-items-center gap-2">
+        <!-- 신고 버튼 추가 -->
+        <button id="reportStudyBtn" class="btn btn-outline-danger btn-sm"
+                onclick="reportStudy()" title="스터디 신고">
+          신고하기
+        </button>
+        <div>
+          <span th:if="${study.closed}" class="status-badge status-closed">모집 마감</span>
+          <span th:unless="${study.closed}" class="status-badge status-recruiting">모집 중</span>
+        </div>
       </div>
     </div>
 
@@ -132,7 +139,7 @@
   <!-- 참여 완료: 신청이 승인되어 참여자가 된 경우 -->
   <div th:if="${isParticipant and !isOwner}" class="study-content">
     <div class="alert alert-success text-center">
-      <h5>🎉 참여 중!</h5>
+      <h5> 참여 중!</h5>
       <p>스터디에 참여하고 있습니다. 열심히 활동해보세요!</p>
     </div>
   </div>
