@@ -14,7 +14,7 @@ const statusBadgeMap = {
     'PENDING': '<span class="badge bg-warning text-dark">대기중</span>',
     'ACCEPTED': '<span class="badge bg-success">수락됨</span>',
     'REJECTED': '<span class="badge bg-secondary">거절됨</span>',
-    'COMPLETED': '<span class="badge bg-primary">완료</span>'  // 까만색 → 파란색으로 변경
+    'COMPLETED': '<span class="badge bg-primary">완료</span>'
 };
 
 // 탭별 빈 상태 메시지 정의
@@ -61,7 +61,18 @@ function loadTabContent(type) {
         .then(data => {
             container.innerHTML = '';
 
-            if (data.length === 0) {
+            let mentors = data;
+            let currentUserEmail = null;
+
+            if (type === 'mentors' && data.mentors) {
+                mentors = data.mentors;
+                currentUserEmail = data.currentUserEmail;
+            } else if (type === 'mentors' && Array.isArray(data)) {
+                // 기존 형식 그대로인 경우 - 임시로 prompt로 현재 사용자 확인
+                mentors = data;
+            }
+
+            if ((type === 'mentors' ? mentors : data).length === 0) {
                 const emptyMessage = getEmptyMessage(type);
                 container.innerHTML = `
                     <div class="text-center py-5">
@@ -76,16 +87,36 @@ function loadTabContent(type) {
             }
 
             if (type === 'mentors') {
-                data.forEach(item => {
+                mentors.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'card mb-3';
+
+                    console.log('현재 사용자 이메일:', currentUserEmail);
+                    console.log('멘토 이메일:', item.email);
+                    console.log('같나?:', currentUserEmail === item.email);
+                    // 현재 사용자인지 확인
+                    const isMyProfile = currentUserEmail && item.email === currentUserEmail;
+
+                    // 버튼 HTML
+                    const buttonsHtml = isMyProfile ? `
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editProfile('${item.techStack.replace(/'/g, "\\'")}', '${item.description.replace(/'/g, "\\'")}')">
+                                수정
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteProfile()">
+                                삭제
+                            </button>
+                        </div>
+                    ` : '';
+
                     card.innerHTML = `
-                            <div class="card-body">
-                                <h5 class="card-title">${item.userName}</h5>
-                                <p class="card-text">소개 : ${item.description}</p>
-                                <p class="card-text text-muted">주요 기술: ${item.techStack}</p>
-                            </div>
-                        `;
+                        <div class="card-body">
+                            <h5 class="card-title">${item.userName}</h5>
+                            <p class="card-text">소개: ${item.description}</p>
+                            <p class="card-text text-muted">주요 기술: ${item.techStack}</p>
+                            ${buttonsHtml}
+                        </div>
+                    `;
                     container.appendChild(card);
                 });
             } else {
@@ -107,19 +138,110 @@ function loadTabContent(type) {
                     }
 
                     card.innerHTML = `
-                            <div class="card-body">
-                                ${nameLine}
-                                <p class="card-text">주제: ${item.topic}</p>
-                                <p class="card-text text-muted">신청일: ${new Date(item.createdAt).toISOString().slice(0, 10)}</p>
-                                ${statusBadgeMap[item.status] || ''}
-                                ${extra}
-                            </div>
-                        `;
+                        <div class="card-body">
+                            ${nameLine}
+                            <p class="card-text">주제: ${item.topic}</p>
+                            <p class="card-text text-muted">신청일: ${new Date(item.createdAt).toISOString().slice(0, 10)}</p>
+                            ${statusBadgeMap[item.status] || ''}
+                            ${extra}
+                        </div>
+                    `;
                     container.appendChild(card);
                 });
             }
         })
         .catch(err => {
             container.innerHTML = `<p class="text-danger">오류 발생: ${err.message}</p>`;
+        });
+}
+
+// 프로필 수정 함수
+function editProfile(techStack, description) {
+    const newTechStack = prompt('기술 스택:', techStack);
+    if (newTechStack === null) return;
+
+    const newDescription = prompt('소개글:', description);
+    if (newDescription === null) return;
+
+    if (!newTechStack.trim() || !newDescription.trim()) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+    console.log('CSRF Token:', csrfToken);
+    console.log('CSRF Header:', csrfHeader);
+
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    if (csrfToken && csrfHeader) {
+        headers[csrfHeader] = csrfToken;
+    }
+
+    fetch('/api/mentoring/profile', {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({
+            techStack: newTechStack.trim(),
+            description: newDescription.trim()
+        })
+    })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (response.ok) {
+                alert('수정되었습니다.');
+                loadTabContent('mentors');
+            } else {
+                return response.text().then(text => {
+                    console.log('Error response:', text);
+                    throw new Error(text);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('수정 실패: ' + error.message);
+        });
+}
+
+// 프로필 삭제 함수
+function deleteProfile() {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
+    console.log('CSRF Token:', csrfToken);
+    console.log('CSRF Header:', csrfHeader);
+
+    const headers = {};
+
+    if (csrfToken && csrfHeader) {
+        headers[csrfHeader] = csrfToken;
+    }
+
+    fetch('/api/mentoring/profile', {
+        method: 'DELETE',
+        headers: headers
+    })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (response.ok) {
+                alert('삭제되었습니다.');
+                loadTabContent('mentors');
+            } else {
+                return response.text().then(text => {
+                    console.log('Error response:', text);
+                    throw new Error(text);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('삭제 실패: ' + error.message);
         });
 }
