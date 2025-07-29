@@ -1,97 +1,123 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/layout}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:sec="http://www.w3.org/1999/xhtml"
+      layout:decorate="~{layouts/layout}" lang="ko">
 
-<th:block layout:fragment="css">
-    <style>
-        .hero-section {
-            background-color: #4A68C4;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
+<head>
+    <title>메인 페이지</title>
 
-        .hero-section h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
+    <th:block layout:fragment="css">
+        <style>
+            .hero-section {
+                background-color: #4A68C4;
+                color: white;
+                padding: 40px 20px;
+                text-align: center;
+            }
 
-        .hero-section p {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
+            .hero-section h1 {
+                font-size: 32px;
+                margin-bottom: 10px;
+            }
 
-        .hero-section .btn {
-            padding: 10px 20px;
-            font-weight: bold;
-            background-color: white;
-            color: #4A68C4;
-            border: none;
-            cursor: pointer;
-        }
+            .hero-section p {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
 
-        .section {
-            padding: 40px 20px;
-            text-align: center;
-        }
+            .hero-section .btn {
+                padding: 10px 20px;
+                font-weight: bold;
+                background-color: white;
+                color: #4A68C4;
+                border: none;
+                cursor: pointer;
+            }
 
-        .section h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
+            .section {
+                padding: 40px 20px;
+                text-align: center;
+            }
 
-        .card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 10px;
-            display: inline-block;
-            width: 250px;
-        }
+            .section h2 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
 
-        .card h4 {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
+            .card {
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 10px;
+                display: inline-block;
+                width: 250px;
+            }
 
-        .card p {
-            font-size: 14px;
-            color: #666;
-        }
-    </style>
-</th:block>
+            .card h4 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
 
-<!-- 메인 콘텐츠 -->
+            .card p {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .empty-message {
+                font-size: 16px;
+                color: #aaa;
+                margin-top: 10px;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
 <div layout:fragment="content">
+
+    <!-- 로그인 안 된 사용자만 보이게 -->
     <div class="hero-section">
         <h1>당신의 협업이 포트폴리오가 되는 곳</h1>
         <p>실제로 사용할 프로젝트를 함께 만들어보세요.</p>
-        <a href="/users/register" class="btn">회원가입</a>
+
+        <div sec:authorize="isAnonymous()">
+            <a href="/users/new" class="btn">회원가입</a>
+        </div>
     </div>
 
+    <!-- 모집 중인 프로젝트 -->
     <div class="section">
         <h2>모집 중인 프로젝트</h2>
-        <div class="card">
-            <h4>웹 개발</h4>
-            <p>React + Spring 기반 실전 프로젝트</p>
-        </div>
-        <div class="card">
-            <h4>디자인</h4>
-            <p>Figma를 활용한 UI/UX 설계 참여</p>
+        <div th:if="${#lists.isEmpty(projects)}" class="empty-message">아직 등록된 프로젝트가 없습니다.</div>
+        <div th:each="project : ${projects}" class="card">
+            <h4 th:text="${project.title}">제목</h4>
+            <p th:text="${project.description}">설명</p>
+            <a th:href="@{/projects/{id}(id=${project.id})}" class="btn btn-sm btn-outline-primary">프로젝트 참여하기</a>
         </div>
     </div>
 
+    <!-- 스터디 모집 -->
     <div class="section" style="background-color: #f8f9fa;">
-        <h2>채용 정보</h2>
-        <div class="card">
-            <h4>백엔드 개발자</h4>
-            <p>Spring Boot 경험자 모집 중</p>
-        </div>
-        <div class="card">
-            <h4>프론트엔드 개발자</h4>
-            <p>React 가능자 우대</p>
+        <h2>스터디 모집</h2>
+        <div th:if="${#lists.isEmpty(studies)}" class="empty-message">아직 모집 중인 스터디가 없습니다.</div>
+        <div th:each="study : ${studies}" class="card">
+            <h4 th:text="${study.title}">제목</h4>
+            <p th:text="${study.content}">설명</p>
+            <a th:href="@{/study/{id}(id=${study.id})}" class="btn btn-sm btn-outline-secondary">스터디 하러 가기</a>
         </div>
     </div>
+
+    <!-- 채용 공고 -->
+    <div class="section">
+        <h2>채용 정보</h2>
+        <div th:if="${#lists.isEmpty(jobs)}" class="empty-message">등록된 채용 공고가 없습니다.</div>
+        <div th:each="job : ${jobs}" class="card">
+            <h4 th:text="${job.position}">채용 포지션</h4>
+            <p th:text="${job.company}">회사</p>
+            <a th:href="@{/jobs/{id}(id=${job.id})}" class="btn btn-sm btn-outline-success">채용 공고 보기</a>
+        </div>
+    </div>
+
 </div>
+</body>
 </html>
