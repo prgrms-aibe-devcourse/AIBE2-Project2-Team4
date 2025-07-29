@@ -103,7 +103,7 @@ $(document).ready(function () {
           <div class="border rounded p-2 mb-2 ${depth > 0 ? 'reply' : ''}" data-id="${c.id}">
             <div>
               <strong>${c.userName}</strong>
-              <button class="btn-report report-btn" title="댓글 신고" data-id="${c.id}" data-type="COMMENT">신고하기</button>
+              <button class="btn btn-sm btn-outline-danger report-btn mt-1" title="댓글 신고" data-id="${c.id}" data-type="COMMENT">🚨 신고</button>
             </div>
             <div class="comment-content">${c.content}</div>
             <div class="text-muted small">${c.createdAt.replace('T', ' ').slice(0, 16)}</div>

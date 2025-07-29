@@ -14,7 +14,7 @@ const statusBadgeMap = {
     'PENDING': '<span class="badge bg-warning text-dark">대기중</span>',
     'ACCEPTED': '<span class="badge bg-success">수락됨</span>',
     'REJECTED': '<span class="badge bg-secondary">거절됨</span>',
-    'COMPLETED': '<span class="badge bg-primary">완료</span>'
+    'COMPLETED': '<span class="badge bg-dark text-white">완료</span>'
 };
 
 // 탭별 빈 상태 메시지 정의

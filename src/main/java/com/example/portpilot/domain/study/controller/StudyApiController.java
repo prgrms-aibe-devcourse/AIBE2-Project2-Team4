@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,23 +127,23 @@ public class StudyApiController {
         }
     }
 
-    // 테스트용 스터디 강제 완료 처리
-    @PostMapping("/{id}/force-complete")
-    public ResponseEntity<String> completeStudy(@PathVariable Long id) {
+    // 완료된 스터디 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteStudy(@PathVariable Long id, Principal principal) {
         try {
-            studyService.completeStudy(id);
-            return ResponseEntity.ok("스터디가 완료 처리되었습니다.");
+            studyService.deleteStudy(id, principal.getName());
+            return ResponseEntity.ok("스터디가 삭제되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // 테스트용 스터디 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteStudy(@PathVariable Long id) {
+    // 스터디 종료 처리 (테스트)
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<String> completeStudy(@PathVariable Long id) {
         try {
-            studyService.deleteStudy(id);
-            return ResponseEntity.ok("스터디가 삭제되었습니다.");
+            studyService.completeStudy(id);
+            return ResponseEntity.ok("스터디가 종료 처리되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
