@@ -1,0 +1,82 @@
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* ======= 네비게이션 바 ======= */
+.navbar {
+    background-color: #4A68C4 !important;
+}
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: white !important;
+    font-weight: 500;
+}
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+    color: #FFD700 !important;
+    text-decoration: underline;
+}
+
+/* ======= 카드 ======= */
+.card-hover {
+    transition: transform 0.2s;
+}
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+.card-text {
+    color: #555;
+}
+.card-footer {
+    background-color: #fff;
+    border-top: 1px solid #eee;
+}
+
+/* ======= 버튼 ======= */
+.btn-primary {
+    background-color: #4A68C4;
+    border-color: #4A68C4;
+}
+.btn-primary:hover {
+    background-color: #3b55a2;
+}
+.btn-outline-primary {
+    color: #4A68C4;
+    border-color: #4A68C4;
+}
+.btn-outline-primary:hover {
+    background-color: #4A68C4;
+    color: white;
+}
+.btn-outline-success:hover {
+    background-color: #28a745;
+    color: white;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* ======= 텍스트 ======= */
+.text-muted {
+    font-size: 14px;
+    color: #888 !important;
+}
+h2 {
+    color: #4A68C4;
+    font-weight: bold;
+}
+
+/* ======= 알림 ======= */
+.alert-info {
+    background-color: #e7f1ff;
+    border-color: #b3d7ff;
+    color: #3178c6;
+}
