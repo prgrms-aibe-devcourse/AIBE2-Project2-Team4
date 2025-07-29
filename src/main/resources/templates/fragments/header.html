@@ -70,25 +70,22 @@
                         </div>
 
                         <!-- 로그인 된 경우 -->
-                        <li sec:authorize="isAuthenticated()" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#"
-                               id="navbarDropdown" role="button" data-bs-toggle="dropdown"
-                               aria-expanded="false">
+                        <div sec:authorize="isAuthenticated()" class="dropdown">
+                            <a class="nav-link dropdown-toggle text-white font-weight-bold" href="#"
+                               id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span sec:authentication="name">사용자명</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="/profile">내 프로필</a></li>
-                                <li><a class="dropdown-item" href="/projects/">내 프로젝트</a></li>
-                                <li><a class="dropdown-item" href="/study?tab=my">내 스터디</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form th:action="@{/users/logout}" method="post" class="d-inline">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                        <button type="submit" class="dropdown-item">로그아웃</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="/profile">내 프로필</a>
+                                <a class="dropdown-item" href="/projects/">내 프로젝트</a>
+                                <a class="dropdown-item" href="/study?tab=my">내 스터디</a>
+                                <div class="dropdown-divider"></div>
+                                <form th:action="@{/users/logout}" method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="dropdown-item">로그아웃</button>
+                                </form>
+                            </div>
+                        </div>
                     </ul>
                 </div>
             </div>
@@ -96,7 +93,6 @@
     </nav>
 </div>
 
-<!-- Bootstrap 5 호환 JavaScript (필요한 경우만) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Bootstrap 5가 로드되지 않은 경우 수동으로 드롭다운 구현
