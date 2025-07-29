@@ -255,9 +255,16 @@ public class StudyService {
         StudyRecruitment study = studyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
 
+        System.out.println("요청자 email: " + userEmail);
+        System.out.println("작성자 email: " + study.getUser().getEmail());
+        System.out.println("스터디 완료 여부: " + study.isCompleted());
 
         if (!study.getUser().getEmail().equals(userEmail)) {
-            throw new IllegalAccessException("아직 종료되지 않은 스터디 입니다.");
+            throw new IllegalAccessException("삭제 권한이 없습니다.");
+        }
+
+        if (!study.isCompleted()) {
+            throw new IllegalStateException("아직 종료되지 않은 스터디입니다.");
         }
 
         studyRepository.delete(study);
