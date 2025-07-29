@@ -4,6 +4,7 @@ import com.example.portpilot.domain.study.entity.*;
 import com.example.portpilot.domain.study.dto.*;
 import com.example.portpilot.domain.study.repository.StudyParticipationRepository;
 import com.example.portpilot.domain.study.repository.StudyRecruitmentRepository;
+import com.example.portpilot.domain.study.repository.StudyRepository;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,7 @@ public class StudyService {
     private final StudyParticipationRepository participationRepo;
     private final UserRepository userRepository;
     private final StudyRecruitmentRepository studyRecruitmentRepo;
+    private final StudyRepository studyRepository;
 
     // 현재 로그인된 사용자 가져오기
     private User getCurrentUser() {
@@ -259,4 +262,20 @@ public class StudyService {
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
         study.setCompleted(true);
     }
+
+    //메인에 띄우기용
+    @Transactional(readOnly = true)
+    public List<StudyRecruitment> findAllOpenStudies() {
+        return studyRepository.findByClosedFalseAndCompletedFalse();
+    }
+
+    //메인에 띄우는 갯수 제한
+    public List<StudyRecruitment> findLatestOpenStudies(int limit) {
+        return studyRepository.findByClosedFalseAndIsBlockedFalse()
+                .stream()
+                .sorted(Comparator.comparing(StudyRecruitment::getCreatedAt).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
 }
