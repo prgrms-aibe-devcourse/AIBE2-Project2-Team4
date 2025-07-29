@@ -1,1550 +1,1320 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자소서 목록</title>
   <meta name="_csrf" th:content="${_csrf.token}"/>
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-  <title>자소서 목록</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f8f9fa;
-      line-height: 1.6;
-      color: #333;
-    }
-
-    .header {
-      background: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 2rem 0;
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-left h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 0.5rem;
-    }
-
-    .header-left p {
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
-
-    .new-resume-btn {
-      background: #3b82f6;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      border: none;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      transition: background-color 0.2s ease;
-      font-size: 0.875rem;
-    }
-
-    .new-resume-btn:hover {
-      background: #2563eb;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
-
-    /* 통계 섹션 */
-    .stats-section {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border-left: 4px solid;
-    }
-
-    .stat-card.total { border-left-color: #3b82f6; }
-    .stat-card.completed { border-left-color: #10b981; }
-    .stat-card.in-progress { border-left-color: #f59e0b; }
-
-    .stat-number {
-      font-size: 2.5rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-card.total .stat-number { color: #3b82f6; }
-    .stat-card.completed .stat-number { color: #10b981; }
-    .stat-card.in-progress .stat-number { color: #f59e0b; }
-
-    .stat-label {
-      color: #6b7280;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    /* 필터 및 검색 섹션 */
-    .filter-section {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .search-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      align-items: center;
-    }
-
-    .search-input {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%236b7280" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 1rem center;
-      padding-left: 2.5rem;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .filter-buttons {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .filter-group {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .filter-group.left {
-      flex: 1;
-    }
-
-    .filter-group.right {
-      flex-shrink: 0;
-    }
-
-    .filter-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: #6b7280;
-    }
-
-    .filter-btn:hover {
-      border-color: #3b82f6;
-      color: #3b82f6;
-    }
-
-    .filter-btn.active {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: white;
-    }
-
-    .sort-dropdown {
-      position: relative;
-    }
-
-    .sort-button {
-      padding: 0.5rem 1rem;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: #374151;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      min-width: 100px;
-      justify-content: space-between;
-    }
-
-    .sort-button:hover {
-      border-color: #3b82f6;
-      color: #3b82f6;
-    }
-
-    .sort-button .arrow {
-      font-size: 0.6rem;
-      color: #9ca3af;
-      transition: transform 0.2s ease;
-    }
-
-    .sort-dropdown.show .sort-button .arrow {
-      transform: rotate(180deg);
-    }
-
-    .sort-dropdown-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      z-index: 10;
-      min-width: 120px;
-      display: none;
-    }
-
-    .sort-dropdown-menu.show {
-      display: block;
-    }
-
-    .sort-option {
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      font-size: 0.875rem;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-    }
-
-    .sort-option:hover {
-      background: #f3f4f6;
-    }
-
-    .sort-option:first-child {
-      border-radius: 0.5rem 0.5rem 0 0;
-    }
-
-    .sort-option:last-child {
-      border-radius: 0 0 0.5rem 0.5rem;
-    }
-
-    /* 자소서 그리드 */
-    .resume-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .resume-card {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: 1px solid #e5e7eb;
-      position: relative;
-    }
-
-    .resume-card:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-2px);
-    }
-
-    .resume-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 0.5rem;
-    }
-
-    .resume-company {
-      font-size: 0.875rem;
-      color: #6b7280;
-      margin-bottom: 1rem;
-    }
-
-    /* 상태 선택 드롭다운 */
-    .status-dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .status-dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.375rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      min-width: 100px;
-      display: none;
-      overflow: hidden;
-    }
-
-    .status-dropdown-menu.show {
-      display: block;
-    }
-
-    .status-option {
-      padding: 0.5rem 0.75rem;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 500;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-      transition: background-color 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .status-option:hover {
-      background: #f3f4f6;
-    }
-
-    .status-option.completed {
-      color: #065f46;
-    }
-
-    .status-option.writing {
-      color: #92400e;
-    }
-
-    .status-option .status-icon {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .status-option.completed .status-icon {
-      background: #10b981;
-    }
-
-    .status-option.writing .status-icon {
-      background: #f59e0b;
-    }
-
-    .status-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.25rem 0.75rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-      user-select: none;
-      position: relative;
-    }
-
-    .status-badge:hover {
-      transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .status-completed {
-      background: #d1fae5;
-      color: #065f46;
-      border-color: #10b981;
-    }
-
-    .status-completed:hover {
-      background: #a7f3d0;
-    }
-
-    .status-writing {
-      background: #fef3c7;
-      color: #92400e;
-      border-color: #f59e0b;
-    }
-
-    .status-writing:hover {
-      background: #fde68a;
-    }
-
-    .resume-dates {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      padding-top: 1rem;
-      border-top: 1px solid #f3f4f6;
-    }
-
-    .resume-actions {
-      display: none;
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      gap: 0.5rem;
-      align-items: flex-start;
-    }
-
-    .resume-card:hover .resume-actions {
-      display: flex;
-    }
-
-    .action-btn {
-      width: 2rem;
-      height: 2rem;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-    }
-
-    .edit-btn {
-      background: #eff6ff;
-      color: #2563eb;
-    }
-
-    .edit-btn:hover {
-      background: #dbeafe;
-    }
-
-    .delete-btn {
-      background: #fef2f2;
-      color: #dc2626;
-    }
-
-    .delete-btn:hover {
-      background: #fecaca;
-    }
-
-    /* 페이지네이션 */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-    }
-
-    .page-btn {
-      width: 2.5rem;
-      height: 2.5rem;
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-      transition: all 0.2s ease;
-    }
-
-    .page-btn:hover {
-      border-color: #3b82f6;
-      color: #3b82f6;
-    }
-
-    .page-btn.active {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      color: white;
-    }
-
-    .page-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* 빈 상태 및 에러 상태 */
-    .empty-state {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 4rem 2rem;
-      background: white;
-      border-radius: 0.75rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      margin: 2rem 0;
-    }
-
-    .empty-state .icon {
-      font-size: 4rem;
-      margin-bottom: 1.5rem;
-      opacity: 0.6;
-    }
-
-    .empty-state h3 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.75rem;
-      line-height: 1.4;
-    }
-
-    .empty-state p {
-      color: #6b7280;
-      font-size: 1rem;
-      line-height: 1.5;
-      max-width: 400px;
-    }
-
-    .empty-state .retry-btn {
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    .empty-state .retry-btn:hover {
-      background: #2563eb;
-    }
-
-    /* 로딩 상태 */
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 4rem;
-      color: #6b7280;
-    }
-
-    .spinner {
-      width: 24px;
-      height: 24px;
-      border: 3px solid #e5e7eb;
-      border-radius: 50%;
-      border-top-color: #3b82f6;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 0.75rem;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* 상태 변경 알림 */
-    .status-toast {
-      position: fixed;
-      top: 2rem;
-      right: 2rem;
-      background: #10b981;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      opacity: 0;
-      transform: translateX(100%);
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
-
-    .status-toast.show {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* 반응형 디자인 */
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
+  <!-- 페이지별 추가 CSS -->
+  <th:block layout:fragment="css">
+    <style>
+      /* 컨테이너 재정의 */
+      .main-content .container {
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+        padding: 2rem 1rem !important;
       }
 
+      /* 페이지 헤더 */
+      .page-header {
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 2rem 0;
+      }
+
+      .page-header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .page-header-left h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+      }
+
+      .page-header-left p {
+        color: #6b7280;
+        font-size: 0.95rem;
+      }
+
+      .new-resume-btn {
+        background: #3b82f6;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        transition: background-color 0.2s ease;
+        font-size: 0.875rem;
+      }
+
+      .new-resume-btn:hover {
+        background: #2563eb;
+        color: white;
+        text-decoration: none;
+      }
+
+      /* 통계 섹션 */
       .stats-section {
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid;
+      }
+
+      .stat-card.total { border-left-color: #3b82f6; }
+      .stat-card.completed { border-left-color: #10b981; }
+      .stat-card.in-progress { border-left-color: #f59e0b; }
+
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card.total .stat-number { color: #3b82f6; }
+      .stat-card.completed .stat-number { color: #10b981; }
+      .stat-card.in-progress .stat-number { color: #f59e0b; }
+
+      .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      /* 필터 및 검색 섹션 */
+      .filter-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
       .search-bar {
-        flex-direction: column;
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+      }
+
+      .search-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%236b7280" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 1rem center;
+        padding-left: 2.5rem;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
       }
 
       .filter-buttons {
-        flex-direction: column;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
         gap: 1rem;
-        align-items: stretch;
       }
 
-      .filter-group.left,
+      .filter-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .filter-group.left {
+        flex: 1;
+      }
+
       .filter-group.right {
-        justify-content: center;
-        flex-wrap: wrap;
-        flex: none;
+        flex-shrink: 0;
+      }
+
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #6b7280;
+      }
+
+      .filter-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+      }
+
+      .filter-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+      }
+
+      .sort-dropdown {
+        position: relative;
+      }
+
+      .sort-button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 100px;
+        justify-content: space-between;
+      }
+
+      .sort-button:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+      }
+
+      .sort-button .arrow {
+        font-size: 0.6rem;
+        color: #9ca3af;
+        transition: transform 0.2s ease;
+      }
+
+      .sort-dropdown.show .sort-button .arrow {
+        transform: rotate(180deg);
       }
 
       .sort-dropdown-menu {
-        right: auto;
-        left: 0;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        min-width: 120px;
+        display: none;
       }
 
-      .resume-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .pagination {
-        flex-wrap: wrap;
-      }
-
-      .resume-actions {
-        position: static;
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 1rem;
-      }
-
-      .empty-state {
-        margin: 1rem 0;
-        padding: 2rem 1rem;
-      }
-
-      .empty-state .icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-      }
-
-      .empty-state h3 {
-        font-size: 1.125rem;
-      }
-
-      .empty-state p {
-        font-size: 0.875rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-section {
-        grid-template-columns: 1fr;
-      }
-
-      .empty-state {
-        padding: 1.5rem 1rem;
-      }
-
-      .empty-state .icon {
-        font-size: 2.5rem;
-      }
-
-      .empty-state h3 {
-        font-size: 1rem;
-      }
-
-      .empty-state p {
-        font-size: 0.8rem;
-      }
-
-      .empty-state .retry-btn {
-        padding: 0.625rem 1.25rem;
-        font-size: 0.875rem;
-      }
-    }
-
-    .mr-auto {
-      margin-right: auto !important;
-    }
-
-    .mr-2 {
-      margin-right: 0.5rem !important;
-    }
-
-    .mr-3 {
-      margin-right: 1rem !important;
-    }
-
-    .font-weight-bold {
-      font-weight: 700 !important;
-    }
-
-    .form-inline {
-      display: flex !important;
-      flex-flow: row wrap;
-      align-items: center;
-    }
-
-    .dropdown-menu-right {
-      right: 0;
-      left: auto;
-    }
-
-    /* 네비게이션 레이아웃 수정 */
-    .navbar .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    .navbar-collapse {
-      display: flex !important;
-      flex-basis: auto;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    .navbar-nav.mr-auto {
-      margin-right: auto !important;
-      flex-direction: row;
-    }
-
-    /* 우측 메뉴 영역 정렬 */
-    .navbar .d-flex.align-items-center {
-      margin-left: auto;
-      align-items: center !important;
-    }
-
-    /* 검색창 스타일 개선 */
-    .form-inline.mr-3 {
-      margin-right: 1rem !important;
-    }
-
-    .input-group {
-      min-width: 250px;
-      display: flex;
-    }
-
-    .input-group .form-control {
-      flex: 1;
-    }
-
-    /* 드롭다운 메뉴 위치 조정 */
-    .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: auto;
-      right: 0;
-      z-index: 1000;
-    }
-
-    /* 반응형 처리 */
-    @media (max-width: 991.98px) {
-      .navbar-collapse {
-        flex-direction: column;
-        align-items: stretch !important;
-      }
-
-      .navbar-nav.mr-auto {
-        margin-bottom: 1rem;
-      }
-
-      .d-flex.align-items-center {
-        flex-direction: column;
-        align-items: stretch !important;
-        width: 100%;
-      }
-
-      .form-inline.mr-3 {
-        margin: 1rem 0 !important;
-        margin-right: 0 !important;
-      }
-
-      .input-group {
-        min-width: 100%;
-      }
-    }
-
-    /* 네비게이션 토글 버튼 (모바일용) */
-    .navbar-toggler {
-      display: none;
-      border: none;
-      padding: 4px 8px;
-      background: transparent;
-    }
-
-    .navbar-toggler-icon {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-      display: inline-block;
-      width: 1.5em;
-      height: 1.5em;
-      vertical-align: middle;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: 100%;
-    }
-
-    @media (max-width: 991.98px) {
-      .navbar-toggler {
+      .sort-dropdown-menu.show {
         display: block;
       }
 
-      .navbar-collapse {
-        display: none !important;
+      .sort-option {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        transition: background-color 0.2s ease;
       }
 
-      .navbar-collapse.show {
-        display: flex !important;
+      .sort-option:hover {
+        background: #f3f4f6;
       }
-    }
 
-    /* Bootstrap 5 JavaScript 없이 드롭다운 hover 효과 */
-    .dropdown:hover .dropdown-menu {
-      display: block;
-    }
+      .sort-option:first-child {
+        border-radius: 0.5rem 0.5rem 0 0;
+      }
 
-    .dropdown-menu {
-      display: none;
-    }
+      .sort-option:last-child {
+        border-radius: 0 0 0.5rem 0.5rem;
+      }
 
-    /* 기본 드롭다운 토글 기능 (클릭) */
-    .dropdown.show .dropdown-menu {
-      display: block;
-    }
-  </style>
+      /* 자소서 그리드 */
+      .resume-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .resume-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid #e5e7eb;
+        position: relative;
+      }
+
+      .resume-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .resume-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+      }
+
+      .resume-company {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+      }
+
+      /* 상태 선택 드롭다운 */
+      .status-dropdown {
+        position: relative;
+        display: inline-block;
+      }
+
+      .status-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        min-width: 100px;
+        display: none;
+        overflow: hidden;
+      }
+
+      .status-dropdown-menu.show {
+        display: block;
+      }
+
+      .status-option {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .status-option:hover {
+        background: #f3f4f6;
+      }
+
+      .status-option.completed {
+        color: #065f46;
+      }
+
+      .status-option.writing {
+        color: #92400e;
+      }
+
+      .status-option .status-icon {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .status-option.completed .status-icon {
+        background: #10b981;
+      }
+
+      .status-option.writing .status-icon {
+        background: #f59e0b;
+      }
+
+      .status-badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        user-select: none;
+        position: relative;
+      }
+
+      .status-badge:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+        border-color: #10b981;
+      }
+
+      .status-completed:hover {
+        background: #a7f3d0;
+      }
+
+      .status-writing {
+        background: #fef3c7;
+        color: #92400e;
+        border-color: #f59e0b;
+      }
+
+      .status-writing:hover {
+        background: #fde68a;
+      }
+
+      .resume-dates {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #9ca3af;
+        padding-top: 1rem;
+        border-top: 1px solid #f3f4f6;
+      }
+
+      .resume-actions {
+        display: none;
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+
+      .resume-card:hover .resume-actions {
+        display: flex;
+      }
+
+      .action-btn {
+        width: 2rem;
+        height: 2rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+      }
+
+      .edit-btn {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      .edit-btn:hover {
+        background: #dbeafe;
+      }
+
+      .delete-btn {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .delete-btn:hover {
+        background: #fecaca;
+      }
+
+      /* 페이지네이션 */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+      }
+
+      .page-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+      }
+
+      .page-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+      }
+
+      .page-btn.active {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+      }
+
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* 빈 상태 및 에러 상태 */
+      .empty-state {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin: 2rem 0;
+      }
+
+      .empty-state .icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+      }
+
+      .empty-state h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+      }
+
+      .empty-state p {
+        color: #6b7280;
+        font-size: 1rem;
+        line-height: 1.5;
+        max-width: 400px;
+      }
+
+      .empty-state .retry-btn {
+        margin-top: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .empty-state .retry-btn:hover {
+        background: #2563eb;
+      }
+
+      /* 로딩 상태 */
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem;
+        color: #6b7280;
+      }
+
+      .spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #e5e7eb;
+        border-radius: 50%;
+        border-top-color: #3b82f6;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 0.75rem;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* 상태 변경 알림 */
+      .status-toast {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: #10b981;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .status-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* 반응형 디자인 */
+      @media (max-width: 768px) {
+        .page-header-content {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .stats-section {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .search-bar {
+          flex-direction: column;
+        }
+
+        .filter-buttons {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: stretch;
+        }
+
+        .filter-group.left,
+        .filter-group.right {
+          justify-content: center;
+          flex-wrap: wrap;
+          flex: none;
+        }
+
+        .sort-dropdown-menu {
+          right: auto;
+          left: 0;
+        }
+
+        .resume-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .pagination {
+          flex-wrap: wrap;
+        }
+
+        .resume-actions {
+          position: static;
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 1rem;
+        }
+
+        .empty-state {
+          margin: 1rem 0;
+          padding: 2rem 1rem;
+        }
+
+        .empty-state .icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+          font-size: 1.125rem;
+        }
+
+        .empty-state p {
+          font-size: 0.875rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .stats-section {
+          grid-template-columns: 1fr;
+        }
+
+        .empty-state {
+          padding: 1.5rem 1rem;
+        }
+
+        .empty-state .icon {
+          font-size: 2.5rem;
+        }
+
+        .empty-state h3 {
+          font-size: 1rem;
+        }
+
+        .empty-state p {
+          font-size: 0.8rem;
+        }
+
+        .empty-state .retry-btn {
+          padding: 0.625rem 1.25rem;
+          font-size: 0.875rem;
+        }
+      }
+    </style>
+  </th:block>
 </head>
+
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
-
-<div class="header">
-  <div class="header-content">
-    <div class="header-left">
-      <h1>자소서 목록</h1>
-      <p>나의 모든 자소서를 한 곳에서 체계적으로 관리하세요</p>
-    </div>
-    <a href="/resumes/create" class="new-resume-btn">
-      ✏️ 새 자소서 작성
-    </a>
-  </div>
-</div>
-
-<div class="container">
-  <!-- 통계 섹션 -->
-  <div class="stats-section">
-    <div class="stat-card total">
-      <div class="stat-number" id="totalCount">0</div>
-      <div class="stat-label">전체 자소서</div>
-    </div>
-    <div class="stat-card completed">
-      <div class="stat-number" id="completedCount">0</div>
-      <div class="stat-label">완료된 자소서</div>
-    </div>
-    <div class="stat-card in-progress">
-      <div class="stat-number" id="writingCount">0</div>
-      <div class="stat-label">작성중</div>
-    </div>
-  </div>
-
-  <!-- 필터 및 검색 섹션 -->
-  <div class="filter-section">
-    <div class="search-bar">
-      <input
-              type="text"
-              class="search-input"
-              placeholder="회사명이나 자소서 제목으로 검색해보세요"
-              id="searchInput"
-      >
-    </div>
-    <div class="filter-buttons">
-      <div class="filter-group left">
-        <button class="filter-btn active" data-filter="all">전체</button>
-        <button class="filter-btn" data-filter="completed">완료</button>
-        <button class="filter-btn" data-filter="writing">작성중</button>
+<!-- 메인 콘텐츠 -->
+<div layout:fragment="content">
+  <!-- 페이지 헤더 -->
+  <div class="page-header">
+    <div class="page-header-content">
+      <div class="page-header-left">
+        <h1>자소서 목록</h1>
+        <p>나의 모든 자소서를 한 곳에서 체계적으로 관리하세요</p>
       </div>
+      <a href="/resumes/create" class="new-resume-btn">
+        ✏️ 새 자소서 작성
+      </a>
+    </div>
+  </div>
 
-      <div class="filter-group right">
-        <div class="sort-dropdown">
-          <button class="sort-button" id="sortButton">
-            <span id="sortButtonText">최신순</span>
-            <span class="arrow">▼</span>
-          </button>
-          <div class="sort-dropdown-menu" id="sortDropdown">
-            <button class="sort-option" data-sort="newest">최신순</button>
-            <button class="sort-option" data-sort="oldest">오래된순</button>
+  <div class="container">
+    <!-- 통계 섹션 -->
+    <div class="stats-section">
+      <div class="stat-card total">
+        <div class="stat-number" id="totalCount">0</div>
+        <div class="stat-label">전체 자소서</div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-number" id="completedCount">0</div>
+        <div class="stat-label">완료된 자소서</div>
+      </div>
+      <div class="stat-card in-progress">
+        <div class="stat-number" id="writingCount">0</div>
+        <div class="stat-label">작성중</div>
+      </div>
+    </div>
+
+    <!-- 필터 및 검색 섹션 -->
+    <div class="filter-section">
+      <div class="search-bar">
+        <input
+                type="text"
+                class="search-input"
+                placeholder="회사명이나 자소서 제목으로 검색해보세요"
+                id="searchInput"
+        >
+      </div>
+      <div class="filter-buttons">
+        <div class="filter-group left">
+          <button class="filter-btn active" data-filter="all">전체</button>
+          <button class="filter-btn" data-filter="completed">완료</button>
+          <button class="filter-btn" data-filter="writing">작성중</button>
+        </div>
+
+        <div class="filter-group right">
+          <div class="sort-dropdown">
+            <button class="sort-button" id="sortButton">
+              <span id="sortButtonText">최신순</span>
+              <span class="arrow">▼</span>
+            </button>
+            <div class="sort-dropdown-menu" id="sortDropdown">
+              <button class="sort-option" data-sort="newest">최신순</button>
+              <button class="sort-option" data-sort="oldest">오래된순</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 로딩 상태 -->
+    <div id="loadingState" class="loading">
+      <div class="spinner"></div>
+      자소서 목록을 불러오는 중...
+    </div>
+
+    <!-- 자소서 그리드 -->
+    <div id="resumeGrid" class="resume-grid" style="display: none;">
+      <!-- 자소서 카드들이 동적으로 생성됩니다 -->
+    </div>
+
+    <!-- 빈 상태 -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="icon">📝</div>
+      <h3 id="emptyTitle">아직 작성된 자소서가 없습니다</h3>
+      <p id="emptyMessage">첫 번째 자소서를 작성해보세요!</p>
+      <button id="retryBtn" class="retry-btn" style="display: none;" onclick="loadResumes()">다시 시도</button>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div id="pagination" class="pagination" style="display: none;">
+      <!-- 페이지네이션 버튼들이 동적으로 생성됩니다 -->
+    </div>
   </div>
 
-  <!-- 로딩 상태 -->
-  <div id="loadingState" class="loading">
-    <div class="spinner"></div>
-    자소서 목록을 불러오는 중...
-  </div>
-
-  <!-- 자소서 그리드 -->
-  <div id="resumeGrid" class="resume-grid" style="display: none;">
-    <!-- 자소서 카드들이 동적으로 생성됩니다 -->
-  </div>
-
-  <!-- 빈 상태 -->
-  <div id="emptyState" class="empty-state" style="display: none;">
-    <div class="icon">📝</div>
-    <h3 id="emptyTitle">아직 작성된 자소서가 없습니다</h3>
-    <p id="emptyMessage">첫 번째 자소서를 작성해보세요!</p>
-    <button id="retryBtn" class="retry-btn" style="display: none;" onclick="loadResumes()">다시 시도</button>
-  </div>
-
-  <!-- 페이지네이션 -->
-  <div id="pagination" class="pagination" style="display: none;">
-    <!-- 페이지네이션 버튼들이 동적으로 생성됩니다 -->
+  <!-- 상태 변경 알림 토스트 -->
+  <div id="statusToast" class="status-toast">
+    상태가 변경되었습니다.
   </div>
 </div>
 
-<!-- 상태 변경 알림 토스트 -->
-<div id="statusToast" class="status-toast">
-  상태가 변경되었습니다.
-</div>
+<!-- 페이지별 JavaScript -->
+<th:block layout:fragment="script">
+  <script>
+    let currentFilter = 'all';
+    let currentSort = 'newest';
+    let currentPage = 1;
+    let resumes = [];
+    let filteredResumes = [];
 
-<div th:replace="~{fragments/footer :: footer}"></div>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    // CSRF 토큰 가져오기
+    function getCSRFHeaders() {
+      const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+      const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
-<!-- Header 기능 보완용 JavaScript -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // 드롭다운 토글 기능
-    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-
-    dropdownToggles.forEach(function(toggle) {
-      toggle.addEventListener('click', function(e) {
-        e.preventDefault();
-
-        // 다른 모든 드롭다운 닫기
-        document.querySelectorAll('.dropdown').forEach(function(dropdown) {
-          if (dropdown !== toggle.closest('.dropdown')) {
-            dropdown.classList.remove('show');
-          }
-        });
-
-        // 현재 드롭다운 토글
-        const dropdown = toggle.closest('.dropdown');
-        dropdown.classList.toggle('show');
-      });
-    });
-
-    // 외부 클릭시 드롭다운 닫기
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.dropdown')) {
-        document.querySelectorAll('.dropdown').forEach(function(dropdown) {
-          dropdown.classList.remove('show');
-        });
-      }
-    });
-
-    // 모바일 네비게이션 토글 기능 (필요한 경우)
-    const navbarToggler = document.querySelector('.navbar-toggler');
-    const navbarCollapse = document.querySelector('.navbar-collapse');
-
-    if (navbarToggler && navbarCollapse) {
-      navbarToggler.addEventListener('click', function() {
-        navbarCollapse.classList.toggle('show');
-      });
-    }
-  });
-</script>
-
-<!-- 메인 페이지 JavaScript -->
-<script>
-  let currentFilter = 'all';
-  let currentSort = 'newest';
-  let currentPage = 1;
-  let resumes = [];
-  let filteredResumes = [];
-
-  // CSRF 토큰 가져오기
-  function getCSRFHeaders() {
-    const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-    const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-
-    if (token && header) {
-      headers[header] = token;
-    }
-
-    return headers;
-  }
-
-  // 자소서 목록 불러오기
-  async function loadResumes() {
-    try {
-      showLoading();
-
-      const response = await fetch('/api/resumes', {
-        method: 'GET',
-        headers: getCSRFHeaders()
-      });
-
-      if (response.ok) {
-        resumes = await response.json();
-        updateStats();
-        applyFilters();
-        renderResumes();
-        hideLoading();
-      } else if (response.status === 401 || response.status === 403) {
-        // 로그인 필요
-        hideLoading();
-        showEmptyState(true, '로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
-      }  else {
-        throw new Error(`서버 오류 (${response.status})`);
-      }
-    } catch (error) {
-      console.error('Load error:', error);
-      hideLoading();
-
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        // 네트워크 오류
-        showEmptyState(true, '네트워크 연결을 확인해주세요.');
-      }
-    }
-  }
-
-  // 페이지 초기화
-  async function init() {
-    await loadResumes();
-    setupEventListeners();
-  }
-
-  // 자소서 상태 판단
-  function getResumeStatus(resume) {
-    // 백엔드에서 status 필드를 제공하는 경우
-    if (resume.status) {
-      // 백엔드 상태를 프론트엔드 상태로 매핑
-      const statusMapping = {
-        'COMPLETED': 'completed',
-        'TEMP_SAVED': 'writing',
-        'IN_PROGRESS': 'writing',
-        'DRAFT': 'writing'
+      const headers = {
+        'Content-Type': 'application/json'
       };
 
-      const mappedStatus = statusMapping[resume.status];
-      if (mappedStatus) {
-        return mappedStatus;
+      if (token && header) {
+        headers[header] = token;
+      }
+
+      return headers;
+    }
+
+    // 자소서 목록 불러오기
+    async function loadResumes() {
+      try {
+        showLoading();
+
+        const response = await fetch('/api/resumes', {
+          method: 'GET',
+          headers: getCSRFHeaders()
+        });
+
+        if (response.ok) {
+          resumes = await response.json();
+          updateStats();
+          applyFilters();
+          renderResumes();
+          hideLoading();
+        } else if (response.status === 401 || response.status === 403) {
+          hideLoading();
+          showEmptyState(true, '로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
+        } else {
+          throw new Error(`서버 오류 (${response.status})`);
+        }
+      } catch (error) {
+        console.error('Load error:', error);
+        hideLoading();
+
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          showEmptyState(true, '네트워크 연결을 확인해주세요.');
+        }
       }
     }
 
-    // 섹션 기반으로 상태 판단
-    const sections = resume.sections || [];
-    const totalSections = sections.length;
+    // 페이지 초기화
+    async function init() {
+      await loadResumes();
+      setupEventListeners();
+    }
 
-    if (totalSections === 0) return 'writing';
+    // 자소서 상태 판단
+    function getResumeStatus(resume) {
+      if (resume.status) {
+        const statusMapping = {
+          'COMPLETED': 'completed',
+          'TEMP_SAVED': 'writing',
+          'IN_PROGRESS': 'writing',
+          'DRAFT': 'writing'
+        };
 
-    const completedSections = sections.filter(s =>
-            s.content && s.content.trim().length > 100
-    ).length;
+        const mappedStatus = statusMapping[resume.status];
+        if (mappedStatus) {
+          return mappedStatus;
+        }
+      }
 
-    const progress = totalSections > 0 ? (completedSections / totalSections) * 100 : 0;
+      const sections = resume.sections || [];
+      const totalSections = sections.length;
 
-    if (progress >= 80) return 'completed';
-    return 'writing';
-  }
+      if (totalSections === 0) return 'writing';
 
-  // 통계 업데이트
-  function updateStats() {
-    const total = resumes.length;
-    const completed = resumes.filter(r => getResumeStatus(r) === 'completed').length;
-    const writing = resumes.filter(r => getResumeStatus(r) === 'writing').length;
+      const completedSections = sections.filter(s =>
+              s.content && s.content.trim().length > 100
+      ).length;
 
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('completedCount').textContent = completed;
-    document.getElementById('writingCount').textContent = writing;
-  }
+      const progress = totalSections > 0 ? (completedSections / totalSections) * 100 : 0;
 
-  // 이벤트 리스너 설정
-  function setupEventListeners() {
-    // 검색
-    document.getElementById('searchInput').addEventListener('input', function() {
-      applyFilters();
-      renderResumes();
-    });
+      if (progress >= 80) return 'completed';
+      return 'writing';
+    }
 
-    // 필터 버튼
-    document.querySelectorAll('[data-filter]').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentFilter = this.dataset.filter;
+    // 통계 업데이트
+    function updateStats() {
+      const total = resumes.length;
+      const completed = resumes.filter(r => getResumeStatus(r) === 'completed').length;
+      const writing = resumes.filter(r => getResumeStatus(r) === 'writing').length;
 
-        currentPage = 1;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('completedCount').textContent = completed;
+      document.getElementById('writingCount').textContent = writing;
+    }
+
+    // 이벤트 리스너 설정
+    function setupEventListeners() {
+      // 검색
+      document.getElementById('searchInput').addEventListener('input', function() {
         applyFilters();
         renderResumes();
       });
-    });
 
-    // 정렬 드롭다운
-    const sortButton = document.getElementById('sortButton');
-    const sortDropdown = document.getElementById('sortDropdown');
+      // 필터 버튼
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentFilter = this.dataset.filter;
 
-    sortButton.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const dropdown = sortDropdown.closest('.sort-dropdown');
-      dropdown.classList.toggle('show');
-      sortDropdown.classList.toggle('show');
-    });
+          currentPage = 1;
+          applyFilters();
+          renderResumes();
+        });
+      });
 
-    // 정렬 옵션 선택
-    document.querySelectorAll('.sort-option').forEach(option => {
-      option.addEventListener('click', function() {
-        const sortText = this.textContent;
-        const sortValue = this.dataset.sort;
+      // 정렬 드롭다운
+      const sortButton = document.getElementById('sortButton');
+      const sortDropdown = document.getElementById('sortDropdown');
 
-        document.getElementById('sortButtonText').textContent = sortText;
-        currentSort = sortValue;
-
+      sortButton.addEventListener('click', function(e) {
+        e.stopPropagation();
         const dropdown = sortDropdown.closest('.sort-dropdown');
+        dropdown.classList.toggle('show');
+        sortDropdown.classList.toggle('show');
+      });
+
+      // 정렬 옵션 선택
+      document.querySelectorAll('.sort-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const sortText = this.textContent;
+          const sortValue = this.dataset.sort;
+
+          document.getElementById('sortButtonText').textContent = sortText;
+          currentSort = sortValue;
+
+          const dropdown = sortDropdown.closest('.sort-dropdown');
+          dropdown.classList.remove('show');
+          sortDropdown.classList.remove('show');
+
+          currentPage = 1;
+          applyFilters();
+          renderResumes();
+        });
+      });
+
+      // 드롭다운 외부 클릭시 닫기
+      document.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.sort-dropdown');
         dropdown.classList.remove('show');
-        sortDropdown.classList.remove('show');
+        document.getElementById('sortDropdown').classList.remove('show');
 
-        currentPage = 1;
-        applyFilters();
-        renderResumes();
+        if (!e.target.closest('.status-dropdown')) {
+          hideAllStatusDropdowns();
+        }
       });
-    });
+    }
 
-    // 드롭다운 외부 클릭시 닫기
-    document.addEventListener('click', function(e) {
-      // 정렬 드롭다운 닫기
-      const dropdown = document.querySelector('.sort-dropdown');
-      dropdown.classList.remove('show');
-      document.getElementById('sortDropdown').classList.remove('show');
+    // 필터 적용
+    function applyFilters() {
+      let filtered = [...resumes];
 
-      // 상태 드롭다운 닫기 (상태 드롭다운이 클릭된 경우가 아닐 때만)
-      if (!e.target.closest('.status-dropdown')) {
-        hideAllStatusDropdowns();
+      // 검색 필터
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      if (searchTerm) {
+        filtered = filtered.filter(resume =>
+                (resume.title && resume.title.toLowerCase().includes(searchTerm)) ||
+                (resume.targetCompany && resume.targetCompany.toLowerCase().includes(searchTerm))
+        );
       }
-    });
-  }
 
-  // 필터 적용
-  function applyFilters() {
-    let filtered = [...resumes];
-
-    // 검색 필터
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    if (searchTerm) {
-      filtered = filtered.filter(resume =>
-              (resume.title && resume.title.toLowerCase().includes(searchTerm)) ||
-              (resume.targetCompany && resume.targetCompany.toLowerCase().includes(searchTerm))
-      );
-    }
-
-    // 상태 필터
-    if (currentFilter !== 'all') {
-      filtered = filtered.filter(resume => getResumeStatus(resume) === currentFilter);
-    }
-
-    // 정렬 (날짜 필드 호환성 처리)
-    filtered.sort((a, b) => {
-      // snake_case와 camelCase 모두 지원
-      const aDate = new Date(a.updated_at || a.updatedAt || a.created_at || a.createdAt);
-      const bDate = new Date(b.updated_at || b.updatedAt || b.created_at || b.createdAt);
-
-      if (currentSort === 'newest') {
-        return bDate - aDate;
-      } else {
-        return aDate - bDate;
+      // 상태 필터
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter(resume => getResumeStatus(resume) === currentFilter);
       }
-    });
 
-    filteredResumes = filtered;
-  }
+      // 정렬
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.updated_at || a.updatedAt || a.created_at || a.createdAt);
+        const bDate = new Date(b.updated_at || b.updatedAt || b.created_at || b.createdAt);
 
-  // 자소서 목록 렌더링
-  function renderResumes() {
-    const grid = document.getElementById('resumeGrid');
-
-    if (filteredResumes.length === 0) {
-      showEmptyState(false); // 일반적인 빈 상태
-      return;
-    }
-
-    // 페이지네이션 설정
-    const itemsPerPage = 10;
-    const totalPages = Math.ceil(filteredResumes.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageResumes = filteredResumes.slice(startIndex, endIndex);
-
-    grid.innerHTML = '';
-    grid.style.display = 'grid';
-
-    pageResumes.forEach(resume => {
-      const card = createResumeCard(resume);
-      grid.appendChild(card);
-    });
-
-    renderPagination(totalPages);
-    hideEmptyState();
-  }
-
-  // 자소서 카드 생성
-  function createResumeCard(resume) {
-    const status = getResumeStatus(resume);
-
-    const statusLabels = {
-      'completed': '완료',
-      'writing': '작성중'
-    };
-
-    const card = document.createElement('div');
-    card.className = 'resume-card';
-    card.onclick = () => viewResume(resume.id);
-
-    // 날짜 필드 처리 (snake_case와 camelCase 모두 지원)
-    const createdDate = resume.created_at || resume.createdAt;
-    const updatedDate = resume.updated_at || resume.updatedAt;
-
-    card.innerHTML = `
-        <div class="resume-title">${resume.title || '제목 없음'}</div>
-        <div class="resume-company">${resume.targetCompany || '회사명 미설정'} • ${resume.position || '직무 미설정'}</div>
-
-        <div class="status-dropdown">
-          <span class="status-badge status-${status}" onclick="event.stopPropagation(); showStatusDropdown(${resume.id})" title="클릭하여 상태 변경">
-            ${statusLabels[status]}
-          </span>
-          <div class="status-dropdown-menu" id="statusDropdown-${resume.id}">
-            <button class="status-option completed" onclick="event.stopPropagation(); changeResumeStatus(${resume.id}, 'completed')">
-              <span class="status-icon"></span>
-              완료
-            </button>
-            <button class="status-option writing" onclick="event.stopPropagation(); changeResumeStatus(${resume.id}, 'writing')">
-              <span class="status-icon"></span>
-              작성중
-            </button>
-          </div>
-        </div>
-
-        <div class="resume-dates">
-          <span>작성일: ${formatDate(createdDate)}</span>
-          <span>수정일: ${formatDate(updatedDate)}</span>
-        </div>
-
-        <div class="resume-actions">
-          <button class="action-btn edit-btn" onclick="event.stopPropagation(); editResume(${resume.id})" title="수정">
-            ✏️
-          </button>
-          <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteResume(${resume.id})" title="삭제">
-            🗑️
-          </button>
-        </div>
-      `;
-
-    return card;
-  }
-
-  // 상태 드롭다운 표시
-  function showStatusDropdown(resumeId) {
-    // 모든 다른 드롭다운 닫기
-    document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
-      menu.classList.remove('show');
-    });
-
-    // 해당 드롭다운 토글
-    const dropdown = document.getElementById(`statusDropdown-${resumeId}`);
-    dropdown.classList.add('show');
-  }
-
-  // 자소서 상태 변경
-  async function changeResumeStatus(resumeId, newStatus) {
-    const newStatusBackend = newStatus === 'completed' ? 'COMPLETED' : 'TEMP_SAVED';
-
-    try {
-      // 서버에 상태 변경 요청
-      const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
-        headers: getCSRFHeaders(),
-        body: JSON.stringify({
-          status: newStatusBackend
-        })
+        if (currentSort === 'newest') {
+          return bDate - aDate;
+        } else {
+          return aDate - bDate;
+        }
       });
 
-      if (response.ok) {
-        // 로컬 데이터 업데이트
+      filteredResumes = filtered;
+    }
+
+    // 자소서 목록 렌더링
+    function renderResumes() {
+      const grid = document.getElementById('resumeGrid');
+
+      if (filteredResumes.length === 0) {
+        showEmptyState(false);
+        return;
+      }
+
+      const itemsPerPage = 10;
+      const totalPages = Math.ceil(filteredResumes.length / itemsPerPage);
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const pageResumes = filteredResumes.slice(startIndex, endIndex);
+
+      grid.innerHTML = '';
+      grid.style.display = 'grid';
+
+      pageResumes.forEach(resume => {
+        const card = createResumeCard(resume);
+        grid.appendChild(card);
+      });
+
+      renderPagination(totalPages);
+      hideEmptyState();
+    }
+
+    // 자소서 카드 생성
+    function createResumeCard(resume) {
+      const status = getResumeStatus(resume);
+
+      const statusLabels = {
+        'completed': '완료',
+        'writing': '작성중'
+      };
+
+      const card = document.createElement('div');
+      card.className = 'resume-card';
+      card.onclick = () => viewResume(resume.id);
+
+      const createdDate = resume.created_at || resume.createdAt;
+      const updatedDate = resume.updated_at || resume.updatedAt;
+
+      card.innerHTML = `
+                    <div class="resume-title">${resume.title || '제목 없음'}</div>
+                    <div class="resume-company">${resume.targetCompany || '회사명 미설정'} • ${resume.position || '직무 미설정'}</div>
+
+                    <div class="status-dropdown">
+                      <span class="status-badge status-${status}" onclick="event.stopPropagation(); showStatusDropdown(${resume.id})" title="클릭하여 상태 변경">
+                        ${statusLabels[status]}
+                      </span>
+                      <div class="status-dropdown-menu" id="statusDropdown-${resume.id}">
+                        <button class="status-option completed" onclick="event.stopPropagation(); changeResumeStatus(${resume.id}, 'completed')">
+                          <span class="status-icon"></span>
+                          완료
+                        </button>
+                        <button class="status-option writing" onclick="event.stopPropagation(); changeResumeStatus(${resume.id}, 'writing')">
+                          <span class="status-icon"></span>
+                          작성중
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="resume-dates">
+                      <span>작성일: ${formatDate(createdDate)}</span>
+                      <span>수정일: ${formatDate(updatedDate)}</span>
+                    </div>
+
+                    <div class="resume-actions">
+                      <button class="action-btn edit-btn" onclick="event.stopPropagation(); editResume(${resume.id})" title="수정">
+                        ✏️
+                      </button>
+                      <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteResume(${resume.id})" title="삭제">
+                        🗑️
+                      </button>
+                    </div>
+                  `;
+
+      return card;
+    }
+
+    // 상태 드롭다운 표시
+    function showStatusDropdown(resumeId) {
+      document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+        menu.classList.remove('show');
+      });
+
+      const dropdown = document.getElementById(`statusDropdown-${resumeId}`);
+      dropdown.classList.add('show');
+    }
+
+    // 자소서 상태 변경
+    async function changeResumeStatus(resumeId, newStatus) {
+      const newStatusBackend = newStatus === 'completed' ? 'COMPLETED' : 'TEMP_SAVED';
+
+      try {
+        const response = await fetch(`/api/resumes/${resumeId}`, {
+          method: 'PUT',
+          headers: getCSRFHeaders(),
+          body: JSON.stringify({
+            status: newStatusBackend
+          })
+        });
+
+        if (response.ok) {
+          const resumeIndex = resumes.findIndex(r => r.id === resumeId);
+          if (resumeIndex !== -1) {
+            const oldStatus = getResumeStatus(resumes[resumeIndex]);
+
+            if (oldStatus === newStatus) {
+              hideAllStatusDropdowns();
+              return;
+            }
+
+            resumes[resumeIndex].status = newStatusBackend;
+            resumes[resumeIndex].updatedAt = new Date().toISOString();
+            if (resumes[resumeIndex].updated_at) {
+              resumes[resumeIndex].updated_at = new Date().toISOString();
+            }
+          }
+
+          updateStats();
+          applyFilters();
+          renderResumes();
+
+          const statusLabel = newStatus === 'completed' ? '완료' : '작성중';
+          const resumeTitle = resumes[resumeIndex]?.title || '자소서';
+          showStatusToast(`"${resumeTitle}" 상태가 "${statusLabel}"로 변경되었습니다.`);
+        } else {
+          throw new Error('상태 변경에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Status change error:', error);
+
+        console.warn('API 오류로 인해 임시로 로컬에서만 상태를 변경합니다.');
+
         const resumeIndex = resumes.findIndex(r => r.id === resumeId);
         if (resumeIndex !== -1) {
           const oldStatus = getResumeStatus(resumes[resumeIndex]);
 
-          // 같은 상태를 선택한 경우 드롭다운만 닫기
           if (oldStatus === newStatus) {
             hideAllStatusDropdowns();
             return;
           }
 
           resumes[resumeIndex].status = newStatusBackend;
-          // 수정일도 업데이트
           resumes[resumeIndex].updatedAt = new Date().toISOString();
           if (resumes[resumeIndex].updated_at) {
             resumes[resumeIndex].updated_at = new Date().toISOString();
           }
+
+          updateStats();
+          applyFilters();
+          renderResumes();
+
+          const statusLabel = newStatus === 'completed' ? '완료' : '작성중';
+          const resumeTitle = resumes[resumeIndex]?.title || '자소서';
+          showStatusToast(`"${resumeTitle}" 상태가 "${statusLabel}"로 변경되었습니다. (임시 변경)`);
         }
-
-        // 즉시 UI 업데이트
-        updateStats();
-        applyFilters();
-        renderResumes();
-
-        // 성공 토스트 메시지
-        const statusLabel = newStatus === 'completed' ? '완료' : '작성중';
-        const resumeTitle = resumes[resumeIndex]?.title || '자소서';
-        showStatusToast(`"${resumeTitle}" 상태가 "${statusLabel}"로 변경되었습니다.`);
-      } else {
-        throw new Error('상태 변경에 실패했습니다.');
       }
-    } catch (error) {
-      console.error('Status change error:', error);
 
-      // API 실패시 로컬에서만 변경 (임시)
-      console.warn('API 오류로 인해 임시로 로컬에서만 상태를 변경합니다.');
+      hideAllStatusDropdowns();
+    }
 
-      const resumeIndex = resumes.findIndex(r => r.id === resumeId);
-      if (resumeIndex !== -1) {
-        const oldStatus = getResumeStatus(resumes[resumeIndex]);
+    // 모든 상태 드롭다운 숨기기
+    function hideAllStatusDropdowns() {
+      document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
+        menu.classList.remove('show');
+      });
+    }
 
-        // 같은 상태를 선택한 경우 드롭다운만 닫기
-        if (oldStatus === newStatus) {
-          hideAllStatusDropdowns();
-          return;
-        }
+    // 상태 변경 토스트 메시지 표시
+    function showStatusToast(message) {
+      const toast = document.getElementById('statusToast');
+      toast.textContent = message;
+      toast.classList.add('show');
 
-        resumes[resumeIndex].status = newStatusBackend;
-        resumes[resumeIndex].updatedAt = new Date().toISOString();
-        if (resumes[resumeIndex].updated_at) {
-          resumes[resumeIndex].updated_at = new Date().toISOString();
-        }
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
 
-        // UI 업데이트
-        updateStats();
-        applyFilters();
-        renderResumes();
+    // 페이지네이션 렌더링
+    function renderPagination(totalPages) {
+      const pagination = document.getElementById('pagination');
 
-        const statusLabel = newStatus === 'completed' ? '완료' : '작성중';
-        const resumeTitle = resumes[resumeIndex]?.title || '자소서';
-        showStatusToast(`"${resumeTitle}" 상태가 "${statusLabel}"로 변경되었습니다. (임시 변경)`);
+      if (totalPages <= 1) {
+        pagination.style.display = 'none';
+        return;
       }
+
+      pagination.style.display = 'flex';
+      pagination.innerHTML = '';
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'page-btn';
+      prevBtn.textContent = '<';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => changePage(currentPage - 1);
+      pagination.appendChild(prevBtn);
+
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => changePage(i);
+        pagination.appendChild(pageBtn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'page-btn';
+      nextBtn.textContent = '>';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => changePage(currentPage + 1);
+      pagination.appendChild(nextBtn);
     }
 
-    // 드롭다운 닫기
-    hideAllStatusDropdowns();
-  }
-
-  // 모든 상태 드롭다운 숨기기
-  function hideAllStatusDropdowns() {
-    document.querySelectorAll('.status-dropdown-menu').forEach(menu => {
-      menu.classList.remove('show');
-    });
-  }
-
-  // 상태 변경 토스트 메시지 표시
-  function showStatusToast(message) {
-    const toast = document.getElementById('statusToast');
-    toast.textContent = message;
-    toast.classList.add('show');
-
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3000);
-  }
-
-  // 페이지네이션 렌더링
-  function renderPagination(totalPages) {
-    const pagination = document.getElementById('pagination');
-
-    if (totalPages <= 1) {
-      pagination.style.display = 'none';
-      return;
+    // 페이지 변경
+    function changePage(page) {
+      currentPage = page;
+      renderResumes();
     }
 
-    pagination.style.display = 'flex';
-    pagination.innerHTML = '';
-
-    // 이전 버튼
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'page-btn';
-    prevBtn.textContent = '<';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => changePage(currentPage - 1);
-    pagination.appendChild(prevBtn);
-
-    // 페이지 번호들
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-
-    for (let i = startPage; i <= endPage; i++) {
-      const pageBtn = document.createElement('button');
-      pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-      pageBtn.textContent = i;
-      pageBtn.onclick = () => changePage(i);
-      pagination.appendChild(pageBtn);
-    }
-
-    // 다음 버튼
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'page-btn';
-    nextBtn.textContent = '>';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => changePage(currentPage + 1);
-    pagination.appendChild(nextBtn);
-  }
-
-  // 페이지 변경
-  function changePage(page) {
-    currentPage = page;
-    renderResumes();
-  }
-
-  // 날짜 포맷팅
-  function formatDate(dateString) {
-    if (!dateString) {
-      return '-';
-    }
-
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
+    // 날짜 포맷팅
+    function formatDate(dateString) {
+      if (!dateString) {
         return '-';
       }
 
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return '-';
-    }
-  }
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+          return '-';
+        }
 
-  // 자소서 조회
-  function viewResume(resumeId) {
-    window.location.href = `/resumes/result?resumeId=${resumeId}`;
-  }
-
-  // 자소서 수정
-  function editResume(resumeId) {
-    window.location.href = `/resumes/create?resumeId=${resumeId}`;
-  }
-
-  // 자소서 삭제
-  async function deleteResume(resumeId) {
-    if (!confirm('정말로 이 자소서를 삭제하시겠습니까?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'DELETE',
-        headers: getCSRFHeaders()
-      });
-
-      if (response.ok) {
-        showStatusToast('자소서가 삭제되었습니다.');
-        await loadResumes(); // 목록 새로고침
-      } else {
-        throw new Error('삭제에 실패했습니다.');
+        return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch (error) {
+        console.error('Date formatting error:', error);
+        return '-';
       }
-    } catch (error) {
-      console.error('Delete error:', error);
-
-      // API 오류시 더미 데이터에서만 삭제 (임시)
-      console.warn('API 오류로 인해 임시 데이터에서만 삭제합니다.');
-      resumes = resumes.filter(r => r.id !== resumeId);
-      updateStats();
-      applyFilters();
-      renderResumes();
-      showStatusToast('자소서가 삭제되었습니다. (임시 삭제)');
     }
-  }
 
-  // 로딩 상태 표시/숨김
-  function showLoading() {
-    document.getElementById('loadingState').style.display = 'flex';
-    document.getElementById('resumeGrid').style.display = 'none';
-    hideEmptyState();
-    document.getElementById('pagination').style.display = 'none';
-  }
-
-  function hideLoading() {
-    document.getElementById('loadingState').style.display = 'none';
-  }
-
-  // 빈 상태 표시/숨김
-  function showEmptyState(isError = false, message = null) {
-    const emptyState = document.getElementById('emptyState');
-    const emptyTitle = document.getElementById('emptyTitle');
-    const emptyMessage = document.getElementById('emptyMessage');
-    const retryBtn = document.getElementById('retryBtn');
-    const icon = emptyState.querySelector('.icon');
-
-    emptyState.style.display = 'flex';
-    document.getElementById('resumeGrid').style.display = 'none';
-    document.getElementById('pagination').style.display = 'none';
-
-    if (isError) {
-      // 에러 상태
-      icon.textContent = '⚠️';
-      emptyTitle.textContent = '자소서 목록을 불러오는 중 오류가 발생했습니다';
-      emptyMessage.textContent = message || '네트워크 연결을 확인하고 다시 시도해주세요.';
-      retryBtn.style.display = 'inline-block';
-    } else {
-      // 빈 상태
-      icon.textContent = '📝';
-      emptyTitle.textContent = '아직 작성된 자소서가 없습니다';
-      emptyMessage.textContent = '첫 번째 자소서를 작성해보세요!';
-      retryBtn.style.display = 'none';
+    // 자소서 조회
+    function viewResume(resumeId) {
+      window.location.href = `/resumes/result?resumeId=${resumeId}`;
     }
-  }
 
-  function hideEmptyState() {
-    const emptyState = document.getElementById('emptyState');
-    emptyState.style.display = 'none';
-  }
+    // 자소서 수정
+    function editResume(resumeId) {
+      window.location.href = `/resumes/create?resumeId=${resumeId}`;
+    }
 
-  // 페이지 로드시 초기화
-  document.addEventListener('DOMContentLoaded', init);
-</script>
+    // 자소서 삭제
+    async function deleteResume(resumeId) {
+      if (!confirm('정말로 이 자소서를 삭제하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/resumes/${resumeId}`, {
+          method: 'DELETE',
+          headers: getCSRFHeaders()
+        });
+
+        if (response.ok) {
+          showStatusToast('자소서가 삭제되었습니다.');
+          await loadResumes();
+        } else {
+          throw new Error('삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+
+        console.warn('API 오류로 인해 임시 데이터에서만 삭제합니다.');
+        resumes = resumes.filter(r => r.id !== resumeId);
+        updateStats();
+        applyFilters();
+        renderResumes();
+        showStatusToast('자소서가 삭제되었습니다. (임시 삭제)');
+      }
+    }
+
+    // 로딩 상태 표시/숨김
+    function showLoading() {
+      document.getElementById('loadingState').style.display = 'flex';
+      document.getElementById('resumeGrid').style.display = 'none';
+      hideEmptyState();
+      document.getElementById('pagination').style.display = 'none';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingState').style.display = 'none';
+    }
+
+    // 빈 상태 표시/숨김
+    function showEmptyState(isError = false, message = null) {
+      const emptyState = document.getElementById('emptyState');
+      const emptyTitle = document.getElementById('emptyTitle');
+      const emptyMessage = document.getElementById('emptyMessage');
+      const retryBtn = document.getElementById('retryBtn');
+      const icon = emptyState.querySelector('.icon');
+
+      emptyState.style.display = 'flex';
+      document.getElementById('resumeGrid').style.display = 'none';
+      document.getElementById('pagination').style.display = 'none';
+
+      if (isError) {
+        icon.textContent = '⚠️';
+        emptyTitle.textContent = '자소서 목록을 불러오는 중 오류가 발생했습니다';
+        emptyMessage.textContent = message || '네트워크 연결을 확인하고 다시 시도해주세요.';
+        retryBtn.style.display = 'inline-block';
+      } else {
+        icon.textContent = '📝';
+        emptyTitle.textContent = '아직 작성된 자소서가 없습니다';
+        emptyMessage.textContent = '첫 번째 자소서를 작성해보세요!';
+        retryBtn.style.display = 'none';
+      }
+    }
+
+    function hideEmptyState() {
+      const emptyState = document.getElementById('emptyState');
+      emptyState.style.display = 'none';
+    }
+
+    // 페이지 로드시 초기화
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</th:block>
 </body>
 </html>

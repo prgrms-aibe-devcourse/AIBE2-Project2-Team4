@@ -1,0 +1,247 @@
+/* static/css/header.css */
+
+/* 헤더 전용 스타일 - 높은 우선순위로 설정 */
+.portpilot-header {
+    background-color: #4A68C4 !important;
+    padding: 8px 0 !important;
+    position: relative;
+    z-index: 1000;
+    min-height: 60px !important;
+}
+
+.portpilot-header .container {
+    max-width: 1400px !important;
+    width: 100% !important;
+    padding: 0 15px !important;
+}
+
+.portpilot-header .navbar-brand {
+    flex-shrink: 0 !important;
+    margin-right: 20px !important;
+}
+
+.portpilot-header .navbar-brand img {
+    height: 70px !important;
+    width: auto !important;
+    margin-right: 10px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.portpilot-header .navbar-collapse {
+    flex-grow: 1 !important;
+    justify-content: space-between !important;
+}
+
+.portpilot-header .navbar-nav {
+    flex-direction: row !important;
+    margin-right: auto !important;
+    flex-wrap: nowrap !important;
+}
+
+.portpilot-header .nav-item {
+    flex-shrink: 0 !important;
+}
+
+.portpilot-header .nav-link {
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    transition: all 0.3s ease !important;
+    border-radius: 4px !important;
+}
+
+.portpilot-header .nav-link:hover {
+    background-color: rgba(255,255,255,0.15) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+}
+
+/* 우측 메뉴 영역 */
+.portpilot-header .d-flex.align-items-center {
+    flex-shrink: 0 !important;
+    margin-left: 20px !important;
+}
+
+.portpilot-header .form-inline {
+    margin-right: 15px !important;
+    flex-shrink: 0 !important;
+}
+
+.portpilot-header .input-group {
+    min-width: 220px !important;
+    max-width: 280px !important;
+}
+
+.portpilot-header .form-control {
+    border-radius: 4px 0 0 4px !important;
+    border: none !important;
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+}
+
+.portpilot-header .search-button {
+    background-color: #5A7BD4 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0 4px 4px 0 !important;
+    padding: 8px 15px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+.portpilot-header .search-button:hover {
+    background-color: #4A5BC4 !important;
+}
+
+/* 드롭다운 스타일 */
+.portpilot-header .dropdown-menu {
+    border: none !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    border-radius: 8px !important;
+    margin-top: 8px !important;
+    min-width: 160px !important;
+}
+
+.portpilot-header .dropdown-item {
+    padding: 12px 20px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.portpilot-header .dropdown-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.portpilot-header .dropdown-item button {
+    background: none !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: left !important;
+    padding: 0 !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    font-size: inherit !important;
+}
+
+.portpilot-header .dropdown-toggle::after {
+    color: white !important;
+    margin-left: 8px !important;
+}
+
+/* 로그인/회원가입 링크 */
+.portpilot-header .navbar-nav .nav-link {
+    margin: 0 5px !important;
+}
+
+/* 모바일 토글 버튼 */
+.portpilot-header .navbar-toggler {
+    border: none !important;
+    padding: 4px 8px !important;
+    background: rgba(255,255,255,0.1) !important;
+    border-radius: 4px !important;
+}
+
+.portpilot-header .navbar-toggler:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.portpilot-header .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+    width: 1.2em !important;
+    height: 1.2em !important;
+}
+
+/* 반응형 대응 */
+@media (max-width: 1200px) {
+    .portpilot-header .nav-link {
+        padding: 8px 10px !important;
+        font-size: 13px !important;
+    }
+
+    .portpilot-header .input-group {
+        min-width: 200px !important;
+        max-width: 220px !important;
+    }
+}
+
+@media (max-width: 991px) {
+    .portpilot-header .navbar-collapse {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        background: rgba(74, 104, 196, 0.95) !important;
+        margin-top: 10px !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+    }
+
+    .portpilot-header .navbar-nav {
+        flex-direction: column !important;
+        margin-bottom: 15px !important;
+        width: 100% !important;
+    }
+
+    .portpilot-header .nav-item {
+        width: 100% !important;
+        margin: 2px 0 !important;
+    }
+
+    .portpilot-header .nav-link {
+        padding: 12px 15px !important;
+        border-radius: 6px !important;
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    .portpilot-header .d-flex.align-items-center {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin-left: 0 !important;
+        gap: 15px !important;
+    }
+
+    .portpilot-header .form-inline {
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+
+    .portpilot-header .input-group {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .portpilot-header .navbar-nav:last-child {
+        margin-bottom: 0 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .portpilot-header {
+        padding: 5px 0 !important;
+    }
+
+    .portpilot-header .navbar-brand img {
+        height: 40px !important;
+    }
+
+    .portpilot-header .container {
+        padding: 0 10px !important;
+    }
+}
+
+/* 추가: 브라우저 호환성 */
+.portpilot-header * {
+    box-sizing: border-box !important;
+}
+
+/* 텍스트 선택 방지 (옵션) */
+.portpilot-header .nav-link {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+}
