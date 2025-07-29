@@ -1,0 +1,46 @@
+/* 기술스택 섹션 컨테이너 */
+.tech-stack-section {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+/* 태그 컨테이너 */
+.tag-container {
+    min-height: 40px;
+    padding: 8px;
+    border: 1px dashed #dee2e6;
+    border-radius: 6px;
+    background-color: white;
+}
+
+/* 개별 태그 스타일 */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 태그 제거 버튼 */
+.remove-tag {
+    margin-left: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 4px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+    line-height: 1;
+}
+
+.remove-tag:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+}

@@ -31,8 +31,18 @@ public class StudyService {
     // 현재 로그인된 사용자 가져오기
     private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
         String email = auth.getName();
-        return userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            throw new IllegalStateException("등록되지 않은 사용자입니다.");
+        }
+
+        return user;
     }
 
     // 스터디 생성

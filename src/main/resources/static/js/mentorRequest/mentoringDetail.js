@@ -34,7 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
             currentUserId = data.currentUserId;
             proposedById = data.proposedById;
 
-            // 상태별 UI 표시
+            console.log('현재 사용자 ID:', currentUserId);
+            console.log('신청 상태:', currentStatus);
+
             showUIForStatus(currentStatus);
         })
         .catch(err => {
@@ -100,14 +102,38 @@ document.addEventListener("DOMContentLoaded", () => {
         statusDisplay.innerHTML = `<span class="status-badge ${badgeClass}">${statusText}</span>`;
     }
 
-    // 상태별 UI 표시
+    // 상태별 UI 표시 (권한 체크 추가)
     function showUIForStatus(status) {
         if (status === 'PENDING') {
-            document.getElementById('actionButtons').style.display = 'flex';
+            // 멘토만 수락/거절 버튼을 볼 수 있음
+            const userRole = sessionStorage.getItem('userRole');
+            console.log('저장된 권한:', userRole);
+
+            if (userRole === 'mentor') {
+                document.getElementById('actionButtons').style.display = 'flex';
+                console.log('멘토 권한: 수락/거절 버튼 표시');
+            } else {
+                console.log('멘티 권한: 수락/거절 버튼 숨김');
+                // 멘티에게는 대기 중 메시지만 표시
+                document.getElementById('actionButtons').style.display = 'none';
+            }
         }
         else if (status === 'ACCEPTED') {
             if (!scheduledAt) {
                 document.getElementById('schedule-section').style.display = 'block';
+
+                // 제안된 일정이 있으면 표시
+                if (proposedAt) {
+                    const proposedInfo = document.createElement('div');
+                    proposedInfo.className = 'alert alert-info mt-3';
+                    proposedInfo.innerHTML = `
+                        <h6><i class="fas fa-calendar-alt me-2"></i>제안된 일정</h6>
+                        <p class="mb-0"><strong>제안된 멘토링 날짜:</strong> ${new Date(proposedAt).toLocaleString()}</p>
+                    `;
+
+                    // schedule-section 앞에 추가
+                    document.getElementById('schedule-section').insertAdjacentElement('beforebegin', proposedInfo);
+                }
 
                 // 제안자는 수락 버튼 비활성화
                 if (proposedAt && currentUserId !== proposedById) {

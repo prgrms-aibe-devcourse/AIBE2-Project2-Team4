@@ -53,7 +53,9 @@ public class MentoringApiController {
 
     // 멘토 목록 조회
     @GetMapping("/mentors")
-    public ResponseEntity<List<MentorProfileResponseDto>> getMentors() {
+    public ResponseEntity<Map<String, Object>> getMentors() {
+        User currentUser = getCurrentUser();
+
         List<MentorProfile> mentors = mentorProfileRepository.findAll();
         List<MentorProfileResponseDto> dtos = mentors.stream()
                 .map(mentor -> new MentorProfileResponseDto(
@@ -62,7 +64,63 @@ public class MentoringApiController {
                         mentor.getTechStack(),
                         mentor.getDescription()
                 )).collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        // Map으로 현재 사용자 이메일도 함께 리턴
+        Map<String, Object> result = new HashMap<>();
+        result.put("mentors", dtos);
+        result.put("currentUserEmail", currentUser != null ? currentUser.getEmail() : null);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // 멘토 프로필 수정
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateMentorProfile(@RequestBody MentorProfileDto dto) {
+        User user = getCurrentUser();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+
+        try {
+            Optional<Object> existing = mentorProfileRepository.findByUser(user);
+            if (!existing.isPresent()) {
+                return ResponseEntity.badRequest().body("등록된 멘토 프로필이 없습니다.");
+            }
+
+            if (existing.get() instanceof MentorProfile) {
+                MentorProfile profile = (MentorProfile) existing.get();
+                profile.setTechStack(dto.getTechStack());
+                profile.setDescription(dto.getDescription());
+                mentorProfileRepository.save(profile);
+                return ResponseEntity.ok().body("멘토 프로필이 수정되었습니다.");
+            }
+
+            return ResponseEntity.badRequest().body("프로필을 찾을 수 없습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("수정 중 오류가 발생했습니다.");
+        }
+    }
+
+    // 멘토 프로필 삭제
+    @DeleteMapping("/profile")
+    public ResponseEntity<?> deleteMentorProfile() {
+        User user = getCurrentUser();
+        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+
+        try {
+            Optional<Object> existing = mentorProfileRepository.findByUser(user);
+            if (!existing.isPresent()) {
+                return ResponseEntity.badRequest().body("등록된 멘토 프로필이 없습니다.");
+            }
+
+            if (existing.get() instanceof MentorProfile) {
+                MentorProfile profile = (MentorProfile) existing.get();
+                mentorProfileRepository.delete(profile);
+                return ResponseEntity.ok().body("멘토 프로필이 삭제되었습니다.");
+            }
+
+            return ResponseEntity.badRequest().body("프로필을 찾을 수 없습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("삭제 중 오류가 발생했습니다.");
+        }
     }
 
     // 멘토가 받은 신청 조회
