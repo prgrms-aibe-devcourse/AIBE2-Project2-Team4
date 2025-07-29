@@ -224,4 +224,13 @@ public class ProjectService {
     public long countTotalProjects() {
         return projectRepo.count();
     }
+
+    /** 메인에 올릴 때 사용 함수 */
+    public List<Project> findLatestOpenProjects(int limit) {
+        return projectRepo.findByStatus(ProjectStatus.OPEN)
+                .stream()
+                .sorted(Comparator.comparing(Project::getCreatedAt).reversed())
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
 }

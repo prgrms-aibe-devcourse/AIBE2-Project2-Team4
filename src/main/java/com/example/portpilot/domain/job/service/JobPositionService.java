@@ -132,4 +132,16 @@ public class JobPositionService {
         jobPosition.setStatus(status);
         return jobPositionRepository.save(jobPosition);
     }
+
+    /**
+     * 메인화면 전송용
+     */
+    public List<JobPosition> getLatestActiveJobs() {
+        return jobPositionRepository
+                .findByStatus("모집중")
+                .stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt())) // 최신순 정렬
+                .limit(4)
+                .toList();
+    }
 }

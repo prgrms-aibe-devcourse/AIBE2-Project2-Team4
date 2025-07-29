@@ -46,4 +46,6 @@ public interface JobPositionRepository extends JpaRepository<JobPosition, Long> 
 
     // 특정 회사의 모집중인 채용공고만
     List<JobPosition> findByCompanyIdAndStatus(Long companyId, String status);
+
+    
 }
