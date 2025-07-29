@@ -249,11 +249,25 @@ public class StudyService {
         return participationRepo.findByStudyAndStatus(study, status);
     }
 
-    // 테스트용 스터디 삭제
-    public void deleteStudy(Long id) {
-        StudyRecruitment study = studyRepo.findById(id)
+    // 스터디 삭제
+    @Transactional
+    public void deleteStudy(Long id, String userEmail) throws IllegalAccessException {
+        StudyRecruitment study = studyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디가 존재하지 않습니다."));
-        studyRepo.delete(study);
+
+        System.out.println("요청자 email: " + userEmail);
+        System.out.println("작성자 email: " + study.getUser().getEmail());
+        System.out.println("스터디 완료 여부: " + study.isCompleted());
+
+        if (!study.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalAccessException("삭제 권한이 없습니다.");
+        }
+
+        if (!study.isCompleted()) {
+            throw new IllegalStateException("아직 종료되지 않은 스터디입니다.");
+        }
+
+        studyRepository.delete(study);
     }
 
     // 스터디 강제 완료 처리 테스트용이에요
