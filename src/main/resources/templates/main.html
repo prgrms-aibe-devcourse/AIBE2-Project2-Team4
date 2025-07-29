@@ -107,16 +107,8 @@
         </div>
     </div>
 
-    <!-- 채용 공고 -->
-    <div class="section">
-        <h2>채용 정보</h2>
-        <div th:if="${#lists.isEmpty(jobs)}" class="empty-message">등록된 채용 공고가 없습니다.</div>
-        <div th:each="job : ${jobs}" class="card">
-            <h4 th:text="${job.position}">채용 포지션</h4>
-            <p th:text="${job.company}">회사</p>
-            <a th:href="@{/jobs/{id}(id=${job.id})}" class="btn btn-sm btn-outline-success">채용 공고 보기</a>
-        </div>
-    </div>
+    <!-- 채용 공고 아마 추가? -->
+
 
 </div>
 </body>

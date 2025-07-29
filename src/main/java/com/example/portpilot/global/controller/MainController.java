@@ -31,9 +31,7 @@ public class MainController {
         List<StudyRecruitment> studies = studyService.findLatestOpenStudies(4);
         model.addAttribute("studies", studies);
 
-        // 최근 채용 공고 5개 아직 완전하지 않음
-        List<JobPosition> jobs = jobPositionService.getLatestActiveJobs();
-        model.addAttribute("jobs", jobs);
+        //모집 중인 채용 공고 (추가?)
 
         return "main";
     }
