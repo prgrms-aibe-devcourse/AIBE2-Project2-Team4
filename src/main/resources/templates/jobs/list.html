@@ -28,7 +28,7 @@
             font-size: 1.2rem;
         }
         .search-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #4A68C4;
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -41,17 +41,14 @@
             gap: 2px;
         }
     </style>
+    <link th:href="@{/css/header.css}" rel="stylesheet" />
 </head>
 <body class="bg-light">
 
 <!-- 헤더 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="/jobs">
-            <i class="fas fa-anchor me-2"></i>PortPilot
-        </a>
-    </div>
-</nav>
+<div class="wrapper">
+    <div th:replace="fragments/header::header"></div>
+</div>
 
 <!-- 검색 섹션 -->
 <section class="search-section">
