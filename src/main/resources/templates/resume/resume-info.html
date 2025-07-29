@@ -1381,8 +1381,8 @@
             headers: getCSRFHeaders(),
             body: JSON.stringify({
               type: 'HIGH_SCHOOL',
-              schoolName: formData.highschool.schoolName.trim(),
-              graduationDate: formData.highschool.graduationYear ? formData.highschool.graduationYear + '-03-01' : null,
+              school_name: formData.highschool.schoolName.trim(),
+              graduation_date: formData.highschool.graduationYear ? formData.highschool.graduationYear + '-03-01' : null,
               isCurrent: false
             })
           });
@@ -1396,12 +1396,12 @@
               headers: getCSRFHeaders(),
               body: JSON.stringify({
                 type: 'UNIVERSITY',
-                schoolName: university.schoolName.trim(),
+                school_name: university.schoolName.trim(),
                 level: university.type || null,
                 major: university.major || null,
-                additionalMajor: university.additionalMajor || null,
-                admissionDate: university.admissionDate || null,
-                graduationDate: university.graduationDate || null,
+                additional_major: university.additionalMajor || null,
+                admission_date: university.admissionDate || null,
+                graduation_date: university.graduationDate || null,
                 isCurrent: university.isCurrent || false
               })
             });
@@ -1416,12 +1416,12 @@
               headers: getCSRFHeaders(),
               body: JSON.stringify({
                 type: 'GRADUATE_SCHOOL',
-                schoolName: graduate.schoolName.trim(),
+                school_name: graduate.schoolName.trim(),
                 level: graduate.type || null,
                 major: graduate.major || null,
-                admissionDate: graduate.admissionDate || null,
-                graduationDate: graduate.graduationDate || null,
-                isCurrent: graduate.isCurrent || false
+                admission_date: graduate.admissionDate || null,
+                graduation_date: graduate.graduationDate || null,
+                is_current: graduate.isCurrent || false
               })
             });
           }
@@ -1434,14 +1434,14 @@
               method: 'POST',
               headers: getCSRFHeaders(),
               body: JSON.stringify({
-                companyName: career.companyName.trim(),
+                company_name: career.companyName.trim(),
                 department: career.department || null,
-                positionTitle: career.positionTitle || null,
-                startDate: career.startDate || null,
-                endDate: career.endDate || null,
-                isCurrent: career.isCurrent || false,
+                position_title: career.positionTitle || null,
+                start_date: career.startDate || null,
+                end_date: career.endDate || null,
+                is_current: career.isCurrent || false,
                 responsibilities: career.responsibilities || null,
-                resignationReason: career.resignationReason || null
+                resignation_reason: career.resignationReason || null
               })
             });
           }
@@ -1454,11 +1454,11 @@
               method: 'POST',
               headers: getCSRFHeaders(),
               body: JSON.stringify({
-                activityName: experience.activityName.trim(),
+                activity_name: experience.activityName.trim(),
                 institution: experience.institution || null,
-                startDate: experience.startDate || null,
-                endDate: experience.endDate || null,
-                isCurrent: experience.isCurrent || false,
+                start_date: experience.startDate || null,
+                end_date: experience.endDate || null,
+                is_current: experience.isCurrent || false,
                 content: experience.content || null
               })
             });

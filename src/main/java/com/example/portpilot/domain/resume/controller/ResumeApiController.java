@@ -5,6 +5,7 @@ import com.example.portpilot.domain.resume.service.ResumeService;
 import com.example.portpilot.domain.user.User;
 import com.example.portpilot.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/resumes")
 @RequiredArgsConstructor
@@ -24,9 +26,14 @@ public class ResumeApiController {
     // 목록 조회
     @GetMapping
     public ResponseEntity<List<ResumeResponse>> getResumeList(Authentication authentication) {
-        Long userId = getCurrentUserId(authentication);
-        List<ResumeResponse> resumes = resumeService.getResumeList(userId);
-        return ResponseEntity.ok(resumes);
+        try {
+            Long userId = getCurrentUserId(authentication);
+            List<ResumeResponse> resumes = resumeService.getResumeList(userId);
+            return ResponseEntity.ok(resumes);
+        } catch (Exception e) {
+            log.error("이력서 목록 조회 실패", e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 상세 조회
@@ -34,19 +41,28 @@ public class ResumeApiController {
     public ResponseEntity<ResumeResponse> getResume(
             @PathVariable Long resumeId,
             Authentication authentication) {
-        Long userId = getCurrentUserId(authentication);
-        ResumeResponse resume = resumeService.getResume(resumeId, userId);
-        return ResponseEntity.ok(resume);
+        try {
+            Long userId = getCurrentUserId(authentication);
+            ResumeResponse resume = resumeService.getResume(resumeId, userId);
+            return ResponseEntity.ok(resume);
+        } catch (Exception e) {
+            log.error("이력서 조회 실패 - resumeId: {}", resumeId, e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 기본정보 생성
     @PostMapping
     public ResponseEntity<ResumeResponse> createResume(Authentication authentication,
                                                        @RequestBody @Valid ResumeRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        ResumeResponse response = resumeService.createResume(userId, request);
-
-        return ResponseEntity.ok(response);
+        try {
+            Long userId = getCurrentUserId(authentication);
+            ResumeResponse response = resumeService.createResume(userId, request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("이력서 생성 실패", e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 기본정보 수정
@@ -55,9 +71,14 @@ public class ResumeApiController {
             @PathVariable Long resumeId,
             Authentication authentication,
             @RequestBody ResumeRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        ResumeResponse resume = resumeService.updateResume(resumeId, userId, request);
-        return ResponseEntity.ok(resume);
+        try {
+            Long userId = getCurrentUserId(authentication);
+            ResumeResponse resume = resumeService.updateResume(resumeId, userId, request);
+            return ResponseEntity.ok(resume);
+        } catch (Exception e) {
+            log.error("이력서 수정 실패 - resumeId: {}", resumeId, e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 삭제
@@ -65,9 +86,14 @@ public class ResumeApiController {
     public ResponseEntity<Void> deleteResume(
             @PathVariable Long resumeId,
             Authentication authentication) {
-        Long userId = getCurrentUserId(authentication);
-        resumeService.deleteResume(resumeId, userId);
-        return ResponseEntity.ok().build();
+        try {
+            Long userId = getCurrentUserId(authentication);
+            resumeService.deleteResume(resumeId, userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("이력서 삭제 실패 - resumeId: {}", resumeId, e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 자소서 섹션 저장
@@ -76,9 +102,14 @@ public class ResumeApiController {
             @PathVariable Long resumeId,
             Authentication authentication,
             @RequestBody SectionRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        resumeService.saveSection(resumeId, userId, request);
-        return ResponseEntity.ok().build();
+        try {
+            Long userId = getCurrentUserId(authentication);
+            resumeService.saveSection(resumeId, userId, request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("섹션 저장 실패 - resumeId: {}", resumeId, e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 학력 추가
@@ -87,9 +118,17 @@ public class ResumeApiController {
             @PathVariable Long resumeId,
             Authentication authentication,
             @RequestBody EducationRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        resumeService.addEducation(resumeId, userId, request);
-        return ResponseEntity.ok().build();
+        try {
+            log.info("학력 추가 요청 - resumeId: {}, request: {}", resumeId, request);
+            Long userId = getCurrentUserId(authentication);
+            log.info("사용자 ID: {}", userId);
+            resumeService.addEducation(resumeId, userId, request);
+            log.info("학력 추가 성공");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("학력 추가 실패 - resumeId: {}, request: {}", resumeId, request, e);
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     // 경력 추가
@@ -98,9 +137,16 @@ public class ResumeApiController {
             @PathVariable Long resumeId,
             Authentication authentication,
             @RequestBody CareerRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        resumeService.addCareer(resumeId, userId, request);
-        return ResponseEntity.ok().build();
+        try {
+            log.info("경력 추가 요청 - resumeId: {}, request: {}", resumeId, request);
+            Long userId = getCurrentUserId(authentication);
+            resumeService.addCareer(resumeId, userId, request);
+            log.info("경력 추가 성공");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("경력 추가 실패 - resumeId: {}, request: {}", resumeId, request, e);
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     // 경험/활동 추가
@@ -109,9 +155,16 @@ public class ResumeApiController {
             @PathVariable Long resumeId,
             Authentication authentication,
             @RequestBody ExperienceRequest request) {
-        Long userId = getCurrentUserId(authentication);
-        resumeService.addExperience(resumeId, userId, request);
-        return ResponseEntity.ok().build();
+        try {
+            log.info("경험 추가 요청 - resumeId: {}, request: {}", resumeId, request);
+            Long userId = getCurrentUserId(authentication);
+            resumeService.addExperience(resumeId, userId, request);
+            log.info("경험 추가 성공");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("경험 추가 실패 - resumeId: {}, request: {}", resumeId, request, e);
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     // 파일 내보내기
@@ -161,11 +214,20 @@ public class ResumeApiController {
 
     private Long getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
+            log.error("인증되지 않은 사용자 접근");
             throw new RuntimeException("로그인이 필요합니다.");
         }
 
         String email = authentication.getName();
+        log.info("사용자 이메일: {}", email);
+
         User user = userRepository.findByEmail(email);
+        if (user == null) {
+            log.error("사용자를 찾을 수 없음: {}", email);
+            throw new RuntimeException("사용자를 찾을 수 없습니다: " + email);
+        }
+
+        log.info("사용자 ID: {}", user.getId());
         return user.getId();
     }
 }
