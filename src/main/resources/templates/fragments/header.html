@@ -3,130 +3,151 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <div th:fragment="header">
+    <!-- 헤더 전용 CSS 로드 -->
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+
     <!-- 상단 헤더 -->
-    <nav class="navbar navbar-expand-lg" style="background-color: #4A68C4; padding: 12px 0;">
+    <nav class="navbar navbar-expand-lg portpilot-header">
         <div class="container">
             <!-- 로고 -->
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="/img/logo_light.png" alt="PortPilot" style="height: 70px; margin-right: 15px; margin-top: -5px; margin-bottom: -5px;">
+                <img src="/img/logo_light.png" alt="PortPilot">
             </a>
+
+            <!-- 모바일 토글 버튼 -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
             <!-- 네비게이션 메뉴 -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mr-auto">
+                <!-- 좌측 메뉴 -->
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/portfolio">포트폴리오</a>
+                        <a class="nav-link" href="/portfolio">포트폴리오</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/projects">프로젝트</a>
+                        <a class="nav-link" href="/projects">프로젝트</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/jobs">채용정보</a>
+                        <a class="nav-link" href="/jobs">채용정보</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/mentoring">성장판</a>
+                        <a class="nav-link" href="/mentoring">성장판</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/resumes">AI 자소서</a>
+                        <a class="nav-link" href="/resumes">AI 자소서</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white font-weight-bold" href="/portfolio/guide">AI 포트폴리오</a>
+                        <a class="nav-link" href="/portfolio/guide">AI 포트폴리오</a>
                     </li>
                 </ul>
 
                 <!-- 우측 메뉴 -->
                 <div class="d-flex align-items-center">
                     <!-- 검색창 -->
-                    <form class="form-inline mr-3" th:action="@{/}" method="get">
+                    <form class="form-inline me-3" th:action="@{/}" method="get">
                         <div class="input-group">
                             <input name="searchQuery" class="form-control" type="search"
-                                   placeholder="Search" aria-label="Search"
-                                   style="border-radius: 4px 0 0 4px; border: none;">
-                            <div class="input-group-append">
-                                <button class="btn" type="submit"
-                                        style="background-color: #5A7BD4; color: white; border: none; border-radius: 0 4px 4px 0;">
-                                    Search
-                                </button>
-                            </div>
+                                   placeholder="Search" aria-label="Search">
+                            <button class="btn search-button" type="submit">
+                                Search
+                            </button>
                         </div>
                     </form>
 
                     <!-- 로그인/로그아웃 -->
-                    <div class="navbar-nav">
+                    <ul class="navbar-nav">
                         <!-- 로그인 안 된 경우 -->
                         <div sec:authorize="isAnonymous()" class="d-flex">
-                            <a class="nav-link text-white font-weight-bold mr-2" href="/users/login">로그인</a>
-                            <a class="nav-link text-white font-weight-bold" href="/users/new">회원가입</a>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/users/login">로그인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/users/register">회원가입</a>
+                            </li>
                         </div>
 
                         <!-- 로그인 된 경우 -->
-                        <div sec:authorize="isAuthenticated()" class="dropdown">
-                            <a class="nav-link dropdown-toggle text-white font-weight-bold" href="#"
-                               id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <li sec:authorize="isAuthenticated()" class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#"
+                               id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                               aria-expanded="false">
                                 <span sec:authentication="name">사용자명</span>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="/profile">내 프로필</a>
-                                <a class="dropdown-item" href="/projects/">내 프로젝트</a>
-                                <a class="dropdown-item" href="/study?tab=my">내 스터디</a>
-                                <div class="dropdown-divider"></div>
-                                <form th:action="@{/users/logout}" method="post" class="d-inline">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="dropdown-item">로그아웃</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="/profile">내 프로필</a></li>
+                                <li><a class="dropdown-item" href="/projects/">내 프로젝트</a></li>
+                                <li><a class="dropdown-item" href="/study?tab=my">내 스터디</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/users/logout}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <button type="submit" class="dropdown-item">로그아웃</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </nav>
 </div>
 
-<style>
-    .navbar {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+<!-- Bootstrap 5 호환 JavaScript (필요한 경우만) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bootstrap 5가 로드되지 않은 경우 수동으로 드롭다운 구현
+        if (typeof bootstrap === 'undefined') {
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
 
-    .nav-link {
-        padding: 8px 16px !important;
-        transition: background-color 0.3s ease;
-    }
+            dropdownToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
 
-    .nav-link:hover {
-        background-color: rgba(255,255,255,0.1) !important;
-        border-radius: 4px;
-    }
+                    // 다른 모든 드롭다운 닫기
+                    document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+                        if (dropdown !== toggle.closest('.dropdown')) {
+                            dropdown.classList.remove('show');
+                            dropdown.querySelector('.dropdown-menu')?.classList.remove('show');
+                        }
+                    });
 
-    .dropdown-menu {
-        border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border-radius: 8px;
-        margin-top: 8px;
-    }
+                    // 현재 드롭다운 토글
+                    const dropdown = toggle.closest('.dropdown');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    dropdown.classList.toggle('show');
+                    menu?.classList.toggle('show');
+                });
+            });
 
-    .dropdown-item {
-        padding: 10px 20px;
-        font-weight: 500;
-    }
+            // 모바일 토글 기능
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            const navbarCollapse = document.querySelector('.navbar-collapse');
 
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
-    }
+            if (navbarToggler && navbarCollapse) {
+                navbarToggler.addEventListener('click', function() {
+                    navbarCollapse.classList.toggle('show');
 
-    .dropdown-item button {
-        background: none;
-        border: none;
-        width: 100%;
-        text-align: left;
-        padding: 0;
-        color: inherit;
-        font-weight: inherit;
-    }
+                    // aria-expanded 업데이트
+                    const isExpanded = navbarCollapse.classList.contains('show');
+                    navbarToggler.setAttribute('aria-expanded', isExpanded);
+                });
+            }
 
-    .input-group {
-        min-width: 250px;
-    }
-</style>
+            // 외부 클릭시 모든 드롭다운 닫기
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+                        dropdown.classList.remove('show');
+                        dropdown.querySelector('.dropdown-menu')?.classList.remove('show');
+                    });
+                }
+            });
+        }
+    });
+</script>
 
 </html>
